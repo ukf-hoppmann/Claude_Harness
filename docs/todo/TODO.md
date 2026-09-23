@@ -264,26 +264,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Eine klare Schwelle trennt dokumentationspflichtige
     von trivialen Änderungen.
 
-- `STORY-013` **Daily-Development-Report**
-  - Type: Story.
-  - Parent: `EPIC-005`.
-  - Required for parent: No.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-23.
-  - Area: Dokumentation.
-  - Priority: Prospective.
-  - Dependencies: None.
-  - Goal: Format und Materialitätskriterium für einen Tagesbericht festlegen,
-    der nur bei tatsächlich relevanter Arbeit entsteht (nicht bei jeder
-    kleinen Änderung).
-  - Completion criteria: Ein Beispieltag mit relevanter Arbeit erzeugt einen
-    Report; ein Tag ohne relevante Arbeit erzeugt keinen.
-  - Summary: Ein optionales Modul schreibt pro Arbeitstag einen deutschen
-    Bericht über die relevanten Änderungen, mit Verweisen auf Backlog und
-    Commits. Ein Hook erinnert nach Änderungen daran, ihn aktuell zu halten.
-  - Notes: `items/STORY-013/STORY-013_notes.md`.
-  - Spec: `items/STORY-013/STORY-013_spec.md`.
-
 - `STORY-014` **Backlog-Lebenszyklus verfeinern**
   - Type: Story.
   - Parent: `EPIC-005`.

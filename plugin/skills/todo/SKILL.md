@@ -39,6 +39,9 @@ Read only what the task needs:
 - Ask first before: creating or deleting items; changing the meaning of
   `Goal`/`Completion criteria`; changing `Parent`, `Required for parent`,
   `Dependencies`, or `Priority`; setting `Completed`/`Rejected`; reopening.
+- When you start work on an item, set it to `In progress`. When its
+  completion criteria are met and verified, set it to `Awaiting confirmation`
+  yourself and tell the owner — do not ask whether to do so.
 - Only the project owner confirms `Completed` or `Rejected`. Record it in
   `Resolution`, then move the item unchanged to `archive.md`.
 - When an item gets notes, create `items/<ID>/<ID>_notes.md`, add the `Notes`
