@@ -1,0 +1,8 @@
+# Claude_Harness project configuration.
+version = 1
+
+[modules]
+todo = true
+
+[todo]
+path = "docs/todo"

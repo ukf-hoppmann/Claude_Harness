@@ -1,98 +1,20 @@
 # Project Backlog
 
-This file is the authoritative record of concrete project work that has been
-intentionally deferred, is being implemented, or awaits an explicit
-project-owner decision.
+Active project work: open, in progress, or awaiting a project-owner decision.
+Completed and rejected items are moved to `archive.md`; per-item notes and
+specs live in `items/<ID>/`.
 
-It uses Claude_Harness backlog format version 1. There is no compatibility with
-earlier Agent_Harness formats. Every work item stores its own type, lifecycle
-status, and relationships. Position and ordering in this document do not
-determine status or hierarchy.
-
-## Status model
-
-- `Open`: Accepted backlog work that has not started.
-- `In progress`: Work whose implementation or investigation has begun.
-- `Awaiting confirmation`: Implementation and verification are complete, but
-  project-owner confirmation is still pending.
-- `Completed`: Explicitly confirmed as complete by the project owner.
-- `Rejected`: Explicitly rejected by the project owner.
-
-Passing tests, commits, merges, silence, and agent assessment do not constitute
-completion confirmation.
-
-## Work-item types
-
-- `Epic`: A larger outcome containing multiple independently verifiable
-  results.
-- `Story`: An independently deliverable and observable result for a user,
-  operator, or consuming system.
-- `Task`: Supporting work that does not by itself deliver an independent
-  stakeholder-visible result.
-
-An epic has no parent. A story may belong to one epic. A task may belong to one
-story or directly to one epic when it enables multiple stories. Stories and
-tasks may also be standalone.
-
-`Parent` records outcome membership. `Dependencies` record prerequisites or
-execution ordering. These relationships are independent.
-
-## Required fields
-
-Every entry contains `Type`, `Status`, `Created`, `Area`, `Priority`,
-`Dependencies`, `Goal`, and `Completion criteria`.
-
-A story or task additionally contains `Parent`. A parented story or task
-contains `Required for parent`.
-
-A completed or rejected entry contains `Resolution`, recording the explicit
-project-owner decision. Missing historical evidence remains visible and is
-never invented.
-
-Default priorities are `Dringend`, `Wichtig`, and `Perspektivisch`. Project
-rules may define different priorities and areas.
-
-## Optional fields
-
-- `Summary`: Kurze, nicht-technische Zusammenfassung für den Projekteigner.
-  Pflicht, sobald das Item `Notes` hat.
-- `Notes`: Relativer Pfad (ab dieser Datei) zur Notes-Datei des Items.
-- `Spec`: Relativer Pfad (ab dieser Datei) zur Spec-Datei des Items.
-
-`Notes` und `Spec` stehen nur dort, wo die Datei existiert. Sie enthalten
-vorerst genau einen Pfad; später sind mehrere, kommagetrennte Pfade zulässig.
-
-## Item files
-
-Items mit Besprechungs- oder Planungsbedarf erhalten einen Ordner
-`items/<ID>/`, dessen Name exakt der ID entspricht. Kleine Aufgaben brauchen
-keinen Ordner.
-
-- `<ID>_notes.md`: Besprechungen und Entscheidungen. Eine Datei, die mitwächst;
-  Einträge sind datiert.
-- `<ID>_spec.md`: Technische Zusammenfassung (was und warum, Rahmenbedingungen,
-  Schnittstellen, betroffene Dateien, Abnahmekriterien). Sie ist Grundlage für
-  eine Umsetzungsplanung, enthält aber selbst keine Schrittfolge.
-
-Weitere Dateien entstehen nur bei Bedarf mit Themen-Suffix, z. B.
-`<ID>_spec_<thema>.md`; die erste Datei wird nicht umbenannt. Notes und Spec
-dürfen bei Planänderungen überarbeitet werden, Richtungswechsel werden aber in
-den Notes festgehalten statt stillschweigend überschrieben.
-
-Lesereihenfolge: Standardmäßig wird nur diese Datei gelesen. Die Notes kommen
-hinzu, wenn zu einem Item besprochen oder entschieden wird; die Spec, wenn die
-Umsetzung geplant oder nach ihr gefragt wird.
-
-Daily-Development-Reports gehören nicht in diesen Ordner.
+Format: Claude_Harness backlog format version 1. The rules are defined in the
+`todo` skill of the claude-harness plugin (`skills/todo/format.md`).
 
 ## Work items
 
 - `EPIC-001` **Konfigurierbarer Harness (Policy)**
   - Type: Epic.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-09-23.
   - Area: Konfiguration.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
   - Goal: Eine projekteigene Konfigurationsdatei für das Claude_Harness-Plugin
     definieren, die nur echte Projektwerte enthält (Pfade, Verify-/Testbefehle,
@@ -109,13 +31,13 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Type: Story.
   - Parent: `EPIC-001`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-09-23.
   - Area: Konfiguration.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
-  - Goal: Festlegen, wo die Projektkonfiguration liegt (z. B.
-    `.claude/harness.toml`) und welche Felder sie mindestens braucht
+  - Goal: Die Projektkonfiguration `.claude-harness/config.toml` festlegen:
+    welche Felder sie mindestens braucht
     (Pfade wie der Backlog-Ordner, Verify-/Testbefehle je Ebene, aktive Module,
     Quelle der Workspace-Wahl). Kein Approval-Modus.
   - Completion criteria: Ein dokumentiertes Schema (Ort, Felder, Typen, Pflicht
@@ -126,10 +48,10 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Type: Story.
   - Parent: `EPIC-001`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-23.
   - Area: Konfiguration.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: `STORY-001`, `STORY-018`.
   - Goal: Die Konfigurationsdatei beim Session-Start per Hook einlesen und gegen
     das Schema prüfen, damit Fehler auffallen, bevor ein Verify- oder
@@ -145,7 +67,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Konfiguration.
-  - Priority: Perspektivisch.
+  - Priority: Prospective.
   - Dependencies: `STORY-001`, `STORY-018`.
   - Goal: Jedes Regelmodul (Testing, TDD, Daily-Report, Backlog, …) soll pro
     Projekt über eine Schalterliste in der Konfiguration ein- oder
@@ -160,7 +82,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Governance.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
   - Goal: Eine Heuristik festlegen, wann eine größere Aufgabe in unabhängig
     verifizierbare Teilaufgaben zerlegt wird und wann sie bewusst am Stück
@@ -175,7 +97,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Governance.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
   - Goal: Kriterien festlegen (Umfang, Kopplung, Unterbrechbarkeit,
     Integrationsrisiko), nach denen entschieden wird, ob eine Aufgabe zerlegt
@@ -190,7 +112,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Governance.
-  - Priority: Perspektivisch.
+  - Priority: Prospective.
   - Dependencies: `STORY-004`.
   - Goal: Eine Prüfliste relevanter Dimensionen (Persistenz, Schnittstellen,
     Sicherheit, Tests, Dokumentation) für jede zerlegte Teilaufgabe
@@ -203,7 +125,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Governance.
-  - Priority: Dringend.
+  - Priority: Urgent.
   - Dependencies: None.
   - Goal: Einen verbindlichen Ablauf für Changes festlegen: Planen →
     Worktree erstellen oder lokal arbeiten → Coden → Mergen →
@@ -221,7 +143,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Governance.
-  - Priority: Dringend.
+  - Priority: Urgent.
   - Dependencies: `STORY-002`.
   - Goal: Klären, wonach heute nativ entschieden wird, ob ein Change lokal
     oder in einem Worktree läuft (welche Quelle, welche Signale), und ob
@@ -238,7 +160,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Governance.
-  - Priority: Dringend.
+  - Priority: Urgent.
   - Dependencies: `STORY-006`.
   - Goal: Die Schrittfolge Plan → Worktree/Lokal → Code → Merge → Cleanup als
     verbindliche Regel in `CLAUDE.md` festhalten, inklusive der Punkte, an
@@ -253,7 +175,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Governance.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: `STORY-007`.
   - Goal: Festhalten, welche Dateien/Pfade zu einem Change gehören, damit
     Merge und Cleanup nachvollziehbar nur diesen Umfang betreffen.
@@ -267,7 +189,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Governance.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: `STORY-007`.
   - Goal: Definieren, wann ein Worktree/Branch gefahrlos gelöscht werden darf
     (z. B. nur nach erfolgreichem Merge und sauberem Zustand) und wann nicht.
@@ -279,7 +201,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Entwicklung.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
   - Goal: Verbindliche Entwicklungsprinzipien, ein TDD-Ritual und einheitliche
     Testebenen (Unit/Integration/System) festlegen, damit Qualität nicht vom
@@ -294,7 +216,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Entwicklung.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
   - Goal: Projektbezogene Entwicklungsprinzipien (z. B. keine unnötigen
     Abstraktionen, keine spekulativen Features) explizit und
@@ -309,7 +231,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Entwicklung.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: `STORY-011`.
   - Goal: Festlegen, für welche Art von Änderungen TDD verbindlich ist und
     wie der Rot-Grün-Refactor-Zyklus nachvollziehbar dokumentiert wird.
@@ -323,7 +245,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Entwicklung.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: `STORY-001`.
   - Goal: Unit-, Integrations- und Systemtests über einen einzigen,
     konsistenten Aufrufpunkt (Verify-Skript) statt ad-hoc-Befehlen ausführen.
@@ -335,7 +257,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: In progress.
   - Created: 2026-09-23.
   - Area: Dokumentation.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
   - Goal: Technische Dokumentationspflichten, ein Daily-Development-Report
     und der Backlog-Lebenszyklus (dieses Dokument) sauber definieren, damit
@@ -351,7 +273,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Dokumentation.
-  - Priority: Perspektivisch.
+  - Priority: Prospective.
   - Dependencies: None.
   - Goal: Festlegen, wann und wo technische Änderungen dokumentiert werden
     müssen (z. B. README, Architekturnotizen) und wann das entfällt.
@@ -365,7 +287,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Dokumentation.
-  - Priority: Perspektivisch.
+  - Priority: Prospective.
   - Dependencies: None.
   - Goal: Format und Materialitätskriterium für einen Tagesbericht festlegen,
     der nur bei tatsächlich relevanter Arbeit entsteht (nicht bei jeder
@@ -377,10 +299,10 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Type: Story.
   - Parent: `EPIC-005`.
   - Required for parent: Yes.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-23.
   - Area: Dokumentation.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
   - Goal: Entscheiden und dokumentieren, wie der Backlog unter `docs/todo/`
     aufgebaut ist — welche Felder ein Eintrag mindestens braucht, welche
@@ -388,9 +310,10 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
     werden und welche Teile des Agent_Harness-Formats v2 übernommen werden.
   - Completion criteria: Ein dokumentierter Aufbau-Standard liegt vor, an dem
     sich jeder neue Eintrag ohne Rückfrage orientieren kann.
-  - Summary: Die Grundstruktur steht: eine Hauptliste plus pro Aufgabe bei
-    Bedarf ein Ordner mit Besprechungsnotizen und einer technischen
-    Beschreibung. Offen ist vor allem, wie das später automatisch geprüft wird.
+  - Summary: Die Struktur steht und ist ins Plugin übernommen: eine
+    Hauptliste, ein Archiv und pro Aufgabe bei Bedarf ein Ordner mit
+    Besprechungsnotizen und technischer Beschreibung. Wartet auf deine
+    Bestätigung.
   - Notes: `items/STORY-017/STORY-017_notes.md`.
   - Spec: `items/STORY-017/STORY-017_spec.md`.
 
@@ -401,7 +324,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Dokumentation.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: None.
   - Goal: Die Statusübergänge dieses Backlogs (Open → In progress → Awaiting
     confirmation → Completed/Rejected) im Alltag konsequent anwenden,
@@ -414,7 +337,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Sicherheit.
-  - Priority: Perspektivisch.
+  - Priority: Prospective.
   - Dependencies: None.
   - Goal: Festlegen, wie ein Testlauf/Verifikationsergebnis nachvollziehbar
     festgehalten wird (was wurde geprüft, mit welchem Ergebnis) und wie mit
@@ -432,7 +355,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Sicherheit.
-  - Priority: Perspektivisch.
+  - Priority: Prospective.
   - Dependencies: `STORY-011`.
   - Goal: Ein einfaches, lesbares Format festlegen, in dem ein Verify-Lauf
     protokolliert wird (Befehl, Ergebnis, Zeitpunkt, betroffener Scope).
@@ -446,7 +369,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Sicherheit.
-  - Priority: Perspektivisch.
+  - Priority: Prospective.
   - Dependencies: None.
   - Goal: Eine Regel festlegen, wie mit erkennbaren Zugangsdaten in
     Kommandozeilen-Output, Logs oder Dateien umgegangen wird (z. B. nie in
@@ -456,10 +379,10 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
 
 - `EPIC-007` **Plugin-Architektur**
   - Type: Epic.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-09-23.
   - Area: Architektur.
-  - Priority: Dringend.
+  - Priority: Urgent.
   - Dependencies: None.
   - Goal: Claude_Harness als Claude-Code-Plugin aufbauen, in dem die Module
     als Skills und die harten Regeln als Hooks umgesetzt sind, sodass Regeln
@@ -476,10 +399,10 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Type: Story.
   - Parent: `EPIC-007`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-23.
   - Area: Architektur.
-  - Priority: Dringend.
+  - Priority: Urgent.
   - Dependencies: None.
   - Goal: Die Plugin-Struktur anlegen (Manifest, Ordner für Skills und Hooks)
     und das Plugin in diesem Repo selbst aktivieren.
@@ -493,7 +416,7 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Architektur.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: `STORY-018`.
   - Goal: Verbindlich festlegen, welche Inhalte in die Root-`CLAUDE.md`, in
     Skills, in Unterordner-`CLAUDE.md` und in Hooks gehören.
@@ -504,13 +427,30 @@ Daily-Development-Reports gehören nicht in diesen Ordner.
   - Type: Story.
   - Parent: `EPIC-007`.
   - Required for parent: No.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-23.
   - Area: Dokumentation.
-  - Priority: Wichtig.
+  - Priority: Important.
   - Dependencies: `STORY-018`, `STORY-017`.
   - Goal: Die Backlog-Regeln aus `TODO.md` in einen `todo`-Skill überführen und
     die Formatprüfung als Hook umsetzen; der Kopf von `TODO.md` wird auf einen
     Verweis gekürzt.
   - Completion criteria: Ein fehlerhafter Eintrag wird vom Hook gemeldet; bei
     einer Aufgabe ohne Backlog-Bezug wird der Skill nicht geladen.
+
+- `STORY-021` **Harness in Projekten initialisieren**
+  - Type: Story.
+  - Parent: `EPIC-007`.
+  - Required for parent: No.
+  - Status: In progress.
+  - Created: 2026-09-23.
+  - Area: Architektur.
+  - Priority: Important.
+  - Dependencies: `STORY-018`.
+  - Goal: Ein Befehl `/claude-harness:init` richtet den Harness in einem
+    Projekt ein: Er legt `.claude-harness/config.toml` aus einer Vorlage an und
+    bietet bei aktivem `todo`-Modul an, den Backlog aus Vorlagen anzulegen —
+    jeweils erst nach Freigabe und ohne Bestehendes zu überschreiben.
+  - Completion criteria: In einem Projekt ohne Harness entstehen nach dem
+    Befehl und Freigabe eine gültige Config und ein gültiger leerer Backlog; in
+    einem bereits eingerichteten Projekt wird nichts verändert.

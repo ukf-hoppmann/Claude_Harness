@@ -1,0 +1,14 @@
+{
+  "name": "claude-harness-dev",
+  "owner": {
+    "name": "hoppmann"
+  },
+  "description": "Local development marketplace for the Claude_Harness plugin.",
+  "plugins": [
+    {
+      "name": "claude-harness",
+      "source": "./plugin",
+      "description": "Project harness for Claude Code."
+    }
+  ]
+}

@@ -1,23 +1,24 @@
 # STORY-017 — Spec: Aufbau des Backlogs
 
-## Ziel
+## Goal
 
 Ein Backlog-Standard, an dem sich jeder neue Eintrag ohne Rückfrage
 orientieren kann und der die AI nur so viel lesen lässt, wie die Aufgabe
 erfordert.
 
-## Struktur
+## Structure
 
 ```
 docs/todo/                  ← später konfigurierbar (EPIC-001)
- ├─ TODO.md                 ← Hauptliste, Standard-Arbeitsgrundlage
+ ├─ TODO.md                 ← aktive Einträge, Standard-Arbeitsgrundlage
+ ├─ archive.md              ← Completed/Rejected, nur bei Bedarf gelesen
  └─ items/
      └─ <ID>/               ← nur bei Bedarf, Name = exakte ID
          ├─ <ID>_notes.md   ← Besprechungen, Entscheidungen, datiert
          └─ <ID>_spec.md    ← technische Zusammenfassung
 ```
 
-## Eintragsformat
+## Entry format
 
 Übernommen aus Agent_Harness-Format v2:
 
@@ -26,6 +27,9 @@ docs/todo/                  ← später konfigurierbar (EPIC-001)
   `Dependencies`, `Goal`, `Completion criteria`.
 - Story/Task zusätzlich `Parent` (oder `None`), bei gesetztem Parent
   `Required for parent` (`Yes`/`No`).
+- Prioritäten: `Urgent`, `Important`, `Prospective`.
+- Areas: frei wählbar; bestehende Areas werden wiederverwendet, neue nur, wenn
+  keine plausibel passt.
 - `Resolution` genau dann, wenn Status `Completed` oder `Rejected`.
 
 Neu in Claude_Harness (optional):
@@ -35,7 +39,13 @@ Neu in Claude_Harness (optional):
 - `Notes`, `Spec`: relativer Pfad ab `TODO.md`; nur wenn die Datei existiert.
   Vorerst ein Pfad, später kommagetrennt mehrere.
 
-## Regeln
+## Language
+
+Feldnamen, Typen, Status, Prioritäten und Überschriften sind englisch, damit
+das Format auch ohne Deutschkenntnisse nutzbar ist. Inhalte werden in der
+Arbeitssprache des Projekts geführt (hier Deutsch).
+
+## Rules
 
 - Hierarchie: Story → Epic; Task → Story oder Epic; Epic ohne Parent.
 - Parent- und Dependency-Graph sind zyklenfrei.
@@ -46,33 +56,62 @@ Neu in Claude_Harness (optional):
   Child offen ist; ein Reject des Parents reißt Children nicht mit.
 - Statuswechsel ändern nur das Feld `Status`, nicht die Position im Dokument.
 
-## Item-Dateien
+## Item files
 
 - Notes: eine mitwachsende Datei, Einträge mit Datum und den Abschnitten
-  Besprochen / Beschlossen / Offen.
+  `Discussed` / `Decided` / `Open`.
 - Spec: was und warum, Rahmenbedingungen, Schnittstellen, betroffene Dateien,
   Abnahmekriterien. Keine Schrittfolge; die entsteht im Plan Mode.
 - Weitere Dateien nur per Themen-Suffix (`<ID>_spec_<thema>.md`).
 
-## Lesereihenfolge für die AI
+## Archive
+
+- Ist ein Item `Completed` oder `Rejected` und hat seine `Resolution`, wandert
+  es unverändert nach `archive.md`. Der Item-Ordner bleibt in `items/`.
+- Verweise auf archivierte IDs bleiben gültig.
+
+## Change authority
+
+Die AI ändert selbstständig:
+
+- Notes und Specs: ergänzen, überarbeiten, umstrukturieren, was relevant ist;
+- die Felder `Summary`, `Notes`, `Spec`;
+- Status `Open` → `In progress` → `Awaiting confirmation` und zurück zu
+  `In progress`;
+- sprachliche Korrekturen ohne Bedeutungsänderung;
+- Verschieben bestätigter oder abgelehnter Items ins Archiv.
+
+Die AI schlägt vor und wartet auf Freigabe:
+
+- neue Items anlegen oder Items löschen;
+- inhaltliche Änderungen an `Goal` oder `Completion criteria`; Änderungen an
+  `Parent`, `Required for parent`, `Dependencies`, `Priority`;
+- `Completed`, `Rejected`, Wiederöffnen.
+
+## Reading order
 
 1. Standard: nur `TODO.md`.
 2. Besprechung oder Entscheidung zu einem Item: zusätzlich dessen Notes.
 3. Umsetzungsplanung oder Nachfrage: zusätzlich dessen Spec.
+4. `archive.md` nur, wenn ein archiviertes Item gebraucht wird.
 
-## Nicht übernommen
+## Not adopted
 
 - Jede Kompatibilität zu Agent_Harness-Formaten. Dies ist Claude_Harness
   Backlog-Format Version 1.
 - Kopplung an einen Python-Renderer, der Regeln in `CLAUDE.md` einbaut.
 
-## Betroffene Dateien
+## Affected files
 
-- `docs/todo/TODO.md` (Formatbeschreibung und Einträge)
-- später (`STORY-020`): `todo`-Skill im Plugin, Hook-Skript zur Formatprüfung
+- `plugin/skills/todo/format.md` (vollständige Formatbeschreibung)
+- `plugin/skills/todo/SKILL.md` (Arbeitsregeln für die AI)
+- `plugin/templates/todo/` (Vorlagen für neue Projekte)
+- `docs/todo/TODO.md`, `docs/todo/archive.md` (Kopf verweist auf den Skill)
+- `plugin/scripts/backlog.py` (automatische Prüfung, `STORY-020`)
 
-## Abnahmekriterien
+## Acceptance criteria
 
-- Die Formatbeschreibung in `TODO.md` deckt alle Punkte dieser Spec ab.
+- Die Formatbeschreibung in `plugin/skills/todo/format.md` deckt alle Punkte
+  dieser Spec ab.
 - Mindestens ein Item nutzt `Summary`, `Notes` und `Spec` korrekt.
 - Ein neuer Eintrag lässt sich allein anhand der Formatbeschreibung anlegen.

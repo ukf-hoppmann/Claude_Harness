@@ -1,0 +1,10 @@
+# Claude_Harness project configuration.
+version = 1
+
+# Modules: true = active, false = inactive. Unlisted modules are inactive.
+[modules]
+todo = true
+
+# Backlog folder, relative to the project root.
+[todo]
+path = "docs/todo"

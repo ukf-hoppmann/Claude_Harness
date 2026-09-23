@@ -4,7 +4,7 @@
 
 Grundlage ist die Plugin-Architektur aus `EPIC-007`.
 
-### Besprochen
+### Discussed
 
 - Im Plugin-Modell entfällt das Rendern der Regeln in `CLAUDE.md`. Übrig
   bleiben echte Projektwerte, die Skills und Hooks nachschlagen.
@@ -12,7 +12,7 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
   1. Ein Plugin pro Modul; abschalten = nicht installieren.
   2. Ein Plugin mit Schalterliste in der Projektkonfiguration.
 
-### Beschlossen
+### Decided
 
 - `STORY-003`: Variante 2 — ein Plugin, Schalterliste in der
   Projektkonfiguration. Abgeschaltete Module prüfen den Schalter und werden
@@ -24,7 +24,27 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
 - `EPIC-005` wird nicht blockiert: `docs/todo/` ist fester Standard, bis die
   Konfiguration existiert.
 
-### Offen
+### Open
 
 - Ort und Format der Konfigurationsdatei (Vorschlag: `.claude/harness.toml`).
 - Spätestens der Verify-Befehl aus `STORY-011` braucht die Konfiguration.
+
+## 2026-09-23 — Config v1 umgesetzt
+
+### Decided
+
+- Ort: `.claude-harness/config.toml` im Projekt-Root. Der Harness bringt eine
+  Vorlage mit (`plugin/templates/config.toml`), die `/claude-harness:init`
+  verwendet (`STORY-021`).
+- Schema v1: `version = 1`, `[modules]` mit `todo = true/false` (nicht
+  aufgeführte Module sind aus), `[todo] path` relativ zum Projekt-Root,
+  Standard `docs/todo`.
+- Unbekannte Schlüssel, unbekannte Module, absolute Pfade und `..` sind
+  Fehler. Die Config wird mit `tomllib` geladen (Python 3.11+).
+- Die Validierung läuft beim Session-Start; Fehler landen als Hinweis im
+  Kontext statt stillschweigend ignoriert zu werden.
+
+### Open
+
+- Weitere Felder (Verify-Befehle, Workspace-Regeln) kommen mit den jeweiligen
+  Modulen dazu.
