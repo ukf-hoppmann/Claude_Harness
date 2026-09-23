@@ -1,0 +1,516 @@
+# Project Backlog
+
+This file is the authoritative record of concrete project work that has been
+intentionally deferred, is being implemented, or awaits an explicit
+project-owner decision.
+
+It uses Claude_Harness backlog format version 1. There is no compatibility with
+earlier Agent_Harness formats. Every work item stores its own type, lifecycle
+status, and relationships. Position and ordering in this document do not
+determine status or hierarchy.
+
+## Status model
+
+- `Open`: Accepted backlog work that has not started.
+- `In progress`: Work whose implementation or investigation has begun.
+- `Awaiting confirmation`: Implementation and verification are complete, but
+  project-owner confirmation is still pending.
+- `Completed`: Explicitly confirmed as complete by the project owner.
+- `Rejected`: Explicitly rejected by the project owner.
+
+Passing tests, commits, merges, silence, and agent assessment do not constitute
+completion confirmation.
+
+## Work-item types
+
+- `Epic`: A larger outcome containing multiple independently verifiable
+  results.
+- `Story`: An independently deliverable and observable result for a user,
+  operator, or consuming system.
+- `Task`: Supporting work that does not by itself deliver an independent
+  stakeholder-visible result.
+
+An epic has no parent. A story may belong to one epic. A task may belong to one
+story or directly to one epic when it enables multiple stories. Stories and
+tasks may also be standalone.
+
+`Parent` records outcome membership. `Dependencies` record prerequisites or
+execution ordering. These relationships are independent.
+
+## Required fields
+
+Every entry contains `Type`, `Status`, `Created`, `Area`, `Priority`,
+`Dependencies`, `Goal`, and `Completion criteria`.
+
+A story or task additionally contains `Parent`. A parented story or task
+contains `Required for parent`.
+
+A completed or rejected entry contains `Resolution`, recording the explicit
+project-owner decision. Missing historical evidence remains visible and is
+never invented.
+
+Default priorities are `Dringend`, `Wichtig`, and `Perspektivisch`. Project
+rules may define different priorities and areas.
+
+## Optional fields
+
+- `Summary`: Kurze, nicht-technische Zusammenfassung für den Projekteigner.
+  Pflicht, sobald das Item `Notes` hat.
+- `Notes`: Relativer Pfad (ab dieser Datei) zur Notes-Datei des Items.
+- `Spec`: Relativer Pfad (ab dieser Datei) zur Spec-Datei des Items.
+
+`Notes` und `Spec` stehen nur dort, wo die Datei existiert. Sie enthalten
+vorerst genau einen Pfad; später sind mehrere, kommagetrennte Pfade zulässig.
+
+## Item files
+
+Items mit Besprechungs- oder Planungsbedarf erhalten einen Ordner
+`items/<ID>/`, dessen Name exakt der ID entspricht. Kleine Aufgaben brauchen
+keinen Ordner.
+
+- `<ID>_notes.md`: Besprechungen und Entscheidungen. Eine Datei, die mitwächst;
+  Einträge sind datiert.
+- `<ID>_spec.md`: Technische Zusammenfassung (was und warum, Rahmenbedingungen,
+  Schnittstellen, betroffene Dateien, Abnahmekriterien). Sie ist Grundlage für
+  eine Umsetzungsplanung, enthält aber selbst keine Schrittfolge.
+
+Weitere Dateien entstehen nur bei Bedarf mit Themen-Suffix, z. B.
+`<ID>_spec_<thema>.md`; die erste Datei wird nicht umbenannt. Notes und Spec
+dürfen bei Planänderungen überarbeitet werden, Richtungswechsel werden aber in
+den Notes festgehalten statt stillschweigend überschrieben.
+
+Lesereihenfolge: Standardmäßig wird nur diese Datei gelesen. Die Notes kommen
+hinzu, wenn zu einem Item besprochen oder entschieden wird; die Spec, wenn die
+Umsetzung geplant oder nach ihr gefragt wird.
+
+Daily-Development-Reports gehören nicht in diesen Ordner.
+
+## Work items
+
+- `EPIC-001` **Konfigurierbarer Harness (Policy)**
+  - Type: Epic.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Konfiguration.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Eine projekteigene Konfigurationsdatei für das Claude_Harness-Plugin
+    definieren, die nur echte Projektwerte enthält (Pfade, Verify-/Testbefehle,
+    Workspace-Regeln, aktive Module) und von Skills und Hooks gelesen wird.
+    Genehmigungen und Rechte bleiben bei den nativen Claude-Code-Einstellungen.
+  - Completion criteria: Ein validiertes Konfigurationsschema existiert und wird
+    von mindestens einem realen Verify-Aufruf tatsächlich gelesen und
+    angewendet.
+  - Summary: Jedes Projekt bekommt eine kleine Einstellungsdatei, in der steht,
+    wo Dinge liegen, wie getestet wird und welche Harness-Teile an sind.
+  - Notes: `items/EPIC-001/EPIC-001_notes.md`.
+
+- `STORY-001` **Policy-Schema definieren**
+  - Type: Story.
+  - Parent: `EPIC-001`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Konfiguration.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Festlegen, wo die Projektkonfiguration liegt (z. B.
+    `.claude/harness.toml`) und welche Felder sie mindestens braucht
+    (Pfade wie der Backlog-Ordner, Verify-/Testbefehle je Ebene, aktive Module,
+    Quelle der Workspace-Wahl). Kein Approval-Modus.
+  - Completion criteria: Ein dokumentiertes Schema (Ort, Felder, Typen, Pflicht
+    vs. optional, Standardwerte) liegt vor und deckt alle Epics ab, die
+    Konfigurationswerte referenzieren.
+
+- `STORY-002` **Policy laden und validieren**
+  - Type: Story.
+  - Parent: `EPIC-001`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Konfiguration.
+  - Priority: Wichtig.
+  - Dependencies: `STORY-001`, `STORY-018`.
+  - Goal: Die Konfigurationsdatei beim Session-Start per Hook einlesen und gegen
+    das Schema prüfen, damit Fehler auffallen, bevor ein Verify- oder
+    Change-Vorgang startet.
+  - Completion criteria: Ein fehlerhafter oder unvollständiger
+    Konfigurationswert wird beim Session-Start erkannt und klar gemeldet statt
+    stillschweigend ignoriert zu werden.
+
+- `STORY-003` **Module unabhängig aktivierbar/deaktivierbar machen**
+  - Type: Story.
+  - Parent: `EPIC-001`.
+  - Required for parent: No.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Konfiguration.
+  - Priority: Perspektivisch.
+  - Dependencies: `STORY-001`, `STORY-018`.
+  - Goal: Jedes Regelmodul (Testing, TDD, Daily-Report, Backlog, …) soll pro
+    Projekt über eine Schalterliste in der Konfiguration ein- oder
+    ausschaltbar sein. Alle Module liegen in einem Plugin; die Skills und Hooks
+    eines abgeschalteten Moduls prüfen den Schalter und werden nicht aktiv.
+  - Completion criteria: Ein abgeschaltetes Modul greift nachweislich nicht
+    (seine Hooks tun nichts, sein Skill verweist auf den Schalter), ein
+    eingeschaltetes Modul greift vollständig.
+
+- `EPIC-002` **Task-Zerlegung**
+  - Type: Epic.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Eine Heuristik festlegen, wann eine größere Aufgabe in unabhängig
+    verifizierbare Teilaufgaben zerlegt wird und wann sie bewusst am Stück
+    bleibt, angelehnt an das Dimensions-Prinzip aus Agent_Harness.
+  - Completion criteria: Die Heuristik ist als Regel dokumentiert und wurde an
+    mindestens einer realen, mittelgroßen Aufgabe erprobt.
+
+- `STORY-004` **Zerlegungs-Heuristik definieren**
+  - Type: Story.
+  - Parent: `EPIC-002`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Kriterien festlegen (Umfang, Kopplung, Unterbrechbarkeit,
+    Integrationsrisiko), nach denen entschieden wird, ob eine Aufgabe zerlegt
+    wird.
+  - Completion criteria: Die Kriterien sind so konkret, dass zwei ähnliche
+    Aufgaben nachvollziehbar gleich behandelt werden.
+
+- `STORY-005` **Dimensions-Checkliste je Teilaufgabe**
+  - Type: Story.
+  - Parent: `EPIC-002`.
+  - Required for parent: No.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Perspektivisch.
+  - Dependencies: `STORY-004`.
+  - Goal: Eine Prüfliste relevanter Dimensionen (Persistenz, Schnittstellen,
+    Sicherheit, Tests, Dokumentation) für jede zerlegte Teilaufgabe
+    bereitstellen, damit nichts vergessen wird.
+  - Completion criteria: Die Checkliste wird bei einer zerlegten Aufgabe
+    sichtbar durchlaufen und im Ergebnis referenziert.
+
+- `EPIC-003` **Change-Workflow (Workspace, Ablauf, Cleanup)**
+  - Type: Epic.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Dringend.
+  - Dependencies: None.
+  - Goal: Einen verbindlichen Ablauf für Changes festlegen: Planen →
+    Worktree erstellen oder lokal arbeiten → Coden → Mergen →
+    Aufräumen/Worktree löschen, inklusive klarer Entscheidung, woher die
+    Workspace-Wahl ihre Quelle zieht und ob diese Quelle konfigurierbar sein
+    muss.
+  - Completion criteria: Der Ablauf ist Schritt für Schritt dokumentiert,
+    inklusive Abbruch-/Cleanup-Fällen, und wurde an einem realen Change
+    durchlaufen.
+
+- `STORY-006` **Workspace-Entscheidung formalisieren**
+  - Type: Story.
+  - Parent: `EPIC-003`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Dringend.
+  - Dependencies: `STORY-002`.
+  - Goal: Klären, wonach heute nativ entschieden wird, ob ein Change lokal
+    oder in einem Worktree läuft (welche Quelle, welche Signale), und ob
+    diese Quelle projektseitig einstellbar sein sollte statt fest im
+    Verhalten zu stecken.
+  - Completion criteria: Dokumentiert ist, welche Quelle die Entscheidung
+    heute tatsächlich steuert; eine Entscheidung liegt vor, ob/wie sie
+    konfigurierbar gemacht wird.
+
+- `STORY-007` **Verbindlicher Change-Ablauf**
+  - Type: Story.
+  - Parent: `EPIC-003`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Dringend.
+  - Dependencies: `STORY-006`.
+  - Goal: Die Schrittfolge Plan → Worktree/Lokal → Code → Merge → Cleanup als
+    verbindliche Regel in `CLAUDE.md` festhalten, inklusive der Punkte, an
+    denen eine Freigabe eingeholt wird.
+  - Completion criteria: Jeder Schritt hat eine klare Ein-/Ausstiegsbedingung;
+    kein Schritt wird stillschweigend übersprungen.
+
+- `STORY-008` **Scope-Tracking für den Change**
+  - Type: Story.
+  - Parent: `EPIC-003`.
+  - Required for parent: No.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Wichtig.
+  - Dependencies: `STORY-007`.
+  - Goal: Festhalten, welche Dateien/Pfade zu einem Change gehören, damit
+    Merge und Cleanup nachvollziehbar nur diesen Umfang betreffen.
+  - Completion criteria: Nach einem Change lässt sich ohne Rückfrage sagen,
+    welche Pfade dazugehörten und welche nicht.
+
+- `TASK-001` **Cleanup-Kriterien festlegen**
+  - Type: Task.
+  - Parent: `EPIC-003`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Wichtig.
+  - Dependencies: `STORY-007`.
+  - Goal: Definieren, wann ein Worktree/Branch gefahrlos gelöscht werden darf
+    (z. B. nur nach erfolgreichem Merge und sauberem Zustand) und wann nicht.
+  - Completion criteria: Die Kriterien verhindern nachweislich das Löschen
+    eines Worktrees mit unverarbeiteten Änderungen.
+
+- `EPIC-004` **Entwicklungsprinzipien & Testdisziplin**
+  - Type: Epic.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Verbindliche Entwicklungsprinzipien, ein TDD-Ritual und einheitliche
+    Testebenen (Unit/Integration/System) festlegen, damit Qualität nicht vom
+    Zufall abhängt.
+  - Completion criteria: Prinzipien, TDD-Ablauf und Testkommando sind
+    dokumentiert und werden bei mindestens einem Change sichtbar angewendet.
+
+- `STORY-009` **Entwicklungsprinzipien-Dokument**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Projektbezogene Entwicklungsprinzipien (z. B. keine unnötigen
+    Abstraktionen, keine spekulativen Features) explizit und
+    projekt-konfigurierbar festhalten statt nur implizit im Systemverhalten
+    zu belassen.
+  - Completion criteria: Ein kurzes, prüfbares Prinzipien-Dokument liegt vor.
+
+- `STORY-010` **TDD-Ritual (Red/Green/Refactor)**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: No.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Wichtig.
+  - Dependencies: `STORY-011`.
+  - Goal: Festlegen, für welche Art von Änderungen TDD verbindlich ist und
+    wie der Rot-Grün-Refactor-Zyklus nachvollziehbar dokumentiert wird.
+  - Completion criteria: Ein Beispiel-Change zeigt den Zyklus nachvollziehbar
+    (fehlschlagender Test → Implementierung → grüner Test → Refactor).
+
+- `STORY-011` **Test-Ebenen & einheitliches Verify-Kommando**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Wichtig.
+  - Dependencies: `STORY-001`.
+  - Goal: Unit-, Integrations- und Systemtests über einen einzigen,
+    konsistenten Aufrufpunkt (Verify-Skript) statt ad-hoc-Befehlen ausführen.
+  - Completion criteria: Ein Befehl führt alle konfigurierten Testebenen aus
+    und liefert ein lesbares Ergebnis (bestanden/fehlgeschlagen je Ebene).
+
+- `EPIC-005` **Dokumentation & Nachverfolgung**
+  - Type: Epic.
+  - Status: In progress.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Technische Dokumentationspflichten, ein Daily-Development-Report
+    und der Backlog-Lebenszyklus (dieses Dokument) sauber definieren, damit
+    Entscheidungen und Fortschritt über Sessions hinweg nachvollziehbar
+    bleiben.
+  - Completion criteria: Alle drei Bausteine sind dokumentiert und werden bei
+    laufender Arbeit tatsächlich gepflegt statt nur einmalig angelegt.
+
+- `STORY-012` **Technische Dokumentationspflicht definieren**
+  - Type: Story.
+  - Parent: `EPIC-005`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Perspektivisch.
+  - Dependencies: None.
+  - Goal: Festlegen, wann und wo technische Änderungen dokumentiert werden
+    müssen (z. B. README, Architekturnotizen) und wann das entfällt.
+  - Completion criteria: Eine klare Schwelle trennt dokumentationspflichtige
+    von trivialen Änderungen.
+
+- `STORY-013` **Daily-Development-Report**
+  - Type: Story.
+  - Parent: `EPIC-005`.
+  - Required for parent: No.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Perspektivisch.
+  - Dependencies: None.
+  - Goal: Format und Materialitätskriterium für einen Tagesbericht festlegen,
+    der nur bei tatsächlich relevanter Arbeit entsteht (nicht bei jeder
+    kleinen Änderung).
+  - Completion criteria: Ein Beispieltag mit relevanter Arbeit erzeugt einen
+    Report; ein Tag ohne relevante Arbeit erzeugt keinen.
+
+- `STORY-017` **Backlog-Format/Aufbau festlegen**
+  - Type: Story.
+  - Parent: `EPIC-005`.
+  - Required for parent: Yes.
+  - Status: In progress.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Entscheiden und dokumentieren, wie der Backlog unter `docs/todo/`
+    aufgebaut ist — welche Felder ein Eintrag mindestens braucht, welche
+    Typen/Areas/Prioritäten gelten, wie Notes und Specs pro Item abgelegt
+    werden und welche Teile des Agent_Harness-Formats v2 übernommen werden.
+  - Completion criteria: Ein dokumentierter Aufbau-Standard liegt vor, an dem
+    sich jeder neue Eintrag ohne Rückfrage orientieren kann.
+  - Summary: Die Grundstruktur steht: eine Hauptliste plus pro Aufgabe bei
+    Bedarf ein Ordner mit Besprechungsnotizen und einer technischen
+    Beschreibung. Offen ist vor allem, wie das später automatisch geprüft wird.
+  - Notes: `items/STORY-017/STORY-017_notes.md`.
+  - Spec: `items/STORY-017/STORY-017_spec.md`.
+
+- `STORY-014` **Backlog-Lebenszyklus verfeinern**
+  - Type: Story.
+  - Parent: `EPIC-005`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Wichtig.
+  - Dependencies: None.
+  - Goal: Die Statusübergänge dieses Backlogs (Open → In progress → Awaiting
+    confirmation → Completed/Rejected) im Alltag konsequent anwenden,
+    inklusive der Regel, dass nur der Projekteigner final bestätigt.
+  - Completion criteria: Mindestens ein Eintrag hat den vollständigen
+    Lebenszyklus bis `Completed` oder `Rejected` durchlaufen.
+
+- `EPIC-006` **Verifikationsnachweis & Umgang mit sensiblen Daten (Vorschlag)**
+  - Type: Epic.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Sicherheit.
+  - Priority: Perspektivisch.
+  - Dependencies: None.
+  - Goal: Festlegen, wie ein Testlauf/Verifikationsergebnis nachvollziehbar
+    festgehalten wird (was wurde geprüft, mit welchem Ergebnis) und wie mit
+    Geheimnissen/Zugangsdaten in Logs, Output und Dateien umgegangen wird, da
+    beides in Agent_Harness fest verankert ist, bei Claude aber komplett
+    fehlt.
+  - Completion criteria: Ein Nachweis-Format für Verifikationsergebnisse
+    existiert; eine Regel zum Umgang mit erkennbaren Geheimnissen in Output
+    und Dateien ist dokumentiert und wurde mindestens einmal angewendet.
+
+- `STORY-015` **Verifikations-Nachweis-Format**
+  - Type: Story.
+  - Parent: `EPIC-006`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Sicherheit.
+  - Priority: Perspektivisch.
+  - Dependencies: `STORY-011`.
+  - Goal: Ein einfaches, lesbares Format festlegen, in dem ein Verify-Lauf
+    protokolliert wird (Befehl, Ergebnis, Zeitpunkt, betroffener Scope).
+  - Completion criteria: Nach einem Change liegt ein solcher Nachweis vor und
+    lässt sich ohne Rückfrage nachvollziehen.
+
+- `STORY-016` **Umgang mit Secrets/Credentials**
+  - Type: Story.
+  - Parent: `EPIC-006`.
+  - Required for parent: No.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Sicherheit.
+  - Priority: Perspektivisch.
+  - Dependencies: None.
+  - Goal: Eine Regel festlegen, wie mit erkennbaren Zugangsdaten in
+    Kommandozeilen-Output, Logs oder Dateien umgegangen wird (z. B. nie in
+    Klartext in Dateien schreiben, vor dem Committen prüfen).
+  - Completion criteria: Die Regel ist dokumentiert und deckt mindestens die
+    Fälle Logging, Dateien und Git-Commits ab.
+
+- `EPIC-007` **Plugin-Architektur**
+  - Type: Epic.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Architektur.
+  - Priority: Dringend.
+  - Dependencies: None.
+  - Goal: Claude_Harness als Claude-Code-Plugin aufbauen, in dem die Module
+    als Skills und die harten Regeln als Hooks umgesetzt sind, sodass Regeln
+    gestuft geladen werden und bei unbeteiligten Aufgaben kaum Tokens kosten.
+  - Completion criteria: Das Plugin ist in diesem Repo aktiv, mindestens ein
+    Modul läuft als Skill mit zugehörigem Hook, und die Root-`CLAUDE.md`
+    enthält nur Verweise statt Regeltexten.
+  - Summary: Der Harness wird ein Zusatzpaket für Claude Code. Regeln werden
+    nur dann geladen, wenn sie zur aktuellen Aufgabe passen; Pflichtregeln
+    prüft ein Skript automatisch.
+  - Notes: `items/EPIC-007/EPIC-007_notes.md`.
+
+- `STORY-018` **Plugin-Grundgerüst**
+  - Type: Story.
+  - Parent: `EPIC-007`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Architektur.
+  - Priority: Dringend.
+  - Dependencies: None.
+  - Goal: Die Plugin-Struktur anlegen (Manifest, Ordner für Skills und Hooks)
+    und das Plugin in diesem Repo selbst aktivieren.
+  - Completion criteria: Claude Code erkennt das Plugin in diesem Repo; ein
+    Test-Skill ist aufrufbar und ein Test-Hook wird nachweislich ausgelöst.
+
+- `STORY-019` **Ladestufen-Regel festlegen**
+  - Type: Story.
+  - Parent: `EPIC-007`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Architektur.
+  - Priority: Wichtig.
+  - Dependencies: `STORY-018`.
+  - Goal: Verbindlich festlegen, welche Inhalte in die Root-`CLAUDE.md`, in
+    Skills, in Unterordner-`CLAUDE.md` und in Hooks gehören.
+  - Completion criteria: Die Regel ist dokumentiert, und für jedes bestehende
+    Modul ist nachvollziehbar, auf welcher Stufe es liegt und warum.
+
+- `STORY-020` **TODO-Modul als Skill und Hook**
+  - Type: Story.
+  - Parent: `EPIC-007`.
+  - Required for parent: No.
+  - Status: Open.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Wichtig.
+  - Dependencies: `STORY-018`, `STORY-017`.
+  - Goal: Die Backlog-Regeln aus `TODO.md` in einen `todo`-Skill überführen und
+    die Formatprüfung als Hook umsetzen; der Kopf von `TODO.md` wird auf einen
+    Verweis gekürzt.
+  - Completion criteria: Ein fehlerhafter Eintrag wird vom Hook gemeldet; bei
+    einer Aufgabe ohne Backlog-Bezug wird der Skill nicht geladen.
