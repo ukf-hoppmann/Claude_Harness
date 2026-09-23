@@ -27,3 +27,8 @@ def delivered_notices_file(session_id: str) -> Path:
 
 def daily_reminded_file(session_id: str) -> Path:
     return state_dir() / f"daily-reminded-{_safe(session_id)}.json"
+
+
+def techdocs_marker(session_id: str, kind: str) -> Path:
+    """kind: 'project' (project files changed), 'docs' (docs changed), 'reminded'."""
+    return state_dir() / f"techdocs-{kind}-{_safe(session_id)}"

@@ -9,13 +9,16 @@ from typing import Any
 
 CONFIG_RELATIVE_PATH = PurePosixPath(".claude-harness/config.toml")
 CONFIG_VERSION = 1
-KNOWN_MODULES = ("todo", "daily")
+KNOWN_MODULES = ("todo", "daily", "techdocs")
 DEFAULT_DOCS_ROOT = PurePosixPath("docs")
 DEFAULT_LANGUAGE = "en"
 DEFAULT_TODO_PATH = PurePosixPath("todo")
 DEFAULT_DAILY_PATH = PurePosixPath("development/daily")
+DEFAULT_TECHDOCS_PATH = PurePosixPath("techdocs")
+TECHDOC_KINDS = ("architecture", "interfaces", "configuration", "operations")
+DEFAULT_TECHDOCS = ("architecture", "interfaces", "configuration")
 
-_TOP_LEVEL_KEYS = {"version", "docs", "modules", "todo", "daily"}
+_TOP_LEVEL_KEYS = {"version", "docs", "modules", "todo", "daily", "techdocs"}
 _DOCS_KEYS = {"root", "language"}
 _PATH_KEYS = {"path"}
 _LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
@@ -33,6 +36,8 @@ class HarnessConfig:
     # Module paths are resolved against docs_root, i.e. relative to the project root.
     todo_path: PurePosixPath
     daily_path: PurePosixPath
+    techdocs_path: PurePosixPath
+    techdocs: tuple[str, ...]
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
@@ -93,6 +98,9 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
 
     todo_path = _path_value(_table(data, "todo", _PATH_KEYS, errors), "path", "todo", DEFAULT_TODO_PATH, errors)
     daily_path = _path_value(_table(data, "daily", _PATH_KEYS, errors), "path", "daily", DEFAULT_DAILY_PATH, errors)
+    raw_techdocs = _table(data, "techdocs", {"path", "documents"}, errors)
+    techdocs_path = _path_value(raw_techdocs, "path", "techdocs", DEFAULT_TECHDOCS_PATH, errors)
+    techdocs = _techdoc_kinds(raw_techdocs.get("documents", list(DEFAULT_TECHDOCS)), errors)
 
     if errors:
         raise ConfigError(
@@ -104,7 +112,23 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
         language=language,
         todo_path=docs_root / todo_path,
         daily_path=docs_root / daily_path,
+        techdocs_path=docs_root / techdocs_path,
+        techdocs=techdocs,
     )
+
+
+def _techdoc_kinds(value: Any, errors: list[str]) -> tuple[str, ...]:
+    if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+        errors.append("techdocs.documents must be a list of strings")
+        return DEFAULT_TECHDOCS
+    unknown = [v for v in value if v not in TECHDOC_KINDS]
+    if unknown:
+        errors.append(
+            f"unknown techdocs.documents: {', '.join(unknown)} (known: {', '.join(TECHDOC_KINDS)})"
+        )
+    if len(set(value)) != len(value):
+        errors.append("techdocs.documents must not contain duplicates")
+    return tuple(value)
 
 
 def _table(data: dict[str, Any], name: str, keys: set[str], errors: list[str]) -> dict[str, Any]:

@@ -10,6 +10,7 @@ language = "en"     # ISO 639-1 language of generated documents
 [modules]
 todo = true
 daily = false
+techdocs = true
 
 # Backlog folder, relative to docs.root.
 [todo]
@@ -18,3 +19,10 @@ path = "todo"
 # Daily development reports, relative to docs.root.
 [daily]
 path = "development/daily"
+
+# Technical documentation, relative to docs.root. README.md in the project
+# root always belongs to it. Known documents: architecture, interfaces,
+# configuration, operations (file name: <document>.md).
+[techdocs]
+path = "techdocs"
+documents = ["architecture", "interfaces", "configuration"]

@@ -8,9 +8,14 @@ language = "de"
 [modules]
 todo = true
 daily = true
+techdocs = true
 
 [todo]
 path = "todo"
 
 [daily]
 path = "development/daily"
+
+[techdocs]
+path = "techdocs"
+documents = ["architecture", "interfaces", "configuration"]

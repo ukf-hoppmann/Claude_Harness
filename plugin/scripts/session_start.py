@@ -4,6 +4,7 @@ import json
 import sys
 
 from backlog import TODO_FILE, validate_backlog
+from techdocs import document_paths
 from harness_config import CONFIG_RELATIVE_PATH, ConfigError, load_config, project_root
 
 MAX_REPORTED = 5
@@ -62,6 +63,19 @@ def main() -> int:
             f"Daily reports: {config.daily_path}/; rules in skill claude-harness:daily "
             "(load it when reminded or asked about daily reports)."
         )
+
+    if config.enabled("techdocs"):
+        lines.append(
+            f"Technical docs: README.md and {config.techdocs_path}/; rules in skill "
+            "claude-harness:techdocs (load it when changing documented behavior, interfaces, "
+            "configuration, or architecture, or when reminded)."
+        )
+        missing = [str(p) for p in document_paths(config) if not (root / p).is_file()]
+        if missing:
+            lines.append(
+                f"Missing technical docs: {', '.join(missing)}. Propose creating them from the "
+                "templates when relevant; create only after approval."
+            )
 
     print("\n".join(lines))
     return 0

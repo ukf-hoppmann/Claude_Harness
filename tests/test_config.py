@@ -29,6 +29,15 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.language, "en")
         self.assertEqual(config.todo_path, PurePosixPath("docs/todo"))
         self.assertEqual(config.daily_path, PurePosixPath("docs/development/daily"))
+        self.assertFalse(config.enabled("techdocs"))
+        self.assertEqual(config.techdocs_path, PurePosixPath("docs/techdocs"))
+        self.assertEqual(config.techdocs, ("architecture", "interfaces", "configuration"))
+
+    def test_techdocs_documents(self):
+        config = parse_config({"version": 1, "techdocs": {"path": "tech", "documents": ["operations"]}})
+        self.assertEqual(config.techdocs_path, PurePosixPath("docs/tech"))
+        self.assertEqual(config.techdocs, ("operations",))
+        self.assertEqual(parse_config({"version": 1, "techdocs": {"documents": []}}).techdocs, ())
 
     def test_rejects_invalid_values(self):
         cases = [
@@ -45,6 +54,10 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "docs": {"other": 1}},
             {"version": 1, "docs": "docs"},
             {"version": 1, "daily": {"path": "../x"}},
+            {"version": 1, "techdocs": {"documents": ["unknown"]}},
+            {"version": 1, "techdocs": {"documents": ["interfaces", "interfaces"]}},
+            {"version": 1, "techdocs": {"documents": "interfaces"}},
+            {"version": 1, "techdocs": {"path": "/abs"}},
         ]
         for data in cases:
             with self.subTest(data=data), self.assertRaises(ConfigError):
