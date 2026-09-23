@@ -98,3 +98,19 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Notes: `items/STORY-013/STORY-013_notes.md`.
   - Spec: `items/STORY-013/STORY-013_spec.md`.
   - Resolution: Confirmed by the project owner on 2026-09-23.
+
+- `STORY-014` **Backlog-Lebenszyklus verfeinern**
+  - Type: Story.
+  - Parent: `EPIC-005`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Die Statusübergänge dieses Backlogs (Open → In progress → Awaiting
+    confirmation → Completed/Rejected) im Alltag konsequent anwenden,
+    inklusive der Regel, dass nur der Projekteigner final bestätigt.
+  - Completion criteria: Mindestens ein Eintrag hat den vollständigen
+    Lebenszyklus bis `Completed` oder `Rejected` durchlaufen.
+  - Resolution: Confirmed by the project owner on 2026-09-23.

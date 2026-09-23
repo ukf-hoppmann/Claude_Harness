@@ -264,21 +264,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Eine klare Schwelle trennt dokumentationspflichtige
     von trivialen Änderungen.
 
-- `STORY-014` **Backlog-Lebenszyklus verfeinern**
-  - Type: Story.
-  - Parent: `EPIC-005`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-23.
-  - Area: Dokumentation.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Die Statusübergänge dieses Backlogs (Open → In progress → Awaiting
-    confirmation → Completed/Rejected) im Alltag konsequent anwenden,
-    inklusive der Regel, dass nur der Projekteigner final bestätigt.
-  - Completion criteria: Mindestens ein Eintrag hat den vollständigen
-    Lebenszyklus bis `Completed` oder `Rejected` durchlaufen.
-
 - `EPIC-006` **Verifikationsnachweis & Umgang mit sensiblen Daten (Vorschlag)**
   - Type: Epic.
   - Status: Open.
