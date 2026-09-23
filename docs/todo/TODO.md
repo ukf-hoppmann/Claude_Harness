@@ -254,15 +254,23 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-005`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-09-23.
   - Area: Dokumentation.
   - Priority: Prospective.
   - Dependencies: None.
-  - Goal: Festlegen, wann und wo technische Änderungen dokumentiert werden
-    müssen (z. B. README, Architekturnotizen) und wann das entfällt.
-  - Completion criteria: Eine klare Schwelle trennt dokumentationspflichtige
-    von trivialen Änderungen.
+  - Goal: Festlegen, welche Systemdokumente ein Projekt standardmäßig hat
+    (z. B. README, Architektur, Schnittstellen, Konfiguration), welche Art von
+    Änderung welches Dokument betrifft und wann eine Anpassung entfällt.
+  - Completion criteria: Eine schlanke, pro Projekt anpassbare
+    Standardstruktur mit Vorlagen liegt vor; eine klare Schwelle trennt
+    dokumentationspflichtige von trivialen Änderungen; die Struktur ist in
+    diesem Repo angewendet.
+  - Summary: Der Harness legt fest, welche Dokumente beschreiben, wie ein
+    Projekt aktuell aufgebaut ist und benutzt wird, und sorgt dafür, dass sie
+    bei Änderungen mitgepflegt werden.
+  - Notes: `items/STORY-012/STORY-012_notes.md`.
+  - Spec: `items/STORY-012/STORY-012_spec.md`.
 
 - `EPIC-006` **Verifikationsnachweis & Umgang mit sensiblen Daten (Vorschlag)**
   - Type: Epic.
