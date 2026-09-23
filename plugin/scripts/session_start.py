@@ -31,7 +31,10 @@ def main() -> int:
     states = ", ".join(
         f"{name}={'on' if enabled else 'off'}" for name, enabled in sorted(config.modules.items())
     ) or "none"
-    lines = [f"Claude_Harness: modules {states}."]
+    lines = [
+        f"Claude_Harness: modules {states}.",
+        f"Document language: {config.language} (write all harness documents in it).",
+    ]
 
     if config.enabled("todo"):
         todo_dir = root / config.todo_path
@@ -53,6 +56,12 @@ def main() -> int:
                 lines += [f"- {p}" for p in problems[:MAX_REPORTED]]
                 if len(problems) > MAX_REPORTED:
                     lines.append(f"- … {len(problems) - MAX_REPORTED} more")
+
+    if config.enabled("daily"):
+        lines.append(
+            f"Daily reports: {config.daily_path}/; rules in skill claude-harness:daily "
+            "(load it when reminded or asked about daily reports)."
+        )
 
     print("\n".join(lines))
     return 0

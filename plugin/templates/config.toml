@@ -1,10 +1,20 @@
 # Claude_Harness project configuration.
 version = 1
 
+# Documents written by the harness.
+[docs]
+root = "docs"       # folder for all harness documents, relative to the project root
+language = "en"     # ISO 639-1 language of generated documents
+
 # Modules: true = active, false = inactive. Unlisted modules are inactive.
 [modules]
 todo = true
+daily = false
 
-# Backlog folder, relative to the project root.
+# Backlog folder, relative to docs.root.
 [todo]
-path = "docs/todo"
+path = "todo"
+
+# Daily development reports, relative to docs.root.
+[daily]
+path = "development/daily"

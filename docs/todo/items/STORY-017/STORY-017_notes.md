@@ -47,9 +47,8 @@
 
 ### Open
 
-- Automatische Formatprüfung: als Hook-Skript im Plugin, analog zu
-  `backlog.py` aus Agent_Harness, inklusive der neuen Felder und der
-  Summary-Pflicht (`STORY-020`).
+- ~~Automatische Formatprüfung als Hook-Skript im Plugin (`STORY-020`).~~
+  Erledigt am 2026-09-23.
 - ~~Nach `STORY-020` wird die Formatbeschreibung im Kopf von `TODO.md` auf
   einen Verweis auf den `todo`-Skill gekürzt.~~ Erledigt am 2026-09-23.
 
@@ -100,3 +99,37 @@
   relativ zu `TODO.md`).
 - Fehlt `TODO.md` am konfigurierten Pfad, fragt die AI nach, statt eine neue
   anzulegen — die Datei kann auch nur woanders liegen.
+
+## 2026-09-23 — Wiedereröffnet: Abschluss von Parents, Einordnung neuer Arbeit
+
+Wiedereröffnet mit Zustimmung des Projekteigners. Grund: Regeln für den
+Abschluss von Parents und für die Einordnung neuer Arbeit fehlten.
+
+### Discussed
+
+- Bisher passierte nichts, wenn alle Kinder eines Epics erledigt waren; die
+  Prüfung meldete nur Verstöße.
+- Offene optionale Kinder unter einem abgeschlossenen Parent waren erlaubt,
+  aber ungeregelt.
+- Neue Arbeit sollte nicht ständig neue Epics erzeugen. Das Archiv komplett zu
+  lesen, um passende Parents zu finden, kostet aber viele Tokens.
+
+### Decided
+
+- Sind alle Pflicht-Kinder `Completed`, prüft die AI die eigenen
+  Abschlusskriterien des Parents. Sind sie erfüllt, setzt sie ihn auf
+  `Awaiting confirmation` und informiert den Projekteigner, der dann
+  bestätigt. Sonst nennt sie, was fehlt.
+- Die Prüfung gibt dafür einen Hinweis aus. Der Stop-Hook meldet jeden neuen
+  Hinweis einmal pro Session, damit er nicht bei jeder Änderung wiederkommt.
+- Ein Parent wird erst `Completed` oder `Rejected`, wenn alle Kinder (Pflicht
+  und optional) abgeschlossen oder umgehängt sind. Die Prüfung meldet einen
+  Verstoß als Fehler.
+- Neue Stories/Tasks werden in bestehende Epics/Stories eingeordnet, auch in
+  archivierte. Lieber einen geschlossenen Eintrag wieder öffnen (mit Freigabe
+  und Begründung in den Notes) als neue Epics oder Stories anlegen.
+- Für die Einordnung liefert `backlog.py <Ordner> --index` eine Zeile pro
+  Eintrag über `TODO.md` und `archive.md` hinweg. Das Archiv wird nur gelesen,
+  wenn ein bestimmter Eintrag im Detail gebraucht wird.
+- Wiederöffnen verschiebt den Eintrag zurück nach `TODO.md`, ohne
+  `Resolution`; der Grund steht in den Notes.

@@ -8,14 +8,27 @@ from harness_config import ConfigError, load_config, parse_config
 
 class ParseConfigTest(unittest.TestCase):
     def test_valid_config(self):
-        config = parse_config({"version": 1, "modules": {"todo": True}, "todo": {"path": "planning"}})
+        config = parse_config({
+            "version": 1,
+            "docs": {"root": "documentation", "language": "de"},
+            "modules": {"todo": True, "daily": True},
+            "todo": {"path": "planning"},
+            "daily": {"path": "log"},
+        })
         self.assertTrue(config.enabled("todo"))
-        self.assertEqual(config.todo_path, PurePosixPath("planning"))
+        self.assertTrue(config.enabled("daily"))
+        self.assertEqual(config.language, "de")
+        self.assertEqual(config.docs_root, PurePosixPath("documentation"))
+        self.assertEqual(config.todo_path, PurePosixPath("documentation/planning"))
+        self.assertEqual(config.daily_path, PurePosixPath("documentation/log"))
 
     def test_defaults(self):
         config = parse_config({"version": 1})
         self.assertFalse(config.enabled("todo"))
+        self.assertFalse(config.enabled("daily"))
+        self.assertEqual(config.language, "en")
         self.assertEqual(config.todo_path, PurePosixPath("docs/todo"))
+        self.assertEqual(config.daily_path, PurePosixPath("docs/development/daily"))
 
     def test_rejects_invalid_values(self):
         cases = [
@@ -26,6 +39,12 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "todo": {"path": "/abs"}},
             {"version": 1, "todo": {"path": "../outside"}},
             {"version": 1, "todo": {"path": "docs", "other": 1}},
+            {"version": 1, "docs": {"root": "/abs"}},
+            {"version": 1, "docs": {"language": "deu"}},
+            {"version": 1, "docs": {"language": "DE"}},
+            {"version": 1, "docs": {"other": 1}},
+            {"version": 1, "docs": "docs"},
+            {"version": 1, "daily": {"path": "../x"}},
         ]
         for data in cases:
             with self.subTest(data=data), self.assertRaises(ConfigError):

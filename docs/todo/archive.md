@@ -8,28 +8,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 ## Work items
 
-- `STORY-017` **Backlog-Format/Aufbau festlegen**
-  - Type: Story.
-  - Parent: `EPIC-005`.
-  - Required for parent: Yes.
-  - Status: Completed.
-  - Created: 2026-09-23.
-  - Area: Dokumentation.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Entscheiden und dokumentieren, wie der Backlog unter `docs/todo/`
-    aufgebaut ist — welche Felder ein Eintrag mindestens braucht, welche
-    Typen/Areas/Prioritäten gelten, wie Notes und Specs pro Item abgelegt
-    werden und welche Teile des Agent_Harness-Formats v2 übernommen werden.
-  - Completion criteria: Ein dokumentierter Aufbau-Standard liegt vor, an dem
-    sich jeder neue Eintrag ohne Rückfrage orientieren kann.
-  - Summary: Die Struktur steht und ist ins Plugin übernommen: eine
-    Hauptliste, ein Archiv und pro Aufgabe bei Bedarf ein Ordner mit
-    Besprechungsnotizen und technischer Beschreibung.
-  - Notes: `items/STORY-017/STORY-017_notes.md`.
-  - Spec: `items/STORY-017/STORY-017_spec.md`.
-  - Resolution: Confirmed by the project owner on 2026-09-23.
-
 - `STORY-018` **Plugin-Grundgerüst**
   - Type: Story.
   - Parent: `EPIC-007`.
@@ -77,3 +55,25 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Ein fehlerhafter Eintrag wird vom Hook gemeldet; bei
     einer Aufgabe ohne Backlog-Bezug wird der Skill nicht geladen.
   - Resolution: Confirmed by the project owner on 2026-09-23.
+
+- `STORY-017` **Backlog-Format/Aufbau festlegen**
+  - Type: Story.
+  - Parent: `EPIC-005`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Entscheiden und dokumentieren, wie der Backlog unter `docs/todo/`
+    aufgebaut ist — welche Felder ein Eintrag mindestens braucht, welche
+    Typen/Areas/Prioritäten gelten, wie Notes und Specs pro Item abgelegt
+    werden und welche Teile des Agent_Harness-Formats v2 übernommen werden.
+  - Completion criteria: Ein dokumentierter Aufbau-Standard liegt vor, an dem
+    sich jeder neue Eintrag ohne Rückfrage orientieren kann.
+  - Summary: Die Struktur steht und ist im Plugin: Hauptliste, Archiv und pro
+    Aufgabe bei Bedarf Notizen und technische Beschreibung. Dazu Regeln für den
+    Abschluss von Epics/Stories und für das Einordnen neuer Aufgaben.
+  - Notes: `items/STORY-017/STORY-017_notes.md`.
+  - Spec: `items/STORY-017/STORY-017_spec.md`.
+  - Resolution: Confirmed by the project owner on 2026-09-23 (after reopening on the same day).

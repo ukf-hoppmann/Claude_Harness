@@ -21,11 +21,13 @@ class HookTest(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def write_config(self, todo=True, path="docs/todo"):
+    def write_config(self, todo=True, path="todo", daily=False):
         config = self.project / ".claude-harness" / "config.toml"
         config.parent.mkdir(exist_ok=True)
         config.write_text(
-            f'version = 1\n[modules]\ntodo = {"true" if todo else "false"}\n[todo]\npath = "{path}"\n'
+            'version = 1\n[docs]\nroot = "docs"\n'
+            f'[modules]\ntodo = {"true" if todo else "false"}\ndaily = {"true" if daily else "false"}\n'
+            f'[todo]\npath = "{path}"\n'
         )
 
     def run_hook(self, script, payload):
@@ -101,6 +103,22 @@ class HookTest(unittest.TestCase):
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
         self.assertEqual(self.stop().returncode, 0)
 
+    def test_stop_delivers_new_notice_once_per_session(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [
+            item("EPIC-001", Type="Epic", Status="In progress"),
+            item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes",
+                 Status="Completed", Resolution="Confirmed."),
+        ])
+        self.edit(self.todo_dir / "TODO.md")
+        first = self.stop()
+        self.assertEqual(first.returncode, 2)
+        self.assertIn("EPIC-001: all required children are Completed", first.stderr)
+        self.edit(self.todo_dir / "TODO.md")
+        self.assertEqual(self.stop().returncode, 0)
+        self.edit(self.todo_dir / "TODO.md", session="s2")
+        self.assertEqual(self.stop(session="s2").returncode, 2)
+
     def test_module_off_skips_check(self):
         self.write_config(todo=False)
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
@@ -109,7 +127,7 @@ class HookTest(unittest.TestCase):
 
     def test_custom_todo_path(self):
         self.write_config(path="planning")
-        planning = self.project / "planning"
+        planning = self.project / "docs" / "planning"
         write_backlog(planning, [item("STORY-001", Priority="Wrong")])
         self.edit(planning / "TODO.md")
         self.assertEqual(self.stop().returncode, 2)

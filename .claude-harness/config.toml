@@ -1,8 +1,16 @@
 # Claude_Harness project configuration.
 version = 1
 
+[docs]
+root = "docs"
+language = "de"
+
 [modules]
 todo = true
+daily = true
 
 [todo]
-path = "docs/todo"
+path = "todo"
+
+[daily]
+path = "development/daily"

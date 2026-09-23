@@ -1,6 +1,6 @@
 # Claude_Harness backlog format, version 1
 
-The backlog lives in the folder configured as `[todo].path` in
+The backlog lives in the folder configured as `[todo].path` below `[docs].root` in
 `.claude-harness/config.toml` (default `docs/todo`):
 
 ```
@@ -97,10 +97,15 @@ new area is introduced only when no existing one fits.
 - A parent cannot be `Awaiting confirmation` while a required child is `Open`
   or `In progress`, and cannot be `Completed` until every required child is
   `Completed`.
+- A parent cannot be `Completed` or `Rejected` while any child — required or
+  optional — is still active. Each child is closed (`Completed`/`Rejected`) or
+  reparented first.
+- Once all required children are `Completed`, the agent checks the parent's
+  own completion criteria. If they are met, it sets the parent to
+  `Awaiting confirmation` and tells the project owner; otherwise it reports
+  what is missing. The owner confirms `Completed`.
 - A completed parent receives no new required child unless the project owner
   reopens it first.
-- Rejecting a parent never silently closes its children; active children are
-  reparented or get their own decision first.
 
 ## Optional fields
 
@@ -139,6 +144,21 @@ unchanged from `TODO.md` to `archive.md`. Its item folder stays in `items/`.
 References to archived IDs remain valid. `archive.md` never contains active
 items.
 
+Reopening an archived item moves it back to `TODO.md` with status `Open` or
+`In progress` and without `Resolution`. The reason is recorded in the item's
+notes (create them, with `Summary`, if the item has none).
+
+## Overview index
+
+For an overview across `TODO.md` and `archive.md` without reading either file
+in full, run:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --index
+```
+
+It prints one line per item: `ID | Type | Status | Title | Parent`.
+
 ## Change authority
 
 The agent may change without asking:
@@ -162,10 +182,17 @@ Reopening a closed item requires a recorded reason.
 ## Proposing new items
 
 Propose an item only for concrete, relevant project work that was discussed
-but intentionally not done now. Check the backlog and archive for equivalent
-work first. Questions, discarded alternatives, temporary debugging steps, and
-vague ideas without a next action are not items. A proposal states title,
-type, goal, completion criteria, area, and priority.
+but intentionally not done now. Questions, discarded alternatives, temporary
+debugging steps, and vague ideas without a next action are not items. A
+proposal states title, type, goal, completion criteria, area, and priority.
+
+Before proposing, use the overview index to check both files:
+
+- If equivalent work exists, extend or reopen it instead of adding a duplicate.
+- Place new stories and tasks under an existing epic or story that fits, even
+  an archived one. Prefer proposing to reopen a closed parent over creating a
+  new epic or story; create a new parent only when nothing plausibly fits.
+- Read an archived item in full only when the index suggests it fits.
 
 Never copy credentials, personal data, or unnecessary conversation quotes into
 the backlog.

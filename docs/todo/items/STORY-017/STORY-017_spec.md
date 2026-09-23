@@ -55,6 +55,13 @@ Arbeitssprache des Projekts geführt (hier Deutsch).
 - Parent nicht `Awaiting confirmation`/`Completed`, solange ein required
   Child offen ist; ein Reject des Parents reißt Children nicht mit.
 - Statuswechsel ändern nur das Feld `Status`, nicht die Position im Dokument.
+- Parent `Completed`/`Rejected` erst, wenn alle Kinder (Pflicht und optional)
+  abgeschlossen oder umgehängt sind.
+- Sind alle Pflicht-Kinder `Completed`, prüft die AI die eigenen Kriterien
+  des Parents und setzt ihn gegebenenfalls auf `Awaiting confirmation`.
+- Neue Arbeit wird in bestehende, auch archivierte Parents eingeordnet;
+  Wiederöffnen hat Vorrang vor neuen Epics/Stories. Übersicht per
+  `backlog.py --index`, ohne das Archiv komplett zu lesen.
 
 ## Item files
 
@@ -93,7 +100,9 @@ Die AI schlägt vor und wartet auf Freigabe:
 1. Standard: nur `TODO.md`.
 2. Besprechung oder Entscheidung zu einem Item: zusätzlich dessen Notes.
 3. Umsetzungsplanung oder Nachfrage: zusätzlich dessen Spec.
-4. `archive.md` nur, wenn ein archiviertes Item gebraucht wird.
+4. Übersicht über alles (z. B. zum Einordnen): `backlog.py --index`.
+5. `archive.md` nur, wenn ein bestimmtes archiviertes Item im Detail gebraucht
+   wird.
 
 ## Not adopted
 

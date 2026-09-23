@@ -116,6 +116,63 @@ class BacklogTest(unittest.TestCase):
         ])
         self.assertError(report, "cannot be Completed")
 
+    def test_completed_parent_with_active_optional_child(self):
+        report = self.check([
+            item("EPIC-001", Type="Epic", Status="Completed", Resolution="Confirmed."),
+            item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes",
+                 Status="Completed", Resolution="Confirmed."),
+            item("STORY-002", Parent="`EPIC-001`", Required_for_parent="No"),
+        ])
+        self.assertError(report, "children are still active: STORY-002")
+
+    def test_completed_parent_with_closed_children(self):
+        report = self.check([
+            item("EPIC-001", Type="Epic", Status="Completed", Resolution="Confirmed."),
+            item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes",
+                 Status="Completed", Resolution="Confirmed."),
+            item("STORY-002", Parent="`EPIC-001`", Required_for_parent="No",
+                 Status="Rejected", Resolution="Rejected."),
+        ])
+        self.assertEqual(report.errors, [])
+
+    def test_ready_parent_notice(self):
+        report = self.check(
+            [
+                item("EPIC-001", Type="Epic", Status="In progress"),
+                item("STORY-002", Parent="`EPIC-001`", Required_for_parent="No"),
+            ],
+            [item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes",
+                  Status="Completed", Resolution="Confirmed.")],
+        )
+        self.assertTrue(report.ok)
+        ready = [n for n in report.notices if n.startswith("EPIC-001: all required children")]
+        self.assertEqual(len(ready), 1)
+        self.assertIn("children still active: STORY-002", ready[0])
+
+    def test_no_ready_notice_while_required_child_active(self):
+        report = self.check([
+            item("EPIC-001", Type="Epic", Status="In progress"),
+            item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes", Status="In progress"),
+        ])
+        self.assertEqual(report.notices, [])
+
+    def test_index_lists_both_files(self):
+        from backlog import format_index
+        report = self.check(
+            [item("STORY-002", "Neu")],
+            [
+                item("EPIC-001", "Alt", Type="Epic", Status="Completed", Resolution="Confirmed."),
+                item("STORY-001", "Kind", Parent="`EPIC-001`", Required_for_parent="Yes",
+                     Status="Completed", Resolution="Confirmed."),
+            ],
+        )
+        self.assertEqual(report.errors, [])
+        self.assertEqual(format_index(report).splitlines()[1:], [
+            "EPIC-001 | Epic | Completed | Alt | -",
+            "STORY-001 | Story | Completed | Kind | EPIC-001",
+            "STORY-002 | Story | Open | Neu | -",
+        ])
+
     def test_resolution_only_when_closed(self):
         self.assertError(self.check([item("STORY-001", Resolution="x")]), "must not contain Resolution")
         self.assertError(self.check([item("STORY-001", Status="Rejected")]), "requires Resolution")

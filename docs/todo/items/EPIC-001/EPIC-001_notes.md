@@ -48,3 +48,16 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
 
 - Weitere Felder (Verify-Befehle, Workspace-Regeln) kommen mit den jeweiligen
   Modulen dazu.
+
+## 2026-09-23 — Doku-Wurzel, Sprache und Modul `daily`
+
+### Decided
+
+- Neue Tabelle `[docs]` mit `root` (Standard `docs`) und `language`
+  (ISO 639-1, Standard `en`). Die Sprache gilt für alle erzeugten Dokumente,
+  nicht für maschinell geprüfte Feldnamen.
+- `[todo] path` ist jetzt relativ zu `docs.root` (Standard `todo`).
+- Neues Modul `daily` mit `[daily] path` (Standard `development/daily`,
+  relativ zu `docs.root`); Details in `STORY-013`.
+- Die Config bleibt trotz geänderter Bedeutung von `todo.path` bei
+  `version = 1`, da bisher nur dieses Repo sie nutzt.

@@ -9,7 +9,9 @@ description: Rules for the project backlog (TODO.md, archive.md, per-item notes 
 
 1. Read `.claude-harness/config.toml` in the project root. If `[modules].todo`
    is not `true`, these rules do not apply — say so and stop.
-2. The backlog folder is `[todo].path` (default `docs/todo`).
+2. The backlog folder is `[todo].path` below `[docs].root` (default
+   `docs/todo`). Write backlog texts in `[docs].language`; field names stay
+   English.
 3. If `TODO.md` is missing there, tell the user and ask for permission before
    creating anything. The backlog may just live elsewhere — look for it and
    ask. Only after approval, create `TODO.md` and `archive.md` from
@@ -23,7 +25,10 @@ Read only what the task needs:
 - Discussing or deciding something about an item: also its `Notes`.
 - Planning its implementation or asked about its spec: also its `Spec`.
   The spec is the input for a plan; do not write step-by-step plans into it.
-- `archive.md`: only when an archived item is referenced.
+- Overview across `TODO.md` and `archive.md` (e.g. to place new work): run
+  `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --index`
+  instead of reading the files.
+- `archive.md`: only when a specific archived item is needed in full.
 
 ## Working rules
 
@@ -40,6 +45,13 @@ Read only what the task needs:
   path, and write a plain-language `Summary` (required with `Notes`).
 - Record decisions in the item's notes as they happen, dated, under
   `Discussed` / `Decided` / `Open`.
+- When all required children of a parent are `Completed`, check the parent's
+  own completion criteria: if met, set it to `Awaiting confirmation` and tell
+  the owner; otherwise say what is missing. A parent is only completed or
+  rejected once every child is closed or reparented.
+- New work goes under an existing epic or story whenever one fits — including
+  archived ones. Prefer proposing to reopen a closed parent (owner approval,
+  reason recorded in its notes) over creating a new epic or story.
 - Reuse existing areas before inventing new ones. New IDs take the next free
   number of their type.
 

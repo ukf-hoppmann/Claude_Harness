@@ -1,0 +1,59 @@
+---
+name: daily
+description: Rules for daily development reports (one report per day about material changes that reached the main branch). Use when the daily hook reminds you, or when asked to write, update, or look up what happened on a day.
+---
+
+# Daily development reports
+
+## Before you start
+
+1. Read `.claude-harness/config.toml` in the project root. If `[modules].daily`
+   is not `true`, these rules do not apply — say so and stop.
+2. Reports live in `<docs.root>/<daily.path>/<YYYY-MM-DD>_daily.md`, written
+   in `docs.language`.
+3. Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" pending`. It prints
+   today's report path and the unrecorded commits on the main branch. If it
+   says reports are unavailable here (worktree, other branch), stop: reports
+   are written only in the main checkout after the change is merged.
+
+## Workflow
+
+1. Decide which pending commits are material (below). Use the commits and
+   what you know from this session; read diffs only where needed.
+2. Nothing material: write nothing.
+3. Otherwise read today's report if it exists, else start from
+   `${CLAUDE_PLUGIN_ROOT}/templates/daily/daily.md`. Update existing rows
+   instead of adding duplicates; bundle related commits into one row.
+4. Finally run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" ack`, also
+   when nothing was material. Commits that only change the report folder are
+   ignored, so committing the report does not trigger a new reminder.
+
+## Materiality
+
+Material is judged by the outcome, not the amount of activity: new, changed,
+or removed behavior; bug fixes; relevant technical, documentation, or
+operational changes; decisions. Planning is material when it establishes,
+changes, adopts, rejects, or substantially clarifies a decision, an
+implementation-ready goal, a scope boundary, a risk, or an important next
+step. Exploratory notes, intermediate drafts, small wording or formatting
+edits, and repeated decisions are not material on their own.
+
+## Format
+
+- Follow the template; translate headings into `docs.language`. Drop
+  sections that stay empty. The summary is short prose.
+- Evidence column: short commit hash and backlog ID. If the `todo` module is
+  on and `<todo path>/items/<ID>/` exists, link the ID relative to the report;
+  otherwise write the ID only. Do not add clock times; Git has them.
+
+## Truthfulness
+
+- Never claim verification that did not happen; say "not run" instead.
+- Keep measured facts apart from assumptions and estimates.
+- A report written for an earlier day is marked as written afterwards; gaps
+  stay visible, nothing is invented.
+- Keep incomplete, rejected, and deferred work visible.
+- The date is today's local system date (`date +%F`), never a guess.
+- Change only today's report. Fix an earlier report only with a dated
+  correction note; the original statement stays.
+- Never put secrets, credentials, or raw logs into a report.

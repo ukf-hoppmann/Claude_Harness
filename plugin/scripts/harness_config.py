@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 import tomllib
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
@@ -8,11 +9,16 @@ from typing import Any
 
 CONFIG_RELATIVE_PATH = PurePosixPath(".claude-harness/config.toml")
 CONFIG_VERSION = 1
-KNOWN_MODULES = ("todo",)
-DEFAULT_TODO_PATH = PurePosixPath("docs/todo")
+KNOWN_MODULES = ("todo", "daily")
+DEFAULT_DOCS_ROOT = PurePosixPath("docs")
+DEFAULT_LANGUAGE = "en"
+DEFAULT_TODO_PATH = PurePosixPath("todo")
+DEFAULT_DAILY_PATH = PurePosixPath("development/daily")
 
-_TOP_LEVEL_KEYS = {"version", "modules", "todo"}
-_TODO_KEYS = {"path"}
+_TOP_LEVEL_KEYS = {"version", "docs", "modules", "todo", "daily"}
+_DOCS_KEYS = {"root", "language"}
+_PATH_KEYS = {"path"}
+_LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
 
 
 class ConfigError(ValueError):
@@ -22,7 +28,11 @@ class ConfigError(ValueError):
 @dataclass(frozen=True)
 class HarnessConfig:
     modules: dict[str, bool]
+    docs_root: PurePosixPath
+    language: str
+    # Module paths are resolved against docs_root, i.e. relative to the project root.
     todo_path: PurePosixPath
+    daily_path: PurePosixPath
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
@@ -75,25 +85,49 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
             else:
                 modules[name] = value
 
-    todo_path = DEFAULT_TODO_PATH
-    raw_todo = data.get("todo", {})
-    if not isinstance(raw_todo, dict):
-        errors.append("[todo] must be a table")
-    else:
-        unknown_todo = sorted(set(raw_todo) - _TODO_KEYS)
-        if unknown_todo:
-            errors.append(f"unknown keys in [todo]: {', '.join(unknown_todo)}")
-        if "path" in raw_todo:
-            try:
-                todo_path = _relative_path(raw_todo["path"])
-            except ConfigError as exc:
-                errors.append(f"todo.path {exc}")
+    raw_docs = _table(data, "docs", _DOCS_KEYS, errors)
+    docs_root = _path_value(raw_docs, "root", "docs", DEFAULT_DOCS_ROOT, errors)
+    language = raw_docs.get("language", DEFAULT_LANGUAGE)
+    if not isinstance(language, str) or not _LANGUAGE_PATTERN.fullmatch(language):
+        errors.append(f"docs.language must be a two-letter ISO 639-1 code, got {language!r}")
+
+    todo_path = _path_value(_table(data, "todo", _PATH_KEYS, errors), "path", "todo", DEFAULT_TODO_PATH, errors)
+    daily_path = _path_value(_table(data, "daily", _PATH_KEYS, errors), "path", "daily", DEFAULT_DAILY_PATH, errors)
 
     if errors:
         raise ConfigError(
             f"{CONFIG_RELATIVE_PATH}: " + "; ".join(errors)
         )
-    return HarnessConfig(modules=modules, todo_path=todo_path)
+    return HarnessConfig(
+        modules=modules,
+        docs_root=docs_root,
+        language=language,
+        todo_path=docs_root / todo_path,
+        daily_path=docs_root / daily_path,
+    )
+
+
+def _table(data: dict[str, Any], name: str, keys: set[str], errors: list[str]) -> dict[str, Any]:
+    raw = data.get(name, {})
+    if not isinstance(raw, dict):
+        errors.append(f"[{name}] must be a table")
+        return {}
+    unknown = sorted(set(raw) - keys)
+    if unknown:
+        errors.append(f"unknown keys in [{name}]: {', '.join(unknown)}")
+    return raw
+
+
+def _path_value(
+    table: dict[str, Any], key: str, table_name: str, default: PurePosixPath, errors: list[str]
+) -> PurePosixPath:
+    if key not in table:
+        return default
+    try:
+        return _relative_path(table[key])
+    except ConfigError as exc:
+        errors.append(f"{table_name}.{key} {exc}")
+        return default
 
 
 def _relative_path(value: Any) -> PurePosixPath:
@@ -101,7 +135,7 @@ def _relative_path(value: Any) -> PurePosixPath:
         raise ConfigError("must be a non-empty string")
     path = PurePosixPath(value.strip())
     if path.is_absolute():
-        raise ConfigError("must be relative to the project root")
+        raise ConfigError("must be a relative path")
     if ".." in path.parts:
         raise ConfigError("must not contain '..'")
     return path

@@ -317,6 +317,32 @@ def _validate_lifecycle(report: BacklogReport) -> None:
                     f"{item.identifier} cannot be Completed while required children "
                     f"are incomplete: {', '.join(incomplete)}"
                 )
+            active = [
+                c.identifier for c in kids
+                if not c.required_for_parent and c.status not in CLOSED_STATUSES
+            ]
+            if active:
+                report.errors.append(
+                    f"{item.identifier} cannot be Completed while children are still "
+                    f"active: {', '.join(active)} (close or reparent them first)"
+                )
+        if (
+            item.status in {"Open", "In progress"}
+            and required
+            and all(c.status == "Completed" for c in required)
+        ):
+            notice = (
+                f"{item.identifier}: all required children are Completed; check its own "
+                "completion criteria, then set Awaiting confirmation and tell the owner, "
+                "or report what is missing"
+            )
+            open_optional = [c.identifier for c in kids if c.status not in CLOSED_STATUSES]
+            if open_optional:
+                notice += (
+                    f" (children still active: {', '.join(open_optional)}; close or "
+                    "reparent them before completion)"
+                )
+            report.notices.append(notice)
         if item.status == "Rejected":
             active = [c.identifier for c in kids if c.status not in CLOSED_STATUSES]
             if active:
@@ -402,11 +428,28 @@ def format_report(report: BacklogReport) -> str:
     return "\n".join(lines)
 
 
+def format_index(report: BacklogReport) -> str:
+    lines = ["ID | Type | Status | Title | Parent"]
+    for item in sorted(report.items, key=lambda i: i.identifier):
+        lines.append(
+            f"{item.identifier} | {item.item_type} | {item.status} | {item.title} | {item.parent or '-'}"
+        )
+    return "\n".join(lines)
+
+
 def main(argv: list[str]) -> int:
-    if len(argv) != 2:
-        print("usage: backlog.py <backlog-folder>", file=sys.stderr)
+    args = argv[1:]
+    index = "--index" in args
+    args = [a for a in args if a != "--index"]
+    if len(args) != 1:
+        print("usage: backlog.py <backlog-folder> [--index]", file=sys.stderr)
         return 2
-    report = validate_backlog(Path(argv[1]))
+    report = validate_backlog(Path(args[0]))
+    if index:
+        print(format_index(report))
+        if report.errors:
+            print(f"({len(report.errors)} items or rules invalid; run without --index for details)")
+        return 0 if report.ok else 1
     output = format_report(report)
     if output:
         print(output)
