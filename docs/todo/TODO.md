@@ -25,47 +25,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Zerlegungs-Heuristik, Change-Ablauf und Testkommando sind dokumentiert und
     werden bei mindestens einem Change sichtbar angewendet.
 
-- `STORY-004` **Zerlegungs-Heuristik definieren**
-  - Type: Story.
-  - Parent: `EPIC-004`.
-  - Required for parent: Yes.
-  - Status: In progress.
-  - Created: 2026-09-23.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Kriterien festlegen, nach denen Aufgaben zerlegt werden: im
-    Backlog grob in Tasks mit eigenständigem Ergebnis, beim Planen fein in
-    logische, einzeln testbare Abschnitte, die in Abhängigkeitsreihenfolge
-    umgesetzt werden und ohne den Kontext der planenden Session umsetzbar
-    sind; einschließlich wann bewusst nicht zerlegt wird.
-  - Completion criteria: Die Kriterien stehen im Skill `decomposition` der
-    Suite `development`. An einem realen Feature wurde ein Plan danach in
-    Abschnitte mit je eigenem Test zerlegt und so umgesetzt. Zwei ähnliche
-    Aufgaben werden nachvollziehbar gleich zerlegt.
-  - Summary: Beim Planen sollen kleine, gut kontrollierbare Schritte
-    entstehen, die auch ein einfaches Modell umsetzen kann. Die Kriterien
-    kommen in einen neuen Skill der Suite `development`.
-  - Notes: `items/STORY-004/STORY-004_notes.md`.
-  - Spec: `items/STORY-004/STORY-004_spec.md`.
-
-- `STORY-005` **Dimensions-Checkliste je Teilaufgabe**
-  - Type: Story.
-  - Parent: `EPIC-004`.
-  - Required for parent: No.
-  - Status: In progress.
-  - Created: 2026-09-23.
-  - Area: Entwicklung.
-  - Priority: Prospective.
-  - Dependencies: `STORY-004`.
-  - Goal: Eine Prüfliste relevanter Dimensionen (Persistenz, Schnittstellen,
-    Sicherheit, Tests, Dokumentation) für jede zerlegte Teilaufgabe
-    bereitstellen, damit nichts vergessen wird.
-  - Completion criteria: Die Checkliste wird bei einer zerlegten Aufgabe
-    sichtbar durchlaufen und im Ergebnis referenziert.
-  - Summary: Wird zusammen mit STORY-004 geplant und landet im selben Skill;
-    die Entscheidungen stehen in dessen Notizen.
-
 - `STORY-026` **Abschnitte an Subagenten übergeben**
   - Type: Story.
   - Parent: `EPIC-004`.
@@ -130,7 +89,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 - `STORY-016` **Umgang mit Secrets/Credentials**
   - Type: Story.
   - Parent: `EPIC-004`.
-  - Required for parent: No.
+  - Required for parent: Yes.
   - Status: Open.
   - Created: 2026-09-23.
   - Area: Sicherheit.

@@ -117,3 +117,20 @@
 ### Open
 
 - Abschluss der Umsetzung von `STORY-022`.
+
+## 2026-09-24 — Erprobung abgeschlossen
+
+### Discussed
+
+- `STORY-022` wurde nach dem vorgelegten Plan umgesetzt (`8b0c48f`): §1 bis
+  §7 in Reihenfolge; bei §2 bis §5 zuerst Tests, die wie erwartet
+  fehlschlugen; nach jedem Abschnitt alle Tests grün (105, dann bis 116);
+  §7 Integration mit Durchlauf in einem Test-Repo. Die Abschnitte landeten
+  in einem gemeinsamen Commit; das verlangt der Skill nicht.
+- Beide Pläne (`STORY-004`, `STORY-022`) folgen demselben Muster: Config,
+  Startzeile, Skill, Doku, Integration.
+
+### Decided
+
+- Die Completion criteria von `STORY-004` und `STORY-005` sind erfüllt;
+  beide warten auf Bestätigung.
