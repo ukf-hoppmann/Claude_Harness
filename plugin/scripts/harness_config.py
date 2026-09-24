@@ -8,19 +8,29 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 CONFIG_RELATIVE_PATH = PurePosixPath(".claude-harness/config.toml")
+README = PurePosixPath("README.md")
 CONFIG_VERSION = 1
-KNOWN_MODULES = ("todo", "daily", "techdocs")
+KNOWN_MODULES = ("todo", "daily", "techdocs", "development")
 DEFAULT_DOCS_ROOT = PurePosixPath("docs")
 DEFAULT_LANGUAGE = "en"
 DEFAULT_TODO_PATH = PurePosixPath("todo")
 DEFAULT_DAILY_PATH = PurePosixPath("daily")
 DEFAULT_TECHDOCS_PATH = PurePosixPath("techdocs")
+DEFAULT_DEVELOPMENT_PATH = PurePosixPath("development")
+# Parts of the development suite; each is on while the suite is on unless set to false.
+DEVELOPMENT_PARTS = ("architecture",)
 TECHDOC_KINDS = ("architecture", "interfaces", "configuration", "operations")
 DEFAULT_TECHDOCS = ("architecture", "interfaces", "configuration")
 
-_TOP_LEVEL_KEYS = {"version", "docs", "modules", "todo", "daily", "techdocs"}
-_DOCS_KEYS = {"root", "language"}
-_PATH_KEYS = {"path"}
+# Allowed keys per table; [modules] allows KNOWN_MODULES.
+TABLE_KEYS = {
+    "docs": {"root", "language"},
+    "todo": {"path"},
+    "daily": {"path"},
+    "techdocs": {"path", "documents"},
+    "development": {"path", *DEVELOPMENT_PARTS},
+}
+_TOP_LEVEL_KEYS = {"version", "modules", *TABLE_KEYS}
 _LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
 
 
@@ -38,9 +48,21 @@ class HarnessConfig:
     daily_path: PurePosixPath
     techdocs_path: PurePosixPath
     techdocs: tuple[str, ...]
+    development_path: PurePosixPath
+    development_parts: dict[str, bool]
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
+
+    def part_enabled(self, part: str) -> bool:
+        return self.enabled("development") and self.development_parts.get(part, True)
+
+    def is_harness_file(self, rel: PurePosixPath) -> bool:
+        """True for README.md, Git and harness files, and every harness document folder."""
+        if rel == README or (rel.parts and rel.parts[0] in (".git", CONFIG_RELATIVE_PATH.parts[0])):
+            return True
+        folders = (self.todo_path, self.daily_path, self.techdocs_path, self.development_path)
+        return any(rel.is_relative_to(folder) for folder in folders)
 
 
 def project_root(hook_input: dict[str, Any] | None = None) -> Path:
@@ -50,6 +72,17 @@ def project_root(hook_input: dict[str, Any] | None = None) -> Path:
     if hook_input and hook_input.get("cwd"):
         return Path(hook_input["cwd"])
     return Path.cwd()
+
+
+def project_relative(root: Path, file_path: str) -> PurePosixPath | None:
+    """Return file_path relative to the project root, or None when it lies outside."""
+    target = Path(file_path)
+    if not target.is_absolute():
+        target = root / target
+    try:
+        return PurePosixPath(target.resolve().relative_to(root.resolve()).as_posix())
+    except ValueError:
+        return None
 
 
 def load_config(root: Path) -> HarnessConfig | None:
@@ -90,17 +123,27 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
             else:
                 modules[name] = value
 
-    raw_docs = _table(data, "docs", _DOCS_KEYS, errors)
+    raw_docs = _table(data, "docs", errors)
     docs_root = _path_value(raw_docs, "root", "docs", DEFAULT_DOCS_ROOT, errors)
     language = raw_docs.get("language", DEFAULT_LANGUAGE)
     if not isinstance(language, str) or not _LANGUAGE_PATTERN.fullmatch(language):
         errors.append(f"docs.language must be a two-letter ISO 639-1 code, got {language!r}")
 
-    todo_path = _path_value(_table(data, "todo", _PATH_KEYS, errors), "path", "todo", DEFAULT_TODO_PATH, errors)
-    daily_path = _path_value(_table(data, "daily", _PATH_KEYS, errors), "path", "daily", DEFAULT_DAILY_PATH, errors)
-    raw_techdocs = _table(data, "techdocs", {"path", "documents"}, errors)
+    todo_path = _path_value(_table(data, "todo", errors), "path", "todo", DEFAULT_TODO_PATH, errors)
+    daily_path = _path_value(_table(data, "daily", errors), "path", "daily", DEFAULT_DAILY_PATH, errors)
+    raw_techdocs = _table(data, "techdocs", errors)
     techdocs_path = _path_value(raw_techdocs, "path", "techdocs", DEFAULT_TECHDOCS_PATH, errors)
     techdocs = _techdoc_kinds(raw_techdocs.get("documents", list(DEFAULT_TECHDOCS)), errors)
+    raw_development = _table(data, "development", errors)
+    development_path = _path_value(raw_development, "path", "development", DEFAULT_DEVELOPMENT_PATH, errors)
+    development_parts: dict[str, bool] = {}
+    for part in DEVELOPMENT_PARTS:
+        if part not in raw_development:
+            continue
+        if isinstance(raw_development[part], bool):
+            development_parts[part] = raw_development[part]
+        else:
+            errors.append(f"development.{part} must be true or false")
 
     if errors:
         raise ConfigError(
@@ -114,6 +157,8 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
         daily_path=docs_root / daily_path,
         techdocs_path=docs_root / techdocs_path,
         techdocs=techdocs,
+        development_path=docs_root / development_path,
+        development_parts=development_parts,
     )
 
 
@@ -131,12 +176,12 @@ def _techdoc_kinds(value: Any, errors: list[str]) -> tuple[str, ...]:
     return tuple(value)
 
 
-def _table(data: dict[str, Any], name: str, keys: set[str], errors: list[str]) -> dict[str, Any]:
+def _table(data: dict[str, Any], name: str, errors: list[str]) -> dict[str, Any]:
     raw = data.get(name, {})
     if not isinstance(raw, dict):
         errors.append(f"[{name}] must be a table")
         return {}
-    unknown = sorted(set(raw) - keys)
+    unknown = sorted(set(raw) - TABLE_KEYS[name])
     if unknown:
         errors.append(f"unknown keys in [{name}]: {', '.join(unknown)}")
     return raw

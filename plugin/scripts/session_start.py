@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import sys
 
+from architecture import load_scopes, reset_read, rules_path
 from backlog import TODO_FILE, validate_backlog
 from techdocs import document_paths
 from harness_config import CONFIG_RELATIVE_PATH, ConfigError, load_config, project_root
@@ -16,6 +17,10 @@ def main() -> int:
     except ValueError:
         hook_input = {}
     root = project_root(hook_input)
+    session_id = hook_input.get("session_id")
+    if session_id and hook_input.get("source") in ("compact", "clear"):
+        # Rules read earlier may no longer be in context.
+        reset_read(session_id)
 
     try:
         config = load_config(root)
@@ -76,6 +81,25 @@ def main() -> int:
                 f"Missing technical docs: {', '.join(missing)}. Propose creating them from the "
                 "templates when relevant; create only after approval."
             )
+
+    if config.part_enabled("architecture"):
+        rules = rules_path(config)
+        if not (root / rules).is_file():
+            lines.append(
+                f"Architecture rules: {rules} does not exist. Propose creating it from the "
+                "template when architecture becomes relevant; create only after approval."
+            )
+        else:
+            lines.append(
+                f"Architecture rules: {rules} (binding; read it before planning or changing code); "
+                "rules in skill claude-harness:architecture."
+            )
+            _, scope_errors = load_scopes(root, config)
+            if scope_errors:
+                lines.append(f"Architecture scope table has {len(scope_errors)} errors:")
+                lines += [f"- {e}" for e in scope_errors[:MAX_REPORTED]]
+                if len(scope_errors) > MAX_REPORTED:
+                    lines.append(f"- … {len(scope_errors) - MAX_REPORTED} more")
 
     print("\n".join(lines))
     return 0

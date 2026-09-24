@@ -29,7 +29,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-004`.
   - Required for parent: Yes.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-24.
   - Area: Entwicklung.
   - Priority: Important.
@@ -46,6 +46,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     liegen englisch im Doku-Ordner und werden per Hook vor der ersten
     Code-Änderung einer Session gelesen.
   - Notes: `items/STORY-023/STORY-023_notes.md`.
+  - Spec: `items/STORY-023/STORY-023_spec.md`.
 
 - `STORY-025` **Regelverstöße und Regeländerungen**
   - Type: Story.

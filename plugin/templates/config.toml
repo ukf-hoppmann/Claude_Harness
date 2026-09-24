@@ -11,6 +11,7 @@ language = "en"     # ISO 639-1 language of generated documents
 todo = true
 daily = false
 techdocs = true
+development = true
 
 # Backlog folder, relative to docs.root.
 [todo]
@@ -26,3 +27,10 @@ path = "daily"
 [techdocs]
 path = "techdocs"
 documents = ["architecture", "interfaces", "configuration"]
+
+# Development suite: binding rules for the AI, always in English, relative to
+# docs.root. Parts are active while the suite is active unless set to false.
+# Known parts: architecture (rules in <path>/architecture.md).
+[development]
+path = "development"
+architecture = true

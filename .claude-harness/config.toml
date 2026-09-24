@@ -9,6 +9,7 @@ language = "de"
 todo = true
 daily = true
 techdocs = true
+development = true
 
 [todo]
 path = "todo"
@@ -19,3 +20,6 @@ path = "daily"
 [techdocs]
 path = "techdocs"
 documents = ["architecture", "interfaces", "configuration"]
+
+[development]
+path = "development"

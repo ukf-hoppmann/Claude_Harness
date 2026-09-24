@@ -5,9 +5,8 @@ from __future__ import annotations
 import re
 from pathlib import Path, PurePosixPath
 
-from harness_config import CONFIG_RELATIVE_PATH, HarnessConfig
+from harness_config import README, HarnessConfig, project_relative
 
-README = PurePosixPath("README.md")
 _TEST_NAME = re.compile(r"^test_|_test\.|\.test\.")
 
 
@@ -19,19 +18,12 @@ def _is_test(path: PurePosixPath) -> bool:
 
 def classify(root: Path, config: HarnessConfig, file_path: str) -> str | None:
     """Return 'docs', 'project', or None for files that do not matter."""
-    target = Path(file_path)
-    if not target.is_absolute():
-        target = root / target
-    try:
-        rel = PurePosixPath(target.resolve().relative_to(root.resolve()).as_posix())
-    except ValueError:
+    rel = project_relative(root, file_path)
+    if rel is None:
         return None
     if rel == README or rel.is_relative_to(config.techdocs_path):
         return "docs"
-    if rel.is_relative_to(config.todo_path) or rel.is_relative_to(config.daily_path):
-        return None
-    harness_dirs = (".git", CONFIG_RELATIVE_PATH.parts[0])
-    if (rel.parts and rel.parts[0] in harness_dirs) or _is_test(rel):
+    if config.is_harness_file(rel) or _is_test(rel):
         return None
     return "project"
 

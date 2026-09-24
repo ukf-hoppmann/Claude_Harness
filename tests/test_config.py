@@ -39,6 +39,20 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.techdocs, ("operations",))
         self.assertEqual(parse_config({"version": 1, "techdocs": {"documents": []}}).techdocs, ())
 
+    def test_development_suite(self):
+        off = parse_config({"version": 1})
+        self.assertFalse(off.part_enabled("architecture"))
+        self.assertEqual(off.development_path, PurePosixPath("docs/development"))
+        on = parse_config({"version": 1, "modules": {"development": True}})
+        self.assertTrue(on.part_enabled("architecture"))
+        opted_out = parse_config({
+            "version": 1,
+            "modules": {"development": True},
+            "development": {"path": "rules", "architecture": False},
+        })
+        self.assertFalse(opted_out.part_enabled("architecture"))
+        self.assertEqual(opted_out.development_path, PurePosixPath("docs/rules"))
+
     def test_rejects_invalid_values(self):
         cases = [
             {"version": 2},
@@ -58,6 +72,9 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "techdocs": {"documents": ["interfaces", "interfaces"]}},
             {"version": 1, "techdocs": {"documents": "interfaces"}},
             {"version": 1, "techdocs": {"path": "/abs"}},
+            {"version": 1, "development": {"architecture": "yes"}},
+            {"version": 1, "development": {"unknown": True}},
+            {"version": 1, "development": {"path": "../x"}},
         ]
         for data in cases:
             with self.subTest(data=data), self.assertRaises(ConfigError):

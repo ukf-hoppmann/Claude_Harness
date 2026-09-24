@@ -46,3 +46,36 @@
 ### Open
 
 - Keine.
+
+## 2026-09-24 — Spec-Entscheidungen
+
+### Decided
+
+- Teilbereiche der Suite sind an, sobald die Suite an ist (Opt-out).
+- Die Teilbereiche und ihre Pfadmuster stehen als Tabelle in der Wurzel
+  `architecture.md`, nicht in der Config: Die Zuordnung ist selbst eine
+  Architekturentscheidung; in der Config würde sie Aufgaben vermischen.
+- Tests zählen als Projektdateien; der Mehraufwand ist ein einmaliges Lesen
+  der Wurzel pro Session.
+
+## 2026-09-24 — Umsetzung
+
+### Discussed
+
+- Umgesetzt nach Spec: Config-Suite `development`, Skill `architecture`,
+  Vorlage, Hooks (PreToolUse-Ablehnung, PostToolUse-Lese-Merker, Reset bei
+  `compact`/`clear`), `init`, Systemdoku. 81 Tests grün.
+- Test in einer echten `claude -p`-Session in einem Wegwerfprojekt: Das
+  Schreiben einer Datei in einem Scope wurde abgelehnt; die Session las
+  Regeldatei und Scope-Datei und befolgte beide Regeln.
+- Entwurf `docs/development/architecture.md` für dieses Repo; bindend erst nach
+  Freigabe durch den Projektverantwortlichen.
+
+### Decided
+
+- Der Projektverantwortliche hat `docs/development/architecture.md` für dieses
+  Repo freigegeben. Für die mechanisch prüfbaren Regeln 2 (nur
+  Standardbibliothek) und 4 (jeder Config-Schlüssel dokumentiert) gibt es
+  `tests/test_architecture_rules.py`; die Regeln verweisen darauf.
+- Die Completion criteria sind erfüllt; die Story wartet auf Bestätigung.
+
