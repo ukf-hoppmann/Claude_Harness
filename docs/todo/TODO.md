@@ -86,7 +86,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Subagenten ohne Rückfrage korrekt umgesetzt und von der Hauptsession
     geprüft.
 
-- `STORY-022` **Change-Workflow (Workspace, Ablauf, Cleanup)**
+- `STORY-022` **Change-Workflow im Worktree**
   - Type: Story.
   - Parent: `EPIC-004`.
   - Required for parent: Yes.
@@ -95,78 +95,22 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Area: Governance.
   - Priority: Urgent.
   - Dependencies: None.
-  - Goal: Einen verbindlichen Ablauf für Changes festlegen: Planen →
-    Worktree erstellen oder lokal arbeiten → Coden → Mergen →
-    Aufräumen/Worktree löschen, inklusive klarer Entscheidung, woher die
-    Workspace-Wahl ihre Quelle zieht und ob diese Quelle konfigurierbar sein
-    muss.
-  - Completion criteria: Der Ablauf ist Schritt für Schritt dokumentiert,
-    inklusive Abbruch-/Cleanup-Fällen, und wurde an einem realen Change
-    durchlaufen.
-  - Summary: Ersetzt EPIC-003. Die bisherigen Stories STORY-006, STORY-007
-    und STORY-008 (umbenannt in TASK-002 bis TASK-004) sowie TASK-001 sind
-    jetzt Tasks dieser Story.
-
-- `TASK-002` **Workspace-Entscheidung formalisieren**
-  - Type: Task.
-  - Parent: `STORY-022`.
-  - Required for parent: Yes.
-  - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Governance.
-  - Priority: Urgent.
-  - Dependencies: `STORY-002`.
-  - Goal: Klären, wonach heute nativ entschieden wird, ob ein Change lokal
-    oder in einem Worktree läuft (welche Quelle, welche Signale), und ob
-    diese Quelle projektseitig einstellbar sein sollte statt fest im
-    Verhalten zu stecken.
-  - Completion criteria: Dokumentiert ist, welche Quelle die Entscheidung
-    heute tatsächlich steuert; eine Entscheidung liegt vor, ob/wie sie
-    konfigurierbar gemacht wird. Wird sie konfigurierbar, sind die Felder in
-    `configuration.md` dokumentiert und ihre Validierung ist getestet.
-
-- `TASK-003` **Verbindlicher Change-Ablauf**
-  - Type: Task.
-  - Parent: `STORY-022`.
-  - Required for parent: Yes.
-  - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Governance.
-  - Priority: Urgent.
-  - Dependencies: `TASK-002`.
-  - Goal: Die Schrittfolge Plan → Worktree/Lokal → Code → Merge → Cleanup als
-    verbindliche Regel in `CLAUDE.md` festhalten, inklusive der Punkte, an
-    denen eine Freigabe eingeholt wird.
-  - Completion criteria: Jeder Schritt hat eine klare Ein-/Ausstiegsbedingung;
-    kein Schritt wird stillschweigend übersprungen.
-
-- `TASK-004` **Scope-Tracking für den Change**
-  - Type: Task.
-  - Parent: `STORY-022`.
-  - Required for parent: No.
-  - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Governance.
-  - Priority: Important.
-  - Dependencies: `TASK-003`.
-  - Goal: Festhalten, welche Dateien/Pfade zu einem Change gehören, damit
-    Merge und Cleanup nachvollziehbar nur diesen Umfang betreffen.
-  - Completion criteria: Nach einem Change lässt sich ohne Rückfrage sagen,
-    welche Pfade dazugehörten und welche nicht.
-
-- `TASK-001` **Cleanup-Kriterien festlegen**
-  - Type: Task.
-  - Parent: `STORY-022`.
-  - Required for parent: Yes.
-  - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Governance.
-  - Priority: Important.
-  - Dependencies: `TASK-003`.
-  - Goal: Definieren, wann ein Worktree/Branch gefahrlos gelöscht werden darf
-    (z. B. nur nach erfolgreichem Merge und sauberem Zustand) und wann nicht.
-  - Completion criteria: Die Kriterien verhindern nachweislich das Löschen
-    eines Worktrees mit unverarbeiteten Änderungen.
+  - Goal: Changes mit freigegebenem Plan laufen in einem eigenen Worktree,
+    der vom aktuell ausgecheckten Branch abzweigt. Nach Abschluss committet
+    die AI, merged selbstständig in diesen Ausgangsbranch zurück und löscht
+    den Worktree. Changes ohne Plan laufen lokal. So kann parallel gearbeitet
+    werden, ohne dass fremde Worktrees angefasst werden.
+  - Completion criteria: Der Ablauf ist als Teilbereich der Suite
+    `development` umgesetzt (Schalter, Session-Start-Hinweis, Skill) und
+    getestet. Ein realer Change mit Plan ist vom Ausgangsbranch über Worktree,
+    Merge-Commit und Löschen des Worktrees ohne Rückfrage durchgelaufen;
+    Worktrees anderer Sessions blieben unberührt.
+  - Summary: Größere Änderungen macht die AI in einer eigenen Arbeitskopie
+    und führt sie danach selbst in den Branch zurück, von dem sie gestartet
+    ist. Die früheren Tasks TASK-001 bis TASK-004 sind in der Spec
+    aufgegangen.
+  - Notes: `items/STORY-022/STORY-022_notes.md`.
+  - Spec: `items/STORY-022/STORY-022_spec.md`.
 
 - `STORY-009` **Entwicklungsprinzipien-Dokument**
   - Type: Story.

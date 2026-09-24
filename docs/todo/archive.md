@@ -438,3 +438,68 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     (TASK-005) sind Tasks dieser Story.
   - Notes: `items/STORY-024/STORY-024_notes.md`.
   - Resolution: Confirmed by the project owner on 2026-09-24.
+
+- `TASK-002` **Workspace-Entscheidung formalisieren**
+  - Type: Task.
+  - Parent: `STORY-022`.
+  - Required for parent: Yes.
+  - Status: Rejected.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Urgent.
+  - Dependencies: `STORY-002`.
+  - Goal: Klären, wonach heute nativ entschieden wird, ob ein Change lokal
+    oder in einem Worktree läuft (welche Quelle, welche Signale), und ob
+    diese Quelle projektseitig einstellbar sein sollte statt fest im
+    Verhalten zu stecken.
+  - Completion criteria: Dokumentiert ist, welche Quelle die Entscheidung
+    heute tatsächlich steuert; eine Entscheidung liegt vor, ob/wie sie
+    konfigurierbar gemacht wird. Wird sie konfigurierbar, sind die Felder in
+    `configuration.md` dokumentiert und ihre Validierung ist getestet.
+  - Resolution: Rejected by the project owner on 2026-09-24: folded into the spec of `STORY-022`; the native worktree tools cover the rest.
+
+- `TASK-003` **Verbindlicher Change-Ablauf**
+  - Type: Task.
+  - Parent: `STORY-022`.
+  - Required for parent: Yes.
+  - Status: Rejected.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Urgent.
+  - Dependencies: `TASK-002`.
+  - Goal: Die Schrittfolge Plan → Worktree/Lokal → Code → Merge → Cleanup als
+    verbindliche Regel in `CLAUDE.md` festhalten, inklusive der Punkte, an
+    denen eine Freigabe eingeholt wird.
+  - Completion criteria: Jeder Schritt hat eine klare Ein-/Ausstiegsbedingung;
+    kein Schritt wird stillschweigend übersprungen.
+  - Resolution: Rejected by the project owner on 2026-09-24: folded into the spec of `STORY-022`; the native worktree tools cover the rest.
+
+- `TASK-004` **Scope-Tracking für den Change**
+  - Type: Task.
+  - Parent: `STORY-022`.
+  - Required for parent: No.
+  - Status: Rejected.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Important.
+  - Dependencies: `TASK-003`.
+  - Goal: Festhalten, welche Dateien/Pfade zu einem Change gehören, damit
+    Merge und Cleanup nachvollziehbar nur diesen Umfang betreffen.
+  - Completion criteria: Nach einem Change lässt sich ohne Rückfrage sagen,
+    welche Pfade dazugehörten und welche nicht.
+  - Resolution: Rejected by the project owner on 2026-09-24: folded into the spec of `STORY-022`; the native worktree tools cover the rest.
+
+- `TASK-001` **Cleanup-Kriterien festlegen**
+  - Type: Task.
+  - Parent: `STORY-022`.
+  - Required for parent: Yes.
+  - Status: Rejected.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Important.
+  - Dependencies: `TASK-003`.
+  - Goal: Definieren, wann ein Worktree/Branch gefahrlos gelöscht werden darf
+    (z. B. nur nach erfolgreichem Merge und sauberem Zustand) und wann nicht.
+  - Completion criteria: Die Kriterien verhindern nachweislich das Löschen
+    eines Worktrees mit unverarbeiteten Änderungen.
+  - Resolution: Rejected by the project owner on 2026-09-24: folded into the spec of `STORY-022`; the native worktree tools cover the rest.
