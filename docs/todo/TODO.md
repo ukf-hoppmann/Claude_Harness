@@ -236,20 +236,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Ein Befehl führt alle konfigurierten Testebenen aus
     und liefert ein lesbares Ergebnis (bestanden/fehlgeschlagen je Ebene).
 
-- `EPIC-005` **Dokumentation & Nachverfolgung**
-  - Type: Epic.
-  - Status: In progress.
-  - Created: 2026-09-23.
-  - Area: Dokumentation.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Technische Dokumentationspflichten, ein Daily-Development-Report
-    und der Backlog-Lebenszyklus (dieses Dokument) sauber definieren, damit
-    Entscheidungen und Fortschritt über Sessions hinweg nachvollziehbar
-    bleiben.
-  - Completion criteria: Alle drei Bausteine sind dokumentiert und werden bei
-    laufender Arbeit tatsächlich gepflegt statt nur einmalig angelegt.
-
 - `EPIC-006` **Verifikationsnachweis & Umgang mit sensiblen Daten (Vorschlag)**
   - Type: Epic.
   - Status: Open.

@@ -137,3 +137,18 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Notes: `items/STORY-012/STORY-012_notes.md`.
   - Spec: `items/STORY-012/STORY-012_spec.md`.
   - Resolution: Confirmed by the project owner on 2026-09-23.
+
+- `EPIC-005` **Dokumentation & Nachverfolgung**
+  - Type: Epic.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Dokumentation.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Technische Dokumentationspflichten, ein Daily-Development-Report
+    und der Backlog-Lebenszyklus (dieses Dokument) sauber definieren, damit
+    Entscheidungen und Fortschritt über Sessions hinweg nachvollziehbar
+    bleiben.
+  - Completion criteria: Alle drei Bausteine sind dokumentiert und werden bei
+    laufender Arbeit tatsächlich gepflegt statt nur einmalig angelegt.
+  - Resolution: Confirmed by the project owner on 2026-09-23.
