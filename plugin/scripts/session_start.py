@@ -91,7 +91,7 @@ def main() -> int:
             )
         else:
             lines.append(
-                f"Architecture rules: {rules} (binding; read it before planning or changing code); "
+                f"Architecture rules: {rules} (binding; read it before planning, designing, or changing code); "
                 "rules in skill claude-harness:architecture."
             )
             _, scope_errors = load_scopes(root, config)

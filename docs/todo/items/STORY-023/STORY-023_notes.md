@@ -79,3 +79,36 @@
   `tests/test_architecture_rules.py`; die Regeln verweisen darauf.
 - Die Completion criteria sind erfüllt; die Story wartet auf Bestätigung.
 
+## 2026-09-24 — Wiedereröffnet: Architektur schon beim Planen
+
+### Discussed
+
+- Der Hook greift erst bei der ersten Code-Änderung. Beim Planen und
+  Besprechen hängt das Lesen der Architekturregeln nur am Skill, der nicht
+  erzwungen wird. Dann entsteht ein Plan gegen die Regeln, und der Hook
+  blockiert erst, wenn das Konzept schon steht.
+- Ein Hook kann nicht erkennen, ob gerade Architektur geplant wird. Greifbar
+  wird ein Plan an zwei Stellen: beim Schreiben einer Spec und beim Vorlegen
+  eines Plans im Planungsmodus.
+- Die Regeln bei jedem Session-Start vollständig zu laden wäre sicher, kostet
+  aber in jedem Chat Tokens und widerspricht der Ladestufen-Regel.
+- Ein Vermerk in der Root-`CLAUDE.md` würde die Startzeile des Hooks
+  doppeln, die ohnehin in jedem Chat im Kontext ist.
+
+### Decided
+
+- Wiedereröffnet durch den Projektverantwortlichen am 2026-09-24, weil die
+  Architektur schon beim Planen gelesen werden muss.
+- Der Hook lehnt zusätzlich das Schreiben einer Spec im Backlog und das
+  Verlassen des Planungsmodus ab, bis die Regeln gelesen sind.
+- Die Skill-Beschreibung nennt ausdrücklich das Planen und Entwerfen.
+- Umgesetzt: `check_architecture.py` prüft zusätzlich `ExitPlanMode` und
+  Backlog-Specs; Startzeile und Skill-Beschreibung nennen das Planen. Tests
+  für Spec (auch `_spec_<Thema>`), Notizen (nicht betroffen) und Plan.
+- Eine eigenständige `claude -p`-Session kann `ExitPlanMode` nicht nutzen; die
+  Plan-Sperre ist daher nur durch Tests belegt und in einer interaktiven
+  Session noch zu beobachten. Der Versuch zeigte aber das Problem: Ohne Lesen
+  der Regeln plante die Session gegen eine vorhandene Regel.
+- Die Completion criteria sind weiterhin erfüllt; die Story wartet auf
+  Bestätigung.
+

@@ -40,7 +40,7 @@ die Skill-Beschreibungen (je ein Satz) und eine Startzeile pro Modul.
 | `todo` | Formatprüfung am Ende eines Turns, nur nach Backlog-Änderungen | Backlog-Regeln; Formatdetails in `format.md`, nur beim Anlegen oder bei Fehlern | `backlog.py` (Prüfung, Übersicht) | Das Format lässt sich prüfen und darf nicht kaputtgehen; die Arbeitsregeln betreffen nur Backlog-Arbeit |
 | `daily` | Erinnerung bei neuen Commits auf dem Hauptzweig | Berichtsregeln | `daily.py` (offene Commits, Bestätigen) | Das Fehlen eines Berichts ist erkennbar; Schreiben ist nur nach Commits Thema; die Git-Auswertung ist stures Abarbeiten |
 | `techdocs` | Erinnerung, wenn Code, aber keine Doku geändert wurde | Doku-Regeln | – | Vergessene Doku ist erkennbar; die Regeln braucht es nur bei dokumentationsrelevanten Änderungen |
-| `development` / `architecture` | Blockiert Code-Änderungen, bis die Regeln gelesen sind | Umgang mit Architekturregeln | – | Die Regeln gelten für jede Code-Änderung und dürfen nicht übergangen werden; Bereichsregeln als Scopes nur für passende Pfade |
+| `development` / `architecture` | Blockiert Plan, Spec und Code-Änderungen, bis die Regeln gelesen sind | Umgang mit Architekturregeln | – | Die Regeln gelten für jede Code-Änderung und dürfen nicht übergangen werden; Bereichsregeln als Scopes nur für passende Pfade |
 | `init` | – | Einrichtungsablauf, nur vom Nutzer aufrufbar | – | Wird einmal pro Projekt gebraucht |
 
 Unterordner-`CLAUDE.md` nutzt der Harness nicht; bereichsbezogene Regeln
@@ -51,9 +51,11 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 1. **SessionStart:** `session_start.py` lädt die Config und schreibt eine
    Kurzfassung in den Kontext (aktive Module, Dokumentsprache, Orte der
    Dokumente, fehlende Dateien, Backlog-Fehler).
-2. **PreToolUse (Write/Edit/MultiEdit/NotebookEdit):** `check_architecture.py`
-   lehnt die Änderung einer Projektdatei ab, bis die Architekturregeln und
-   passende Scope-Dateien in der Session vollständig gelesen wurden.
+2. **PreToolUse (Write/Edit/MultiEdit/NotebookEdit/ExitPlanMode):**
+   `check_architecture.py` lehnt das Vorlegen eines Plans, das Schreiben einer
+   Backlog-Spec und die Änderung einer Projektdatei ab, bis die
+   Architekturregeln (bei Projektdateien auch passende Scope-Dateien) in der
+   Session vollständig gelesen wurden.
 3. **PostToolUse (Read):** `mark_architecture_read.py` merkt sich vollständig
    gelesene Regel- und Scope-Dateien.
 4. **PostToolUse (Write/Edit/MultiEdit):** `mark_backlog_dirty.py` merkt sich

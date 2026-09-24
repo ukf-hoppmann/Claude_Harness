@@ -182,6 +182,37 @@ class ArchitectureHookTest(unittest.TestCase):
             with self.subTest(path=path):
                 self.assertIsNone(self.edit(path))
 
+    def test_spec_needs_rules_but_other_backlog_files_do_not(self):
+        for spec in ("docs/todo/items/STORY-001/STORY-001_spec.md", "docs/todo/items/STORY-001/STORY-001_spec_api.md"):
+            with self.subTest(spec=spec):
+                reason = self.edit(spec, session=spec)
+                self.assertIn("docs/development/architecture.md", reason)
+                self.assertIn("plan", reason)
+        self.assertIsNone(self.edit("docs/todo/items/STORY-001/STORY-001_notes.md"))
+        self.read(self.rules)
+        self.assertIsNone(self.edit("docs/todo/items/STORY-001/STORY-001_spec.md"))
+
+    def exit_plan_mode(self, session="s1"):
+        result = self.run_hook(
+            "check_architecture.py",
+            {"session_id": session, "tool_name": "ExitPlanMode", "tool_input": {"plan": "Add a module."}},
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        if not result.stdout.strip():
+            return None
+        return json.loads(result.stdout)["hookSpecificOutput"]["permissionDecisionReason"]
+
+    def test_plan_needs_rules(self):
+        reason = self.exit_plan_mode()
+        self.assertIn("docs/development/architecture.md", reason)
+        self.assertIn("scope", reason)
+        self.read(self.rules)
+        self.assertIsNone(self.exit_plan_mode())
+
+    def test_plan_without_rules_file_is_allowed(self):
+        self.rules.unlink()
+        self.assertIsNone(self.exit_plan_mode())
+
     def test_files_outside_project_are_ignored(self):
         result = self.run_hook(
             "check_architecture.py",
@@ -214,6 +245,7 @@ class ArchitectureHookTest(unittest.TestCase):
         out = self.run_hook("session_start.py", {"session_id": "s1", "source": "startup"}).stdout
         self.assertIn("docs/development/architecture.md", out)
         self.assertIn("claude-harness:architecture", out)
+        self.assertIn("before planning", out)
         self.scope.unlink()
         out = self.run_hook("session_start.py", {"session_id": "s1", "source": "startup"}).stdout
         self.assertIn("architecture/llm.md", out)

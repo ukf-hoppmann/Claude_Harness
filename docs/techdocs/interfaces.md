@@ -29,7 +29,7 @@ tun nichts, wenn ihr Modul aus oder die Config ungültig ist.
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
 | SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand, Fehler der Scope-Tabelle; bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
-| PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`) | `check_architecture.py` | Lehnt die Änderung einer Projektdatei ab, solange die Architekturregeln und die Datei jedes passenden Scopes in der Session nicht vollständig gelesen wurden | JSON mit `permissionDecision: deny` und Grund |
+| PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes | JSON mit `permissionDecision: deny` und Grund |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Merker, wenn eine Datei im Backlog-Ordner geändert wurde | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“ | keine |
 | PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl) | keine |
@@ -49,8 +49,9 @@ erkennt der Hook nicht.
 
 Projektdateien für `architecture`: alle Dateien im Projekt außer `README.md`,
 `.git/`, `.claude-harness/` und den Ordnern von Backlog, Tagesberichten,
-Systemdoku und `development`. Tests zählen dazu. Fehlt die Regeldatei, wird
-nichts abgelehnt. Änderungen über Bash sieht der Hook nicht.
+Systemdoku und `development`. Tests zählen dazu. Backlog-Specs sind
+Harness-Dateien, verlangen aber ebenfalls die gelesene Regeldatei, weil sie
+die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Änderungen über Bash sieht der Hook nicht.
 
 ## Skript `backlog.py`
 

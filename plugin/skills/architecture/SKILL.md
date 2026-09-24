@@ -1,6 +1,6 @@
 ---
 name: architecture
-description: Rules for working with the project's binding architecture rules (development suite). Use before planning or changing code, when adding or changing architecture rules or scopes, when a requirement seems to conflict with the architecture, or when the architecture hook blocks an edit.
+description: Rules for working with the project's binding architecture rules (development suite). Use before discussing, designing, or planning how modules, functions, or components are added or changed, before writing a spec or changing code, when adding or changing architecture rules or scopes, when a requirement seems to conflict with the architecture, or when the architecture hook blocks an action.
 ---
 
 # Architecture rules
@@ -18,8 +18,10 @@ description: Rules for working with the project's binding architecture rules (de
 
 ## Working with the rules
 
-- Before planning a code change, read the rules file and every scope whose
-  path patterns match the files you expect to change. Read them in full with
+- Before discussing or planning how code is structured (modules, functions,
+  components, interfaces), read the rules file and every scope whose path
+  patterns match the files you expect to change. A design that ignores the
+  rules has to be redone later. Read them in full with
   the Read tool; the hook only counts complete reads.
 - A scope applies in addition to the rules file, never instead of it.
 - Check your plan against the rules before you present it, and follow them
@@ -46,9 +48,15 @@ description: Rules for working with the project's binding architecture rules (de
 
 ## The hook
 
-Before the first change to a project file in a session, a hook blocks the
-edit until the rules file — and the file of every scope matching that path —
-was read in full. After the context is compacted or cleared, read them again.
+A hook blocks the following until the rules file was read in full in this
+session:
+
+- presenting a plan (leaving plan mode);
+- writing a backlog spec (`<ID>_spec.md`, `<ID>_spec_<topic>.md`), because it
+  is the input for an implementation plan;
+- the first change to a project file; here the file of every scope matching
+  that path must have been read as well.
+ After the context is compacted or cleared, read them again.
 Harness files (`README.md`, `.claude-harness/`, the document folders) are not
 checked. The hook does not see changes made through Bash; the rules apply to
 them all the same.
