@@ -183,26 +183,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     zu belassen.
   - Completion criteria: Ein kurzes, prüfbares Prinzipien-Dokument liegt vor.
 
-- `STORY-024` **Testdisziplin & Verifikation**
-  - Type: Story.
-  - Parent: `EPIC-004`.
-  - Required for parent: Yes.
-  - Status: Open.
-  - Created: 2026-09-24.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Festlegen, wie in einem Projekt getestet und verifiziert wird:
-    einheitliche Testebenen mit einem Verify-Kommando, TDD für passende
-    Änderungen und ein nachvollziehbarer Nachweis von Verify-Läufen.
-  - Completion criteria: Das Verify-Kommando führt alle konfigurierten
-    Testebenen aus und ist dokumentiert; die Regeln zu TDD und
-    Verifikationsnachweis sind entschieden (umgesetzt oder bewusst
-    zurückgestellt).
-  - Summary: Bündelt alles zum Testen: Testumfang (TASK-006) und TDD
-    (TASK-005) sind Tasks dieser Story.
-  - Notes: `items/STORY-024/STORY-024_notes.md`.
-
 - `STORY-016` **Umgang mit Secrets/Credentials**
   - Type: Story.
   - Parent: `EPIC-004`.

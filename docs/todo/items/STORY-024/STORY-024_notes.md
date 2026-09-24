@@ -62,3 +62,11 @@
 
 - Ob TASK-006 darauf reduziert oder abgelehnt wird (Konfigurationseintrag
   für Testbefehle erst, wenn ein Projekt ihn braucht).
+
+## 2026-09-24 — Abschluss
+
+### Decided
+
+- Ziel und Abschlusskriterium auf „Test zuerst und Testumfang“ angepasst
+  (Verify-Kommando entfällt, Nachweis abgelehnt); vom
+  Projektverantwortlichen als erledigt bestätigt.

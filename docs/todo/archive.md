@@ -419,3 +419,22 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     `claude-harness:decomposition`; ein Plan-Abschnitt nennt, ob sein Test
     zuerst entsteht. Der Zyklus selbst wird nicht dokumentiert.
   - Resolution: Confirmed by the project owner on 2026-09-24.
+
+- `STORY-024` **Testdisziplin & Verifikation**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-09-24.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Festlegen, wie getestet wird: wann der Test vor dem Code
+    entsteht und wie umfangreich nach einer Änderung getestet wird.
+  - Completion criteria: Die Skill `claude-harness:decomposition` enthält
+    Regeln zu Test zuerst und zum Testumfang; der Verifikationsnachweis ist
+    abgelehnt.
+  - Summary: Bündelt alles zum Testen: Testumfang (TASK-006) und TDD
+    (TASK-005) sind Tasks dieser Story.
+  - Notes: `items/STORY-024/STORY-024_notes.md`.
+  - Resolution: Confirmed by the project owner on 2026-09-24.
