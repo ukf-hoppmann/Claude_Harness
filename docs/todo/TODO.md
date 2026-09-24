@@ -25,33 +25,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Zerlegungs-Heuristik, Change-Ablauf und Testkommando sind dokumentiert und
     werden bei mindestens einem Change sichtbar angewendet.
 
-- `STORY-025` **Regelverstöße und Regeländerungen**
-  - Type: Story.
-  - Parent: `EPIC-004`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-24.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: `STORY-023`.
-  - Goal: Festlegen, wie die AI vorgeht, wenn eine Anforderung, eine
-    gestaltete Architektur oder ein Wunsch des Projektverantwortlichen nicht
-    zu den Regeln der Suite `development` oder zu den Vorgaben des Harness
-    passt: Konflikt benennen und Lösungen vorschlagen, Entscheidung durch den
-    Projektverantwortlichen, gewünschte Harness-Änderungen an den
-    Harness-Backlog übergeben.
-  - Completion criteria: Das Verfahren ist im Plugin festgelegt und gilt für
-    alle Teilbereiche der Suite `development` und für die Vorgaben aller
-    Module. Ein Wunsch nach einer Harness-Änderung lässt sich aus einem
-    anderen Projekt heraus an das Harness-Repo übergeben. Das Verfahren wurde
-    an mindestens einem echten Konfliktfall durchgespielt.
-  - Summary: Klärt, was passiert, wenn eine Architektur oder ein Wunsch des
-    Projektverantwortlichen nicht zu den dokumentierten Regeln oder zu den
-    Vorgaben des Harness passt: Die AI benennt den Konflikt, der
-    Projektverantwortliche entscheidet.
-  - Notes: `items/STORY-025/STORY-025_notes.md`.
-  - Spec: `items/STORY-025/STORY-025_spec.md`.
-
 - `STORY-004` **Zerlegungs-Heuristik definieren**
   - Type: Story.
   - Parent: `EPIC-004`.
