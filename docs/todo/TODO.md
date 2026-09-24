@@ -25,29 +25,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Zerlegungs-Heuristik, Change-Ablauf und Testkommando sind dokumentiert und
     werden bei mindestens einem Change sichtbar angewendet.
 
-- `STORY-023` **Architektur-Definitionen**
-  - Type: Story.
-  - Parent: `EPIC-004`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-24.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Festlegen, wo und wie die grundlegende, für das ganze Projekt
-    verbindliche Architektur definiert wird (Vorbild:
-    `.harness/architecture-rules.md` in my_story_game): Ort, Aufbau, Umgang
-    mit Teilbereichen, wann sie geladen wird, wie sie durchgesetzt und wie sie
-    geändert wird.
-  - Completion criteria: Ort, Format, Ladeweg und Änderungsverfahren der
-    Architektur-Definitionen sind festgelegt und in mindestens einem Projekt
-    angewendet.
-  - Summary: Architekturregeln werden Teil einer Modul-Suite `development`,
-    liegen englisch im Doku-Ordner und werden per Hook vor der ersten
-    Code-Änderung einer Session gelesen.
-  - Notes: `items/STORY-023/STORY-023_notes.md`.
-  - Spec: `items/STORY-023/STORY-023_spec.md`.
-
 - `STORY-025` **Regelverstöße und Regeländerungen**
   - Type: Story.
   - Parent: `EPIC-004`.
