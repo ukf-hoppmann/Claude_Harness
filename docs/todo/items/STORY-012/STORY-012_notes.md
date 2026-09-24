@@ -49,3 +49,10 @@ Trivial-Schwelle noch eine Dokumentstruktur fest.
 - Dieses Repo bekommt `README.md` und `docs/techdocs/architecture.md`,
   `interfaces.md`, `configuration.md`; `operations` entfällt.
 - Details: `STORY-012_spec.md`.
+
+## 2026-09-24 — Backlog dokumentiert sich selbst
+
+### Decided
+
+- Änderungen im Backlog (Einträge, Status, Notizen, Specs) werden nirgendwo
+  sonst dokumentiert. Der techdocs-Skill sagt das ausdrücklich; der Hook ignorierte den Backlog-Ordner bereits.

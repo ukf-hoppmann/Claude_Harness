@@ -101,9 +101,9 @@ def _changed_files(root: Path, sha: str) -> list[str]:
     return [line for line in (out or "").splitlines() if line]
 
 
-def _counts(files: list[str], daily_path: PurePosixPath) -> bool:
-    """A commit counts unless it only touches the daily report folder."""
-    return any(not PurePosixPath(f).is_relative_to(daily_path) for f in files)
+def _counts(files: list[str], ignored: tuple[PurePosixPath, ...]) -> bool:
+    """A commit counts unless it only touches the daily report or backlog folders."""
+    return any(not any(PurePosixPath(f).is_relative_to(p) for p in ignored) for f in files)
 
 
 def pending_commits(root: Path, config: HarnessConfig) -> list[Commit]:
@@ -126,7 +126,8 @@ def pending_commits(root: Path, config: HarnessConfig) -> list[Commit]:
     commits = []
     for line in (log or "").splitlines():
         sha, short, when, subject = line.split("\x1f", 3)
-        if _counts(_changed_files(root, sha), config.daily_path):
+        # The backlog documents itself, so backlog-only commits never need a report.
+        if _counts(_changed_files(root, sha), (config.daily_path, config.todo_path)):
             commits.append(Commit(sha, short, when, subject))
     return commits
 

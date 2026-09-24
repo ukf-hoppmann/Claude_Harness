@@ -55,6 +55,8 @@ Zuordnung (ein Change kann mehrere Dokumente betreffen):
 | Einstellung neu, geändert, entfernt | `configuration` |
 | Deployment, Betrieb, Fehlerbilder | `operations` |
 
+- Backlog-Änderungen (Einträge, Notizen, Specs) und Tagesberichte brauchen
+  keine Systemdoku; der Backlog dokumentiert sich selbst.
 - Keine Anpassung nötig, wenn sich nichts von außen Sichtbares ändert:
   Refactoring ohne Verhaltensänderung, nur Tests, Tippfehler, Formatierung,
   interne Umbenennungen, Abhängigkeits-Updates ohne Verhaltensänderung.

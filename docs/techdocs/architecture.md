@@ -41,7 +41,8 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
    daraufhin weiterarbeitet.
    - `check_backlog.py`: prüft den Backlog nach Änderungen daran.
    - `check_daily.py`: erinnert an den Tagesbericht, wenn neue Commits auf dem
-     Hauptzweig noch nicht erfasst sind.
+     Hauptzweig noch nicht erfasst sind. Commits, die nur Daily- oder
+     Backlog-Ordner ändern, zählen nicht; der Backlog dokumentiert sich selbst.
    - `check_techdocs.py`: erinnert einmal pro Session, wenn Projektdateien,
      aber keine Systemdoku geändert wurden.
 

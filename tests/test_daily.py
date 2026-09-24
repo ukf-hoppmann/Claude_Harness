@@ -93,6 +93,19 @@ class DailyHookTest(unittest.TestCase):
         self.commit("docs/development/daily/2026-09-23_daily.md", "daily report")
         self.assertEqual(self.stop().returncode, 0)
 
+    def test_backlog_only_commit_is_ignored(self):
+        self.baseline()
+        self.commit("docs/todo/TODO.md", "backlog change")
+        self.commit("docs/todo/items/STORY-001/STORY-001_notes.md", "notes")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_mixed_commit_with_backlog_triggers(self):
+        self.baseline()
+        (self.project / "docs/todo").mkdir(parents=True)
+        (self.project / "docs/todo/TODO.md").write_text("x\n")
+        self.commit("src/app.py", "code and backlog")
+        self.assertEqual(self.stop().returncode, 2)
+
     def test_merge_of_feature_branch_triggers(self):
         self.baseline()
         self.git("checkout", "-q", "-b", "feature")

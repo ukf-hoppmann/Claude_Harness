@@ -25,18 +25,21 @@ description: Rules for daily development reports (one report per day about mater
    `${CLAUDE_PLUGIN_ROOT}/templates/daily/daily.md`. Update existing rows
    instead of adding duplicates; bundle related commits into one row.
 4. Finally run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" ack`, also
-   when nothing was material. Commits that only change the report folder are
-   ignored, so committing the report does not trigger a new reminder.
+   when nothing was material. Commits that only change the report or backlog
+   folders are ignored, so committing the report does not trigger a new
+   reminder.
 
 ## Materiality
 
 Material is judged by the outcome, not the amount of activity: new, changed,
 or removed behavior; bug fixes; relevant technical, documentation, or
-operational changes; decisions. Planning is material when it establishes,
-changes, adopts, rejects, or substantially clarifies a decision, an
-implementation-ready goal, a scope boundary, a risk, or an important next
-step. Exploratory notes, intermediate drafts, small wording or formatting
-edits, and repeated decisions are not material on their own.
+operational changes; decisions. Exploratory notes, intermediate drafts, small
+wording or formatting edits, and repeated decisions are not material on their
+own.
+
+The backlog documents itself: changes to backlog items, their status, notes,
+or specs (planning, decisions, restructuring, completions) are not reported.
+Backlog IDs appear only as evidence for the reported changes.
 
 ## Format
 

@@ -124,3 +124,10 @@ Ideenquelle.
   aus, weil `daily.py` per Bash aufgerufen wird und dort
   `CLAUDE_PLUGIN_DATA` fehlen kann.
 - Details: `STORY-013_spec.md`.
+
+## 2026-09-24 — Backlog dokumentiert sich selbst
+
+### Decided
+
+- Änderungen im Backlog (Einträge, Status, Notizen, Specs) werden nirgendwo
+  sonst dokumentiert. Der Daily-Hook ignoriert Commits, die nur Daily- oder Backlog-Ordner ändern, und der Skill berichtet keine Planung, Umstrukturierung oder Abschlüsse aus dem Backlog mehr. Die frühere Regel „Planung zählt, wenn …“ entfällt. Backlog-IDs bleiben als Nachweis.

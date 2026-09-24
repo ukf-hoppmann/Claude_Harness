@@ -31,7 +31,7 @@ tun nichts, wenn ihr Modul aus oder die Config ungültig ist.
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Merker, wenn eine Datei im Backlog-Ordner geändert wurde | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“ | keine |
 | Stop | `check_backlog.py` | Prüft den Backlog nach Änderungen; neue Hinweise einmal pro Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
-| Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Hauptzweig (nur Haupt-Checkout), einmal pro HEAD und Session | Exit 2 + stderr |
+| Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Hauptzweig (nur Haupt-Checkout; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD und Session | Exit 2 + stderr |
 | Stop | `check_techdocs.py` | Erinnert einmal pro Session, wenn Projektdateien, aber keine Systemdoku geändert wurden | Exit 2 + stderr |
 
 Bei gesetztem `stop_hook_active` bleiben die Stop-Hooks still, damit keine
@@ -58,7 +58,7 @@ erkennt der Hook nicht.
   (oder mit gesetztem `CLAUDE_PROJECT_DIR`).
 - `pending`: Pfad des heutigen Berichts (`exists`/`new`), Dokumentsprache und
   offene Commits (kurzer Hash, Datum, Betreff), älteste zuerst. Commits, die
-  nur den Daily-Ordner ändern, werden ausgelassen.
+  nur den Daily- oder Backlog-Ordner ändern, werden ausgelassen.
 - `ack`: setzt den bestätigten Stand auf HEAD.
 - Exit-Code 1, wenn das Modul aus ist oder nicht im Haupt-Checkout auf dem
   Hauptzweig aufgerufen wird; 2 bei falschem Aufruf.

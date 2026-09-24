@@ -63,9 +63,10 @@ path = "development/daily"   # relativ zu docs.root; Standard
 
 - Relevanz ist ergebnisorientiert; zusammenhängende Schritte werden gebündelt.
   Erkundungen, Zwischenentwürfe, kleine Formulierungs- und Formatänderungen
-  und Wiederholungen bestehender Entscheidungen zählen nicht. Planung zählt,
-  wenn sie eine Entscheidung, ein umsetzungsreifes Ziel, eine Abgrenzung, ein
-  Risiko oder einen wichtigen nächsten Schritt festlegt oder ändert.
+  und Wiederholungen bestehender Entscheidungen zählen nicht.
+- Backlog-Änderungen (Einträge, Status, Notizen, Specs) werden nicht
+  berichtet; der Backlog dokumentiert sich selbst. Backlog-IDs erscheinen nur
+  als Nachweis.
 - Wahrhaftigkeit: keine behauptete Verifikation; Gemessenes und Vermutetes
   getrennt; nachträglich Erstelltes gekennzeichnet, Lücken bleiben sichtbar;
   unfertige, abgelehnte und zurückgestellte Arbeit bleibt sichtbar.
@@ -83,7 +84,7 @@ gelten:
 - Modul `daily` ist an und die Config gültig;
 - das Projekt ist der Haupt-Checkout und der Hauptzweig ist ausgecheckt;
 - seit dem bestätigten Stand gibt es Commits, die nicht ausschließlich
-  Dateien im Daily-Ordner ändern;
+  Dateien im Daily- oder Backlog-Ordner ändern;
 - für diesen HEAD wurde in dieser Session noch nicht erinnert, und
   `stop_hook_active` ist nicht gesetzt.
 
@@ -117,5 +118,6 @@ dasselbe.
   Bericht für den heutigen Tag.
 - Nur irrelevante Commits führen nach `ack` zu keinem Bericht.
 - Keine Erinnerung in einem Worktree, auf einem anderen Zweig, bei
-  abgeschaltetem Modul oder wenn nur der Daily-Ordner geändert wurde.
+  abgeschaltetem Modul oder wenn nur Daily- oder Backlog-Ordner geändert
+  wurden.
 - Pro HEAD und Session höchstens eine Erinnerung.

@@ -26,6 +26,9 @@ description: Rules for the project's technical documentation (README, architectu
 
 One change can affect several documents.
 
+Backlog changes (items, notes, specs) never need technical documentation;
+the backlog documents itself. The same holds for daily reports.
+
 No update is needed when nothing visible from outside changes: refactoring
 without behavior change, tests only, typos, formatting, internal renames,
 dependency updates without behavior change. When in doubt, read the affected
