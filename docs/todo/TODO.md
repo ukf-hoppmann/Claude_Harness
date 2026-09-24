@@ -61,26 +61,47 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     (seine Hooks tun nichts, sein Skill verweist auf den Schalter), ein
     eingeschaltetes Modul greift vollständig.
 
-- `EPIC-002` **Task-Zerlegung**
+- `EPIC-004` **Entwicklungsprozess & Prinzipien**
   - Type: Epic.
   - Status: Open.
   - Created: 2026-09-23.
-  - Area: Governance.
+  - Area: Entwicklung.
   - Priority: Important.
   - Dependencies: None.
-  - Goal: Eine Heuristik festlegen, wann eine größere Aufgabe in unabhängig
-    verifizierbare Teilaufgaben zerlegt wird und wann sie bewusst am Stück
-    bleibt, angelehnt an das Dimensions-Prinzip aus Agent_Harness.
-  - Completion criteria: Die Heuristik ist als Regel dokumentiert und wurde an
-    mindestens einer realen, mittelgroßen Aufgabe erprobt.
+  - Goal: Verbindlich festlegen, wie in einem Projekt entwickelt wird:
+    Entwicklungsprinzipien, projektweite Architektur-Definitionen, Heuristik
+    zur Task-Zerlegung, Change-Ablauf (Workspace, Ablauf, Cleanup), TDD-Ritual
+    und einheitliche Testebenen (Unit/Integration/System), damit Qualität
+    nicht vom Zufall abhängt.
+  - Completion criteria: Prinzipien, Architektur-Definitionen,
+    Zerlegungs-Heuristik, Change-Ablauf und Testkommando sind dokumentiert und
+    werden bei mindestens einem Change sichtbar angewendet.
+
+- `STORY-023` **Architektur-Definitionen**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-24.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Festlegen, wo und wie die grundlegende, für das ganze Projekt
+    verbindliche Architektur definiert wird (Vorbild:
+    `.harness/architecture-rules.md` in my_story_game): Ort, Aufbau, Umgang
+    mit Teilbereichen, wann sie geladen wird, wie sie durchgesetzt und wie sie
+    geändert wird.
+  - Completion criteria: Ort, Format, Ladeweg und Änderungsverfahren der
+    Architektur-Definitionen sind festgelegt und in mindestens einem Projekt
+    angewendet.
 
 - `STORY-004` **Zerlegungs-Heuristik definieren**
   - Type: Story.
-  - Parent: `EPIC-002`.
+  - Parent: `EPIC-004`.
   - Required for parent: Yes.
   - Status: Open.
   - Created: 2026-09-23.
-  - Area: Governance.
+  - Area: Entwicklung.
   - Priority: Important.
   - Dependencies: None.
   - Goal: Kriterien festlegen (Umfang, Kopplung, Unterbrechbarkeit,
@@ -91,11 +112,11 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 - `STORY-005` **Dimensions-Checkliste je Teilaufgabe**
   - Type: Story.
-  - Parent: `EPIC-002`.
+  - Parent: `EPIC-004`.
   - Required for parent: No.
   - Status: Open.
   - Created: 2026-09-23.
-  - Area: Governance.
+  - Area: Entwicklung.
   - Priority: Prospective.
   - Dependencies: `STORY-004`.
   - Goal: Eine Prüfliste relevanter Dimensionen (Persistenz, Schnittstellen,
@@ -104,10 +125,12 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Die Checkliste wird bei einer zerlegten Aufgabe
     sichtbar durchlaufen und im Ergebnis referenziert.
 
-- `EPIC-003` **Change-Workflow (Workspace, Ablauf, Cleanup)**
-  - Type: Epic.
+- `STORY-022` **Change-Workflow (Workspace, Ablauf, Cleanup)**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: Yes.
   - Status: Open.
-  - Created: 2026-09-23.
+  - Created: 2026-09-24.
   - Area: Governance.
   - Priority: Urgent.
   - Dependencies: None.
@@ -119,10 +142,12 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Der Ablauf ist Schritt für Schritt dokumentiert,
     inklusive Abbruch-/Cleanup-Fällen, und wurde an einem realen Change
     durchlaufen.
+  - Summary: Ersetzt EPIC-003. Die bisherigen Stories STORY-006, STORY-007 und
+    STORY-008 sowie TASK-001 sind jetzt Tasks dieser Story.
 
 - `STORY-006` **Workspace-Entscheidung formalisieren**
-  - Type: Story.
-  - Parent: `EPIC-003`.
+  - Type: Task.
+  - Parent: `STORY-022`.
   - Required for parent: Yes.
   - Status: Open.
   - Created: 2026-09-23.
@@ -138,8 +163,8 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     konfigurierbar gemacht wird.
 
 - `STORY-007` **Verbindlicher Change-Ablauf**
-  - Type: Story.
-  - Parent: `EPIC-003`.
+  - Type: Task.
+  - Parent: `STORY-022`.
   - Required for parent: Yes.
   - Status: Open.
   - Created: 2026-09-23.
@@ -153,8 +178,8 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     kein Schritt wird stillschweigend übersprungen.
 
 - `STORY-008` **Scope-Tracking für den Change**
-  - Type: Story.
-  - Parent: `EPIC-003`.
+  - Type: Task.
+  - Parent: `STORY-022`.
   - Required for parent: No.
   - Status: Open.
   - Created: 2026-09-23.
@@ -168,7 +193,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 - `TASK-001` **Cleanup-Kriterien festlegen**
   - Type: Task.
-  - Parent: `EPIC-003`.
+  - Parent: `STORY-022`.
   - Required for parent: Yes.
   - Status: Open.
   - Created: 2026-09-23.
@@ -179,19 +204,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     (z. B. nur nach erfolgreichem Merge und sauberem Zustand) und wann nicht.
   - Completion criteria: Die Kriterien verhindern nachweislich das Löschen
     eines Worktrees mit unverarbeiteten Änderungen.
-
-- `EPIC-004` **Entwicklungsprinzipien & Testdisziplin**
-  - Type: Epic.
-  - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Verbindliche Entwicklungsprinzipien, ein TDD-Ritual und einheitliche
-    Testebenen (Unit/Integration/System) festlegen, damit Qualität nicht vom
-    Zufall abhängt.
-  - Completion criteria: Prinzipien, TDD-Ablauf und Testkommando sind
-    dokumentiert und werden bei mindestens einem Change sichtbar angewendet.
 
 - `STORY-009` **Entwicklungsprinzipien-Dokument**
   - Type: Story.

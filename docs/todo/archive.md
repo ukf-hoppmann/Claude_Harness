@@ -152,3 +152,34 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Alle drei Bausteine sind dokumentiert und werden bei
     laufender Arbeit tatsächlich gepflegt statt nur einmalig angelegt.
   - Resolution: Confirmed by the project owner on 2026-09-23.
+
+- `EPIC-002` **Task-Zerlegung**
+  - Type: Epic.
+  - Status: Rejected.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Eine Heuristik festlegen, wann eine größere Aufgabe in unabhängig
+    verifizierbare Teilaufgaben zerlegt wird und wann sie bewusst am Stück
+    bleibt, angelehnt an das Dimensions-Prinzip aus Agent_Harness.
+  - Completion criteria: Die Heuristik ist als Regel dokumentiert und wurde an
+    mindestens einer realen, mittelgroßen Aufgabe erprobt.
+  - Resolution: Rejected by the project owner on 2026-09-24: merged into `EPIC-004`; STORY-004 and STORY-005 moved there.
+
+- `EPIC-003` **Change-Workflow (Workspace, Ablauf, Cleanup)**
+  - Type: Epic.
+  - Status: Rejected.
+  - Created: 2026-09-23.
+  - Area: Governance.
+  - Priority: Urgent.
+  - Dependencies: None.
+  - Goal: Einen verbindlichen Ablauf für Changes festlegen: Planen →
+    Worktree erstellen oder lokal arbeiten → Coden → Mergen →
+    Aufräumen/Worktree löschen, inklusive klarer Entscheidung, woher die
+    Workspace-Wahl ihre Quelle zieht und ob diese Quelle konfigurierbar sein
+    muss.
+  - Completion criteria: Der Ablauf ist Schritt für Schritt dokumentiert,
+    inklusive Abbruch-/Cleanup-Fällen, und wurde an einem realen Change
+    durchlaufen.
+  - Resolution: Rejected by the project owner on 2026-09-24: merged into `EPIC-004` as `STORY-022`; STORY-006, STORY-007, STORY-008 and TASK-001 became its tasks.
