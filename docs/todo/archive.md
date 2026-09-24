@@ -239,3 +239,20 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     wo Dinge liegen, wie getestet wird und welche Harness-Teile an sind.
   - Notes: `items/EPIC-001/EPIC-001_notes.md`.
   - Resolution: Confirmed by the project owner on 2026-09-24.
+
+- `EPIC-006` **Verifikationsnachweis & Umgang mit sensiblen Daten (Vorschlag)**
+  - Type: Epic.
+  - Status: Rejected.
+  - Created: 2026-09-23.
+  - Area: Sicherheit.
+  - Priority: Prospective.
+  - Dependencies: None.
+  - Goal: Festlegen, wie ein Testlauf/Verifikationsergebnis nachvollziehbar
+    festgehalten wird (was wurde geprüft, mit welchem Ergebnis) und wie mit
+    Geheimnissen/Zugangsdaten in Logs, Output und Dateien umgegangen wird, da
+    beides in Agent_Harness fest verankert ist, bei Claude aber komplett
+    fehlt.
+  - Completion criteria: Ein Nachweis-Format für Verifikationsergebnisse
+    existiert; eine Regel zum Umgang mit erkennbaren Geheimnissen in Output
+    und Dateien ist dokumentiert und wurde mindestens einmal angewendet.
+  - Resolution: Rejected by the project owner on 2026-09-24: merged into `EPIC-004`; STORY-015 became a task of `STORY-024`, STORY-016 a story of `EPIC-004`.

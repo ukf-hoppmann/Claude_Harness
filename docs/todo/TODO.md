@@ -169,23 +169,28 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     zu belassen.
   - Completion criteria: Ein kurzes, prüfbares Prinzipien-Dokument liegt vor.
 
-- `STORY-010` **TDD-Ritual (Red/Green/Refactor)**
+- `STORY-024` **Testdisziplin & Verifikation**
   - Type: Story.
   - Parent: `EPIC-004`.
-  - Required for parent: No.
+  - Required for parent: Yes.
   - Status: Open.
-  - Created: 2026-09-23.
+  - Created: 2026-09-24.
   - Area: Entwicklung.
   - Priority: Important.
-  - Dependencies: `STORY-011`.
-  - Goal: Festlegen, für welche Art von Änderungen TDD verbindlich ist und
-    wie der Rot-Grün-Refactor-Zyklus nachvollziehbar dokumentiert wird.
-  - Completion criteria: Ein Beispiel-Change zeigt den Zyklus nachvollziehbar
-    (fehlschlagender Test → Implementierung → grüner Test → Refactor).
+  - Dependencies: None.
+  - Goal: Festlegen, wie in einem Projekt getestet und verifiziert wird:
+    einheitliche Testebenen mit einem Verify-Kommando, TDD für passende
+    Änderungen und ein nachvollziehbarer Nachweis von Verify-Läufen.
+  - Completion criteria: Das Verify-Kommando führt alle konfigurierten
+    Testebenen aus und ist dokumentiert; die Regeln zu TDD und
+    Verifikationsnachweis sind entschieden (umgesetzt oder bewusst
+    zurückgestellt).
+  - Summary: Bündelt alles zum Testen: Verify-Kommando (STORY-011), TDD
+    (STORY-010) und Verifikationsnachweis (STORY-015) sind Tasks dieser Story.
 
 - `STORY-011` **Test-Ebenen & einheitliches Verify-Kommando**
-  - Type: Story.
-  - Parent: `EPIC-004`.
+  - Type: Task.
+  - Parent: `STORY-024`.
   - Required for parent: Yes.
   - Status: Open.
   - Created: 2026-09-23.
@@ -199,29 +204,27 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Testbefehle je Ebene stehen in der Projektkonfiguration; die Felder sind in
     `configuration.md` dokumentiert und ihre Validierung ist getestet.
 
-- `EPIC-006` **Verifikationsnachweis & Umgang mit sensiblen Daten (Vorschlag)**
-  - Type: Epic.
+- `STORY-010` **TDD-Ritual (Red/Green/Refactor)**
+  - Type: Task.
+  - Parent: `STORY-024`.
+  - Required for parent: No.
   - Status: Open.
   - Created: 2026-09-23.
-  - Area: Sicherheit.
-  - Priority: Prospective.
-  - Dependencies: None.
-  - Goal: Festlegen, wie ein Testlauf/Verifikationsergebnis nachvollziehbar
-    festgehalten wird (was wurde geprüft, mit welchem Ergebnis) und wie mit
-    Geheimnissen/Zugangsdaten in Logs, Output und Dateien umgegangen wird, da
-    beides in Agent_Harness fest verankert ist, bei Claude aber komplett
-    fehlt.
-  - Completion criteria: Ein Nachweis-Format für Verifikationsergebnisse
-    existiert; eine Regel zum Umgang mit erkennbaren Geheimnissen in Output
-    und Dateien ist dokumentiert und wurde mindestens einmal angewendet.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: `STORY-011`.
+  - Goal: Festlegen, für welche Art von Änderungen TDD verbindlich ist und
+    wie der Rot-Grün-Refactor-Zyklus nachvollziehbar dokumentiert wird.
+  - Completion criteria: Ein Beispiel-Change zeigt den Zyklus nachvollziehbar
+    (fehlschlagender Test → Implementierung → grüner Test → Refactor).
 
 - `STORY-015` **Verifikations-Nachweis-Format**
-  - Type: Story.
-  - Parent: `EPIC-006`.
-  - Required for parent: Yes.
+  - Type: Task.
+  - Parent: `STORY-024`.
+  - Required for parent: No.
   - Status: Open.
   - Created: 2026-09-23.
-  - Area: Sicherheit.
+  - Area: Entwicklung.
   - Priority: Prospective.
   - Dependencies: `STORY-011`.
   - Goal: Ein einfaches, lesbares Format festlegen, in dem ein Verify-Lauf
@@ -231,7 +234,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 - `STORY-016` **Umgang mit Secrets/Credentials**
   - Type: Story.
-  - Parent: `EPIC-006`.
+  - Parent: `EPIC-004`.
   - Required for parent: No.
   - Status: Open.
   - Created: 2026-09-23.
