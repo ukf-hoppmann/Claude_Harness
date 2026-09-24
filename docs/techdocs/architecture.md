@@ -29,6 +29,23 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Vorlagen | Config, Backlog, Tagesbericht, Systemdoku, Architekturregeln | `plugin/templates/` |
 | Sitzungszustand | Pfade für Merker pro Session | `plugin/scripts/state.py` |
 
+## Module und Ladestufen
+
+Wo jedes Modul liegt und warum. Die Regel dahinter steht in
+`docs/development/architecture.md`, Abschnitt 7. Immer im Kontext sind nur
+die Skill-Beschreibungen (je ein Satz) und eine Startzeile pro Modul.
+
+| Modul | Hook (prüft, kostet nichts, solange alles stimmt) | Skill (lädt beim Thema) | Skript | Warum so |
+|---|---|---|---|---|
+| `todo` | Formatprüfung am Ende eines Turns, nur nach Backlog-Änderungen | Backlog-Regeln; Formatdetails in `format.md`, nur beim Anlegen oder bei Fehlern | `backlog.py` (Prüfung, Übersicht) | Das Format lässt sich prüfen und darf nicht kaputtgehen; die Arbeitsregeln betreffen nur Backlog-Arbeit |
+| `daily` | Erinnerung bei neuen Commits auf dem Hauptzweig | Berichtsregeln | `daily.py` (offene Commits, Bestätigen) | Das Fehlen eines Berichts ist erkennbar; Schreiben ist nur nach Commits Thema; die Git-Auswertung ist stures Abarbeiten |
+| `techdocs` | Erinnerung, wenn Code, aber keine Doku geändert wurde | Doku-Regeln | – | Vergessene Doku ist erkennbar; die Regeln braucht es nur bei dokumentationsrelevanten Änderungen |
+| `development` / `architecture` | Blockiert Code-Änderungen, bis die Regeln gelesen sind | Umgang mit Architekturregeln | – | Die Regeln gelten für jede Code-Änderung und dürfen nicht übergangen werden; Bereichsregeln als Scopes nur für passende Pfade |
+| `init` | – | Einrichtungsablauf, nur vom Nutzer aufrufbar | – | Wird einmal pro Projekt gebraucht |
+
+Unterordner-`CLAUDE.md` nutzt der Harness nicht; bereichsbezogene Regeln
+sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
+
 ## Ablauf
 
 1. **SessionStart:** `session_start.py` lädt die Config und schreibt eine
@@ -69,5 +86,6 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Ein Plugin mit Modulschaltern in der Config | Einfache Installation; Module prüfen ihren Schalter selbst | `EPIC-001` |
 | Tagesbericht nur im Haupt-Checkout nach dem Merge | Vermeidet Merge-Konflikte bei parallelen Worktrees | `STORY-013` |
 | Systemdoku im selben Change wie der Code | Doku und Code bleiben in jedem Stand konsistent | `STORY-012` |
+| Gestufte Ablage: Hook → Scope → Skill → Skript → Root-`CLAUDE.md` | Nur das Nötigste ist immer im Kontext; Pflichtregeln prüft ein Hook | `STORY-019` |
 | Architekturregeln als Teil der Suite `development`, englisch, Scopes als Tabelle in der Regeldatei, Lesen per Hook erzwungen | Regeln werden zuverlässig gelesen; Spezielles nur, wo es gilt | `STORY-023` |
 | Nur Python-Standardbibliothek | Keine Installationsschritte in Zielprojekten | `STORY-018` |

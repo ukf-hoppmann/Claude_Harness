@@ -24,9 +24,6 @@ RFC 2119 meaning.
 
 - Every module MUST check its own switch. When its module or suite part is
   off, or the configuration is invalid, a hook MUST do nothing and exit 0.
-- Rules that apply only to a topic belong in a skill; rules that must not be
-  forgotten are enforced by a hook. Skills and hooks MUST NOT duplicate each
-  other's rule texts beyond a short pointer.
 - A module MUST NOT read or change another module's documents except through
   shared helpers in `plugin/scripts/`.
 
@@ -51,6 +48,34 @@ RFC 2119 meaning.
 - Skills, templates for AI rules, and hook messages MUST be in English.
 - Documents for people (backlog, daily reports, technical docs) MUST be written
   in `docs.language`; machine-checked field names and headings stay English.
+
+### 7. Load tiers
+
+Everything that is always in context costs tokens in every session. A new
+rule or piece of module behavior MUST be placed by answering these questions
+in order; the first "yes" decides:
+
+1. Can a script check it, and must it never be forgotten? → **Hook.** It
+   stays silent while everything is fine; its message is short and points to
+   the module's skill.
+2. Does it apply only to certain folders or files? → **Architecture scope**
+   with path patterns. Subfolder `CLAUDE.md` files are not used by the
+   harness, because scopes cover the same purpose and their reading is
+   enforced.
+3. Does it apply only to one topic? → **Skill.** The description is one
+   sentence saying *when* to load it and contains no rules. Details needed
+   only in rare cases go into a supporting file of the skill.
+4. Is it deterministic work (parsing, Git evaluation, overviews)? → **Script**
+   that the skill or a hook calls, instead of describing the work in prose.
+5. Does almost every task need it? → **Root `CLAUDE.md`** of the project. This
+   is the exception. The plugin MUST NOT write to `CLAUDE.md`.
+
+In addition:
+
+- The session start hook prints one line per active module (location and
+  skill), plus short lines only for missing files and errors.
+- Skills and hooks MUST NOT duplicate each other's rule texts beyond a short
+  pointer.
 
 ## Scopes
 

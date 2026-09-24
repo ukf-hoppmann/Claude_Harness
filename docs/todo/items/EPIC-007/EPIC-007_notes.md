@@ -28,10 +28,10 @@
 
 ### Open
 
-- Genaue Ordnerstruktur des Plugins und ob es im Repo-Root oder in einem
-  Unterordner liegt.
-- Wie das Plugin in diesem Repo aktiviert wird (lokale Installation oder
-  Marketplace).
+- ~~Genaue Ordnerstruktur des Plugins und ob es im Repo-Root oder in einem
+  Unterordner liegt.~~ Entschieden am 2026-09-23: `plugin/`.
+- ~~Wie das Plugin in diesem Repo aktiviert wird (lokale Installation oder
+  Marketplace).~~ Entschieden am 2026-09-23: lokaler Marketplace.
 
 ## 2026-09-23 — Grundgerüst umgesetzt
 
@@ -57,5 +57,16 @@
   SessionStart-Hook liefert seine Zeile, und der Skill `claude-harness:todo`
   ist sichtbar. Der Stop-Hook meldete in einem Testprojekt einen ungültigen
   Wert zurück an die Session.
-- `/claude-harness:init` ist noch nicht in einer interaktiven Session
-  ausprobiert (`STORY-021`).
+- ~~`/claude-harness:init` ist noch nicht in einer interaktiven Session
+  ausprobiert (`STORY-021`).~~ Am 2026-09-24 in my_story_game getestet.
+
+## 2026-09-24 — Abschlussprüfung
+
+### Decided
+
+- Alle Kinder sind abgeschlossen (`STORY-018`, `STORY-019`, `STORY-020`,
+  `STORY-021`). Completion criteria erfüllt: Das Plugin ist in diesem Repo
+  aktiv; `todo`, `daily`, `techdocs` und `architecture` laufen als Skill mit
+  Hook; die Root-`CLAUDE.md` enthält nur Verweise. Das Epic wartet auf
+  Bestätigung.
+
