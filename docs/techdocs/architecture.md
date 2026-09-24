@@ -25,7 +25,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Modul `daily` | Skill, Git-Auswertung, Erinnerungs-Hook | `plugin/skills/daily/`, `plugin/scripts/daily.py`, `check_daily.py` |
 | Modul `techdocs` | Skill, Dateiklassifikation, Erinnerungs-Hooks | `plugin/skills/techdocs/`, `plugin/scripts/techdocs.py`, `mark_techdocs.py`, `check_techdocs.py` |
 | Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py` |
-| Suite `development`, Teil `decomposition` | Skill mit Kriterien zur Zerlegung in Backlog-Tasks und Plan-Abschnitte, Dimensions-Checkliste | `plugin/skills/decomposition/` |
+| Suite `development`, Teil `decomposition` | Skill mit Kriterien zur Zerlegung in Backlog-Tasks und Plan-Abschnitte, Regeln, wann der Test zuerst entsteht (TDD), Dimensions-Checkliste | `plugin/skills/decomposition/` |
 | Konflikte | Skill für Konflikte mit Projektregeln und Harness-Vorgaben, Suche des Harness-Repos für die Übergabe von Harness-Wünschen | `plugin/skills/conflicts/`, `plugin/scripts/harness_repo.py` |
 | Befehl `init` | Richtet den Harness in einem Projekt ein | `plugin/skills/init/` |
 | Vorlagen | Config, Backlog, Tagesbericht, Systemdoku, Architekturregeln | `plugin/templates/` |
@@ -43,7 +43,7 @@ die Skill-Beschreibungen (je ein Satz) und eine Startzeile pro Modul.
 | `daily` | Erinnerung bei neuen Commits auf dem Hauptzweig | Berichtsregeln | `daily.py` (offene Commits, Bestätigen) | Das Fehlen eines Berichts ist erkennbar; Schreiben ist nur nach Commits Thema; die Git-Auswertung ist stures Abarbeiten |
 | `techdocs` | Erinnerung, wenn Code, aber keine Doku geändert wurde | Doku-Regeln | – | Vergessene Doku ist erkennbar; die Regeln braucht es nur bei dokumentationsrelevanten Änderungen |
 | `development` / `architecture` | Blockiert Plan, Spec und Code-Änderungen, bis die Regeln gelesen sind | Umgang mit Architekturregeln | – | Die Regeln gelten für jede Code-Änderung und dürfen nicht übergangen werden; Bereichsregeln als Scopes nur für passende Pfade |
-| `development` / `decomposition` | – | Kriterien für Backlog-Tasks und Plan-Abschnitte, Dimensions-Checkliste | – | Ob gut zerlegt wurde, kann kein Skript prüfen; die Kriterien braucht es nur beim Planen |
+| `development` / `decomposition` | – | Kriterien für Backlog-Tasks und Plan-Abschnitte, Test-zuerst-Regeln, Dimensions-Checkliste | – | Ob gut zerlegt oder zuerst getestet wurde, kann kein Skript prüfen; die Regeln braucht es nur beim Planen und Umsetzen |
 | Konflikte (kein Modul, immer aktiv) | – | Verfahren bei Konflikten, Übergabe an den Harness-Backlog | `harness_repo.py` (Harness-Repo finden oder vorschlagen) | Konflikte lassen sich nicht mechanisch erkennen; das Verfahren braucht es nur im Konfliktfall, dann aber für alle Module |
 | `init` | – | Einrichtungsablauf, nur vom Nutzer aufrufbar | – | Wird einmal pro Projekt gebraucht |
 

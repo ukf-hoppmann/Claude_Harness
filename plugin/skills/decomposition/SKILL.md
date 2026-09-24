@@ -1,6 +1,6 @@
 ---
 name: decomposition
-description: Rules for splitting work into small, separately testable steps (development suite). Use when planning how to implement a change, presenting an implementation plan, or considering whether a backlog item should get child tasks.
+description: Rules for splitting work into small, separately testable steps and for when tests come first (development suite). Use when planning or starting the implementation of a change, presenting an implementation plan, or considering whether a backlog item should get child tasks.
 ---
 
 # Decomposition
@@ -43,7 +43,8 @@ of these hold:
 - **Integrable alone.** After it, the project builds and all tests pass. No
   broken intermediate state.
 - **Self-contained.** It names its goal, the files or symbols it touches, its
-  interface to neighbouring sections, what it must not touch, its test, and
+  interface to neighbouring sections, what it must not touch, its test
+  (and whether it comes first, see below), and
   when to stop and ask instead of guessing.
 - **Decided.** It contains no open decision. Interfaces between sections
   (data formats, signatures, names) are fixed in the plan, not in a section.
@@ -68,6 +69,33 @@ Do not split, or merge sections, when:
 Example: a button triggers processing whose result is stored, reloaded, and
 shown. Sections: 1. persist, 2. load, 3. backend processing, 4. API
 endpoint, 5. frontend button awaiting the response, 6. integration.
+
+## Test first
+
+Each section states whether its test is written before the code:
+
+- **Bug fix:** yes. First a test that shows the bug and fails, then the fix.
+- **New behavior with a clear interface** (function, CLI, file format,
+  hook): yes. Write the test, see it fail, then implement.
+- **Refactoring:** no new test. Tests pass before and after and are not
+  changed in between.
+- **Configuration, documentation, prototypes, UI polish:** no test first.
+
+A test written first must fail for the expected reason before the code is
+written. Nothing about the cycle is written down; the test itself is the
+result.
+
+## Running tests
+
+Run the tests that the change can affect, not always the whole suite. A
+change to shared code, persistence, or interfaces affects more than its own
+file; look for its callers.
+
+- Run the affected tests again after the last change, however small, before
+  reporting the work as done.
+- Name what you did not test and why (e.g. a suite that needs a database).
+- Call a failing test unrelated or pre-existing only after checking it, e.g.
+  by running it without your change.
 
 ## Dimension checklist
 

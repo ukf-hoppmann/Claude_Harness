@@ -27,7 +27,7 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
 ### Open
 
 - Ort und Format der Konfigurationsdatei (Vorschlag: `.claude/harness.toml`).
-- Spätestens der Verify-Befehl aus `STORY-011` braucht die Konfiguration.
+- Spätestens der Verify-Befehl aus `TASK-006` braucht die Konfiguration.
 
 ## 2026-09-23 — Config v1 umgesetzt
 
@@ -69,7 +69,7 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
 - Das Schema ist umgesetzt, dokumentiert (`docs/techdocs/configuration.md`)
   und wird von den Hooks von `todo`, `daily` und `techdocs` gelesen. Offen
   waren nur Verify-Befehle und die Quelle der Workspace-Wahl; beide gehören
-  inhaltlich zu `STORY-011` bzw. `STORY-006`.
+  inhaltlich zu `TASK-006` bzw. `TASK-002`.
 
 ### Decided
 
@@ -77,7 +77,7 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
   fallen aus `EPIC-001` und `STORY-001` heraus. Jedes Modul bringt seine
   Config-Felder selbst mit, dokumentiert sie in `configuration.md` und testet
   ihre Validierung.
-- `STORY-011` und `STORY-006` haben diese Pflicht in ihren Abschlusskriterien.
+- `TASK-006` und `TASK-002` haben diese Pflicht in ihren Abschlusskriterien.
 - Neues Kriterium für `EPIC-001`: Schema validiert, dokumentiert und von den
   Hooks mehrerer Module tatsächlich gelesen und angewendet.
 - `STORY-001` und `EPIC-001` damit auf `Awaiting confirmation`.

@@ -182,7 +182,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Der Ablauf ist Schritt für Schritt dokumentiert,
     inklusive Abbruch-/Cleanup-Fällen, und wurde an einem realen Change
     durchlaufen.
-  - Resolution: Rejected by the project owner on 2026-09-24: merged into `EPIC-004` as `STORY-022`; STORY-006, STORY-007, STORY-008 and TASK-001 became its tasks.
+  - Resolution: Rejected by the project owner on 2026-09-24: merged into `EPIC-004` as `STORY-022`; STORY-006, STORY-007, STORY-008 (renamed to TASK-002, TASK-003, TASK-004 on 2026-09-24) and TASK-001 became its tasks.
 
 - `STORY-001` **Policy-Schema definieren**
   - Type: Story.
@@ -367,4 +367,55 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Projektverantwortliche entscheidet.
   - Notes: `items/STORY-025/STORY-025_notes.md`.
   - Spec: `items/STORY-025/STORY-025_spec.md`.
+  - Resolution: Confirmed by the project owner on 2026-09-24.
+
+- `STORY-015` **Verifikations-Nachweis-Format**
+  - Type: Task.
+  - Parent: `STORY-024`.
+  - Required for parent: No.
+  - Status: Rejected.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Prospective.
+  - Dependencies: `TASK-006`.
+  - Goal: Ein einfaches, lesbares Format festlegen, in dem ein Verify-Lauf
+    protokolliert wird (Befehl, Ergebnis, Zeitpunkt, betroffener Scope).
+  - Completion criteria: Nach einem Change liegt ein solcher Nachweis vor und
+    lässt sich ohne Rückfrage nachvollziehen.
+  - Resolution: Rejected by the project owner on 2026-09-24: ein
+    Protokoll, das der Agent selbst schreibt, belegt nichts; wird nicht
+    gebraucht.
+
+- `TASK-006` **Testumfang je Änderung**
+  - Type: Task.
+  - Parent: `STORY-024`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: `STORY-001`.
+  - Goal: Festlegen, wie umfangreich nach einer Änderung getestet wird:
+    was die Änderung betreffen kann, nicht immer die ganze Suite.
+  - Completion criteria: Die Skill `claude-harness:decomposition` enthält
+    Regeln zum Testumfang: betroffene Tests inkl. Aufrufer, erneuter Lauf
+    nach der letzten Änderung, Nennen des nicht Getesteten, Prüfen roter
+    Tests vor dem Abtun. Kein eigenes Verify-Skript.
+  - Resolution: Confirmed by the project owner on 2026-09-24 (Ziel auf
+    Testumfang gekürzt, Verify-Skript entfällt).
+
+- `TASK-005` **TDD-Ritual (Red/Green/Refactor)**
+  - Type: Task.
+  - Parent: `STORY-024`.
+  - Required for parent: No.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: `TASK-006`.
+  - Goal: Festlegen, für welche Art von Änderungen der Test vor dem Code
+    entsteht (TDD) und für welche nicht.
+  - Completion criteria: Die Regeln stehen in der Skill
+    `claude-harness:decomposition`; ein Plan-Abschnitt nennt, ob sein Test
+    zuerst entsteht. Der Zyklus selbst wird nicht dokumentiert.
   - Resolution: Confirmed by the project owner on 2026-09-24.

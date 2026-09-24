@@ -103,8 +103,8 @@ def main() -> int:
 
     if config.part_enabled("decomposition"):
         lines.append(
-            "Decomposition: rules in skill claude-harness:decomposition (load it when planning "
-            "an implementation or splitting backlog items)."
+            "Decomposition: rules in skill claude-harness:decomposition (load it when planning or "
+            "starting an implementation, or splitting backlog items)."
         )
 
     print("\n".join(lines))

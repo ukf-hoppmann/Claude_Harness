@@ -103,10 +103,11 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Der Ablauf ist Schritt für Schritt dokumentiert,
     inklusive Abbruch-/Cleanup-Fällen, und wurde an einem realen Change
     durchlaufen.
-  - Summary: Ersetzt EPIC-003. Die bisherigen Stories STORY-006, STORY-007 und
-    STORY-008 sowie TASK-001 sind jetzt Tasks dieser Story.
+  - Summary: Ersetzt EPIC-003. Die bisherigen Stories STORY-006, STORY-007
+    und STORY-008 (umbenannt in TASK-002 bis TASK-004) sowie TASK-001 sind
+    jetzt Tasks dieser Story.
 
-- `STORY-006` **Workspace-Entscheidung formalisieren**
+- `TASK-002` **Workspace-Entscheidung formalisieren**
   - Type: Task.
   - Parent: `STORY-022`.
   - Required for parent: Yes.
@@ -124,7 +125,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     konfigurierbar gemacht wird. Wird sie konfigurierbar, sind die Felder in
     `configuration.md` dokumentiert und ihre Validierung ist getestet.
 
-- `STORY-007` **Verbindlicher Change-Ablauf**
+- `TASK-003` **Verbindlicher Change-Ablauf**
   - Type: Task.
   - Parent: `STORY-022`.
   - Required for parent: Yes.
@@ -132,14 +133,14 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Created: 2026-09-23.
   - Area: Governance.
   - Priority: Urgent.
-  - Dependencies: `STORY-006`.
+  - Dependencies: `TASK-002`.
   - Goal: Die Schrittfolge Plan → Worktree/Lokal → Code → Merge → Cleanup als
     verbindliche Regel in `CLAUDE.md` festhalten, inklusive der Punkte, an
     denen eine Freigabe eingeholt wird.
   - Completion criteria: Jeder Schritt hat eine klare Ein-/Ausstiegsbedingung;
     kein Schritt wird stillschweigend übersprungen.
 
-- `STORY-008` **Scope-Tracking für den Change**
+- `TASK-004` **Scope-Tracking für den Change**
   - Type: Task.
   - Parent: `STORY-022`.
   - Required for parent: No.
@@ -147,7 +148,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Created: 2026-09-23.
   - Area: Governance.
   - Priority: Important.
-  - Dependencies: `STORY-007`.
+  - Dependencies: `TASK-003`.
   - Goal: Festhalten, welche Dateien/Pfade zu einem Change gehören, damit
     Merge und Cleanup nachvollziehbar nur diesen Umfang betreffen.
   - Completion criteria: Nach einem Change lässt sich ohne Rückfrage sagen,
@@ -161,7 +162,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Created: 2026-09-23.
   - Area: Governance.
   - Priority: Important.
-  - Dependencies: `STORY-007`.
+  - Dependencies: `TASK-003`.
   - Goal: Definieren, wann ein Worktree/Branch gefahrlos gelöscht werden darf
     (z. B. nur nach erfolgreichem Merge und sauberem Zustand) und wann nicht.
   - Completion criteria: Die Kriterien verhindern nachweislich das Löschen
@@ -198,52 +199,9 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Testebenen aus und ist dokumentiert; die Regeln zu TDD und
     Verifikationsnachweis sind entschieden (umgesetzt oder bewusst
     zurückgestellt).
-  - Summary: Bündelt alles zum Testen: Verify-Kommando (STORY-011), TDD
-    (STORY-010) und Verifikationsnachweis (STORY-015) sind Tasks dieser Story.
-
-- `STORY-011` **Test-Ebenen & einheitliches Verify-Kommando**
-  - Type: Task.
-  - Parent: `STORY-024`.
-  - Required for parent: Yes.
-  - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: `STORY-001`.
-  - Goal: Unit-, Integrations- und Systemtests über einen einzigen,
-    konsistenten Aufrufpunkt (Verify-Skript) statt ad-hoc-Befehlen ausführen.
-  - Completion criteria: Ein Befehl führt alle konfigurierten Testebenen aus
-    und liefert ein lesbares Ergebnis (bestanden/fehlgeschlagen je Ebene). Die
-    Testbefehle je Ebene stehen in der Projektkonfiguration; die Felder sind in
-    `configuration.md` dokumentiert und ihre Validierung ist getestet.
-
-- `STORY-010` **TDD-Ritual (Red/Green/Refactor)**
-  - Type: Task.
-  - Parent: `STORY-024`.
-  - Required for parent: No.
-  - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: `STORY-011`.
-  - Goal: Festlegen, für welche Art von Änderungen TDD verbindlich ist und
-    wie der Rot-Grün-Refactor-Zyklus nachvollziehbar dokumentiert wird.
-  - Completion criteria: Ein Beispiel-Change zeigt den Zyklus nachvollziehbar
-    (fehlschlagender Test → Implementierung → grüner Test → Refactor).
-
-- `STORY-015` **Verifikations-Nachweis-Format**
-  - Type: Task.
-  - Parent: `STORY-024`.
-  - Required for parent: No.
-  - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Entwicklung.
-  - Priority: Prospective.
-  - Dependencies: `STORY-011`.
-  - Goal: Ein einfaches, lesbares Format festlegen, in dem ein Verify-Lauf
-    protokolliert wird (Befehl, Ergebnis, Zeitpunkt, betroffener Scope).
-  - Completion criteria: Nach einem Change liegt ein solcher Nachweis vor und
-    lässt sich ohne Rückfrage nachvollziehen.
+  - Summary: Bündelt alles zum Testen: Testumfang (TASK-006) und TDD
+    (TASK-005) sind Tasks dieser Story.
+  - Notes: `items/STORY-024/STORY-024_notes.md`.
 
 - `STORY-016` **Umgang mit Secrets/Credentials**
   - Type: Story.

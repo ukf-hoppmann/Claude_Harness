@@ -21,7 +21,7 @@ Dateiformate.
 | `claude-harness:daily` | der Daily-Hook erinnert oder nach Tagesberichten gefragt wird |
 | `claude-harness:techdocs` | eine Änderung Nutzung, Komponenten, Schnittstellen, Einstellungen oder Betrieb betrifft oder der techdocs-Hook erinnert |
 | `claude-harness:architecture` | Code geplant oder geändert wird, Architekturregeln geändert werden, eine Anforderung den Regeln widerspricht oder der Architektur-Hook eine Änderung ablehnt |
-| `claude-harness:decomposition` | eine Umsetzung geplant, ein Umsetzungsplan vorgelegt oder überlegt wird, ob ein Backlog-Item Kind-Tasks bekommt |
+| `claude-harness:decomposition` | eine Umsetzung geplant oder begonnen, ein Umsetzungsplan vorgelegt oder überlegt wird, ob ein Backlog-Item Kind-Tasks bekommt |
 | `claude-harness:conflicts` | eine Anforderung oder ein Wunsch des Projektverantwortlichen den Projektregeln oder einer Harness-Vorgabe widerspricht oder der Harness selbst ein Problem verursacht; gilt unabhängig von den Modul-Schaltern |
 
 ## Hooks
