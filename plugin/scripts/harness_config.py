@@ -29,6 +29,7 @@ TABLE_KEYS = {
     "daily": {"path"},
     "techdocs": {"path", "documents"},
     "development": {"path", *DEVELOPMENT_PARTS},
+    "harness": {"repo"},
 }
 _TOP_LEVEL_KEYS = {"version", "modules", *TABLE_KEYS}
 _LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
@@ -50,6 +51,8 @@ class HarnessConfig:
     techdocs: tuple[str, ...]
     development_path: PurePosixPath
     development_parts: dict[str, bool]
+    # Candidate paths of the Claude_Harness repository, one per machine; absolute or starting with '~'.
+    harness_repos: tuple[str, ...] = ()
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
@@ -145,6 +148,8 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
         else:
             errors.append(f"development.{part} must be true or false")
 
+    harness_repos = _harness_repos(_table(data, "harness", errors).get("repo", []), errors)
+
     if errors:
         raise ConfigError(
             f"{CONFIG_RELATIVE_PATH}: " + "; ".join(errors)
@@ -159,7 +164,18 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
         techdocs=techdocs,
         development_path=docs_root / development_path,
         development_parts=development_parts,
+        harness_repos=harness_repos,
     )
+
+
+def _harness_repos(value: Any, errors: list[str]) -> tuple[str, ...]:
+    if not isinstance(value, list) or not all(isinstance(v, str) and v.strip() for v in value):
+        errors.append("harness.repo must be a list of non-empty strings")
+        return ()
+    relative = [v for v in value if not (v.startswith("~") or Path(v).is_absolute())]
+    if relative:
+        errors.append(f"harness.repo paths must be absolute or start with '~': {', '.join(relative)}")
+    return tuple(value)
 
 
 def _techdoc_kinds(value: Any, errors: list[str]) -> tuple[str, ...]:

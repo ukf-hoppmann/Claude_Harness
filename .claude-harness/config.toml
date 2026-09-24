@@ -23,3 +23,6 @@ documents = ["architecture", "interfaces", "configuration"]
 
 [development]
 path = "development"
+
+[harness]
+repo = ["/Users/hoppmann/Documents/GitHub/Claude_Harness"]

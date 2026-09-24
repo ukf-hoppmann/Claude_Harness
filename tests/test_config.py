@@ -53,6 +53,12 @@ class ParseConfigTest(unittest.TestCase):
         self.assertFalse(opted_out.part_enabled("architecture"))
         self.assertEqual(opted_out.development_path, PurePosixPath("docs/rules"))
 
+    def test_harness_repo(self):
+        self.assertEqual(parse_config({"version": 1}).harness_repos, ())
+        config = parse_config({"version": 1, "harness": {"repo": ["/abs/harness", "~/code/harness"]}})
+        self.assertEqual(config.harness_repos, ("/abs/harness", "~/code/harness"))
+        self.assertEqual(parse_config({"version": 1, "harness": {"repo": []}}).harness_repos, ())
+
     def test_rejects_invalid_values(self):
         cases = [
             {"version": 2},
@@ -75,6 +81,12 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "development": {"architecture": "yes"}},
             {"version": 1, "development": {"unknown": True}},
             {"version": 1, "development": {"path": "../x"}},
+            {"version": 1, "harness": {"repo": "/abs/harness"}},
+            {"version": 1, "harness": {"repo": ["relative/harness"]}},
+            {"version": 1, "harness": {"repo": [""]}},
+            {"version": 1, "harness": {"repo": [1]}},
+            {"version": 1, "harness": {"other": 1}},
+            {"version": 1, "harness": "x"},
         ]
         for data in cases:
             with self.subTest(data=data), self.assertRaises(ConfigError):

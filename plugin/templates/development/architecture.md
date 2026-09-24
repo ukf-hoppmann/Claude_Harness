@@ -23,8 +23,8 @@ part, `**` spans any number of parts. Example row:
 
 ## Changing these rules
 
-If a requirement does not fit these rules, do not add a local exception or
-bypass them. Stop before changing code, name the requirement and the
-conflicting rule, and propose the smallest change to these rules. A change to
-this file or a scope file becomes binding only after the project owner
-approves it.
+These rules are guidelines the project owner may deliberately break. If a
+requirement or design does not fit them, the AI names the conflict and
+proposes solutions, and the project owner decides (skill
+`claude-harness:conflicts`). A change to this file or a scope file becomes
+binding only after the project owner approves it.

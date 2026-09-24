@@ -34,3 +34,9 @@ documents = ["architecture", "interfaces", "configuration"]
 [development]
 path = "development"
 architecture = true
+
+# Claude_Harness repository, one path per machine (absolute or starting with
+# "~"). The first path that exists here is used to hand harness wishes over to
+# its backlog. Optional.
+[harness]
+repo = []

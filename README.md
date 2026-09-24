@@ -15,6 +15,12 @@ sind und wo die Dokumente liegen, steht pro Projekt in
 | `techdocs` | Technische Systemdoku (README, Architektur, Schnittstellen, Konfiguration, Betrieb) mit Erinnerung, sie im selben Change mitzupflegen |
 | `development` | Suite verbindlicher Entwicklungsregeln für die AI (englisch). Teilbereich `architecture`: Architekturregeln mit Scopes, die vor der ersten Code-Änderung einer Session gelesen werden müssen |
 
+Unabhängig von den Modulen gilt: Widerspricht eine Anforderung oder ein Wunsch
+des Projektverantwortlichen den Projektregeln oder einer Vorgabe des Harness,
+benennt die AI den Konflikt und schlägt Lösungen vor; der
+Projektverantwortliche entscheidet. Wünsche an den Harness selbst kann sie an
+den Backlog dieses Repos übergeben (`harness.repo` in der Config).
+
 ## Voraussetzungen
 
 - Claude Code mit Plugin-Unterstützung

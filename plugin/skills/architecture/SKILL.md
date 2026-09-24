@@ -26,10 +26,8 @@ description: Rules for working with the project's binding architecture rules (de
 - A scope applies in addition to the rules file, never instead of it.
 - Check your plan against the rules before you present it, and follow them
   while implementing.
-- If a requirement does not fit the rules, do not add a local exception or
-  bypass them. Stop before changing code, name the requirement and the
-  conflicting rule, and propose the smallest change to the rules. Continue
-  only after the project owner approves it.
+- If a requirement or design does not fit the rules, load skill
+  `claude-harness:conflicts` and follow it.
 
 ## Writing and changing rules
 

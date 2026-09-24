@@ -7,7 +7,8 @@ Dateiformate.
 
 - Zweck: Harness in einem Projekt einrichten.
 - Aufruf: nur durch den Nutzer (`disable-model-invocation`).
-- Wirkung: fragt Sprache, Doku-Ordner, Module und deren Pfade ab; schreibt
+- Wirkung: fragt Sprache, Doku-Ordner, Module und deren Pfade sowie den Pfad
+  zum Harness-Repo (Vorschlag über `harness_repo.py --suggest`) ab; schreibt
   `.claude-harness/config.toml` und auf Wunsch Backlog, Systemdoku und
   Architekturregeln aus den Vorlagen, jeweils erst nach Freigabe.
 - Fehlerfall: Ist die Config schon vorhanden, zeigt er sie und ändert nichts.
@@ -20,6 +21,7 @@ Dateiformate.
 | `claude-harness:daily` | der Daily-Hook erinnert oder nach Tagesberichten gefragt wird |
 | `claude-harness:techdocs` | eine Änderung Nutzung, Komponenten, Schnittstellen, Einstellungen oder Betrieb betrifft oder der techdocs-Hook erinnert |
 | `claude-harness:architecture` | Code geplant oder geändert wird, Architekturregeln geändert werden, eine Anforderung den Regeln widerspricht oder der Architektur-Hook eine Änderung ablehnt |
+| `claude-harness:conflicts` | eine Anforderung oder ein Wunsch des Projektverantwortlichen den Projektregeln oder einer Harness-Vorgabe widerspricht oder der Harness selbst ein Problem verursacht; gilt unabhängig von den Modul-Schaltern |
 
 ## Hooks
 
@@ -72,6 +74,21 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 - Exit-Code 1, wenn das Modul aus ist oder nicht im Haupt-Checkout auf dem
   Hauptzweig aufgerufen wird; 2 bei falschem Aufruf.
 - Hauptzweig: Ziel von `origin/HEAD`, sonst `main`, sonst `master`.
+
+## Skript `harness_repo.py`
+
+- Aufruf: `python3 plugin/scripts/harness_repo.py [--suggest]` im
+  Projekt-Root (oder mit gesetztem `CLAUDE_PROJECT_DIR`).
+- Ohne Option: gibt den ersten Pfad aus `harness.repo` aus, der existiert und
+  das Harness-Repo ist (`plugin/.claude-plugin/plugin.json` mit
+  `"name": "claude-harness"`); sonst keine Ausgabe, auch bei fehlender oder
+  ungültiger Config.
+- `--suggest`: schlägt einen Pfad aus
+  `~/.claude/plugins/known_marketplaces.json` vor, nur aus Marketplaces mit
+  Quelle `directory`, deren Verzeichnis das Harness-Repo ist. Die Datei gehört
+  Claude Code und dient nur dem Vorschlag; fehlt sie oder passt ihr Format
+  nicht, gibt es keine Ausgabe.
+- Exit-Code 0, 2 bei falschem Aufruf.
 
 ## Dateiformate
 

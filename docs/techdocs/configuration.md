@@ -22,6 +22,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `development.path` | Pfad | `"development"` | nein | Ordner der Regeln der Suite, relativ zu `docs.root` |
 | `development.architecture` | Boolean | `true` | nein | Teilbereich Architektur; nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `techdocs.documents` | Liste | `["architecture", "interfaces", "configuration"]` | nein | Geführte Dokumente; erlaubt sind `architecture`, `interfaces`, `configuration`, `operations`; Dateiname `<Art>.md`. `README.md` im Projekt-Root gehört immer dazu |
+| `harness.repo` | Liste von Pfaden | `[]` | nein | Mögliche Orte des Claude_Harness-Repos, einer pro Rechner; absolut oder mit `~` beginnend. Gilt der erste, der auf dem Rechner existiert und das Harness-Repo ist. Wird für die Übergabe von Harness-Wünschen an den Harness-Backlog gebraucht (Skill `claude-harness:conflicts`); ohne passenden Eintrag gibt die AI den Auftrag als Text aus |
 
 Nicht aufgeführte Module sind aus. Teilbereiche der Suite `development` sind
 an, solange die Suite an ist, außer sie stehen auf `false`. Die Vorlage
@@ -34,7 +35,13 @@ nichts):
 - absolute Pfade oder Pfade mit `..`;
 - `docs.language` nicht aus genau zwei Kleinbuchstaben;
 - unbekannte oder doppelte Einträge in `techdocs.documents`;
-- Teilbereiche von `development`, die kein Boolean sind.
+- Teilbereiche von `development`, die kein Boolean sind;
+- `harness.repo`, das keine Liste nicht leerer Strings ist oder relative
+  Pfade enthält.
+
+`harness.repo` enthält rechnerspezifische Pfade in einer eingecheckten Datei.
+Deshalb ist es eine Liste: Jeder Rechner ergänzt seinen Pfad; Einträge, die
+auf einem Rechner nicht existieren, werden übersprungen.
 
 Beispiel:
 
@@ -64,6 +71,9 @@ documents = ["architecture", "interfaces", "configuration"]
 [development]
 path = "development"
 architecture = true
+
+[harness]
+repo = ["~/Documents/GitHub/Claude_Harness"]
 ```
 
 ## Umgebungsvariablen

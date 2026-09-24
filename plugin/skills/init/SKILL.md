@@ -22,7 +22,11 @@ disable-model-invocation: true
      `configuration`, `operations`);
    - for `development`: the folder relative to `docs.root` (default
      `development`) and which parts to switch off (all parts are on by
-     default; currently only `architecture`).
+     default; currently only `architecture`);
+   - the path of the Claude_Harness repository on this machine
+     (`harness.repo`, optional; used to hand harness wishes over to its
+     backlog). Propose the output of
+     `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/harness_repo.py" --suggest`.
 3. Before proposing a backlog folder, search the project for existing backlog
    files (e.g. `TODO.md`, `todo.md`, `BACKLOG.md`) and mention what you find.
 4. Write `.claude-harness/config.toml` only after the user approved the final
