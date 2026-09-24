@@ -61,3 +61,23 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
   relativ zu `docs.root`); Details in `STORY-013`.
 - Die Config bleibt trotz geänderter Bedeutung von `todo.path` bei
   `version = 1`, da bisher nur dieses Repo sie nutzt.
+
+## 2026-09-24 — Abschlusskriterien angepasst
+
+### Discussed
+
+- Das Schema ist umgesetzt, dokumentiert (`docs/techdocs/configuration.md`)
+  und wird von den Hooks von `todo`, `daily` und `techdocs` gelesen. Offen
+  waren nur Verify-Befehle und die Quelle der Workspace-Wahl; beide gehören
+  inhaltlich zu `STORY-011` bzw. `STORY-006`.
+
+### Decided
+
+- Mit Zustimmung des Projekteigners: Verify-Befehle und Workspace-Quelle
+  fallen aus `EPIC-001` und `STORY-001` heraus. Jedes Modul bringt seine
+  Config-Felder selbst mit, dokumentiert sie in `configuration.md` und testet
+  ihre Validierung.
+- `STORY-011` und `STORY-006` haben diese Pflicht in ihren Abschlusskriterien.
+- Neues Kriterium für `EPIC-001`: Schema validiert, dokumentiert und von den
+  Hooks mehrerer Module tatsächlich gelesen und angewendet.
+- `STORY-001` und `EPIC-001` damit auf `Awaiting confirmation`.

@@ -11,17 +11,18 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 - `EPIC-001` **Konfigurierbarer Harness (Policy)**
   - Type: Epic.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-23.
   - Area: Konfiguration.
   - Priority: Important.
   - Dependencies: None.
   - Goal: Eine projekteigene Konfigurationsdatei für das Claude_Harness-Plugin
-    definieren, die nur echte Projektwerte enthält (Pfade, Verify-/Testbefehle,
-    Workspace-Regeln, aktive Module) und von Skills und Hooks gelesen wird.
-    Genehmigungen und Rechte bleiben bei den nativen Claude-Code-Einstellungen.
-  - Completion criteria: Ein validiertes Konfigurationsschema existiert und wird
-    von mindestens einem realen Verify-Aufruf tatsächlich gelesen und
+    definieren, die nur echte Projektwerte enthält (Pfade, Sprache, aktive
+    Module) und von Skills und Hooks gelesen wird. Weitere Felder bringt jedes
+    Modul selbst mit. Genehmigungen und Rechte bleiben bei den nativen
+    Claude-Code-Einstellungen.
+  - Completion criteria: Das Konfigurationsschema ist validiert und
+    dokumentiert und wird von den Hooks mehrerer Module tatsächlich gelesen und
     angewendet.
   - Summary: Jedes Projekt bekommt eine kleine Einstellungsdatei, in der steht,
     wo Dinge liegen, wie getestet wird und welche Harness-Teile an sind.
@@ -31,18 +32,18 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-001`.
   - Required for parent: Yes.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-23.
   - Area: Konfiguration.
   - Priority: Important.
   - Dependencies: None.
   - Goal: Die Projektkonfiguration `.claude-harness/config.toml` festlegen:
-    welche Felder sie mindestens braucht
-    (Pfade wie der Backlog-Ordner, Verify-/Testbefehle je Ebene, aktive Module,
-    Quelle der Workspace-Wahl). Kein Approval-Modus.
+    Grundfelder (Version, Doku-Wurzel, Sprache, Modulschalter) und die Regel,
+    dass jedes Modul seine Felder selbst ergänzt, in `configuration.md`
+    dokumentiert und ihre Validierung testet. Kein Approval-Modus.
   - Completion criteria: Ein dokumentiertes Schema (Ort, Felder, Typen, Pflicht
-    vs. optional, Standardwerte) liegt vor und deckt alle Epics ab, die
-    Konfigurationswerte referenzieren.
+    vs. optional, Standardwerte) liegt vor und deckt alle bestehenden Module
+    ab.
 
 - `STORY-003` **Module unabhängig aktivierbar/deaktivierbar machen**
   - Type: Story.
@@ -160,7 +161,8 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Verhalten zu stecken.
   - Completion criteria: Dokumentiert ist, welche Quelle die Entscheidung
     heute tatsächlich steuert; eine Entscheidung liegt vor, ob/wie sie
-    konfigurierbar gemacht wird.
+    konfigurierbar gemacht wird. Wird sie konfigurierbar, sind die Felder in
+    `configuration.md` dokumentiert und ihre Validierung ist getestet.
 
 - `STORY-007` **Verbindlicher Change-Ablauf**
   - Type: Task.
@@ -246,7 +248,9 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Goal: Unit-, Integrations- und Systemtests über einen einzigen,
     konsistenten Aufrufpunkt (Verify-Skript) statt ad-hoc-Befehlen ausführen.
   - Completion criteria: Ein Befehl führt alle konfigurierten Testebenen aus
-    und liefert ein lesbares Ergebnis (bestanden/fehlgeschlagen je Ebene).
+    und liefert ein lesbares Ergebnis (bestanden/fehlgeschlagen je Ebene). Die
+    Testbefehle je Ebene stehen in der Projektkonfiguration; die Felder sind in
+    `configuration.md` dokumentiert und ihre Validierung ist getestet.
 
 - `EPIC-006` **Verifikationsnachweis & Umgang mit sensiblen Daten (Vorschlag)**
   - Type: Epic.
