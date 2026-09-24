@@ -31,11 +31,13 @@ documents = ["architecture", "interfaces", "configuration"]
 # Development suite: binding rules for the AI, always in English, relative to
 # docs.root. Parts are active while the suite is active unless set to false.
 # Known parts: architecture (rules in <path>/architecture.md), decomposition
-# (splitting work into small, separately testable steps).
+# (splitting work into small, separately testable steps), worktree (changes
+# with an approved plan run in a worktree and are merged back by the AI).
 [development]
 path = "development"
 architecture = true
 decomposition = true
+worktree = true
 
 # Claude_Harness repository, one path per machine (absolute or starting with
 # "~"). The first path that exists here is used to hand harness wishes over to

@@ -13,7 +13,7 @@ sind und wo die Dokumente liegen, steht pro Projekt in
 | `todo` | Typisierter Projekt-Backlog (`TODO.md`, `archive.md`, Notizen und Specs pro Eintrag) mit automatischer Formatprüfung |
 | `daily` | Ein Tagesbericht pro Arbeitstag über relevante Änderungen, die auf dem Hauptzweig angekommen sind |
 | `techdocs` | Technische Systemdoku (README, Architektur, Schnittstellen, Konfiguration, Betrieb) mit Erinnerung, sie im selben Change mitzupflegen |
-| `development` | Suite verbindlicher Entwicklungsregeln für die AI (englisch). Teilbereich `architecture`: Architekturregeln mit Scopes, die vor der ersten Code-Änderung einer Session gelesen werden müssen. Teilbereich `decomposition`: Aufgaben werden in kleine, einzeln testbare Schritte zerlegt; für Bugfixes und neues Verhalten entsteht der Test zuerst |
+| `development` | Suite verbindlicher Entwicklungsregeln für die AI (englisch). Teilbereich `architecture`: Architekturregeln mit Scopes, die vor der ersten Code-Änderung einer Session gelesen werden müssen. Teilbereich `decomposition`: Aufgaben werden in kleine, einzeln testbare Schritte zerlegt; für Bugfixes und neues Verhalten entsteht der Test zuerst. Teilbereich `worktree`: Changes mit freigegebenem Plan laufen in einem eigenen Worktree vom aktuell ausgecheckten Branch; die AI merged sie danach selbst dorthin zurück und löscht den Worktree |
 
 Unabhängig von den Modulen gilt: Widerspricht eine Anforderung oder ein Wunsch
 des Projektverantwortlichen den Projektregeln oder einer Vorgabe des Harness,
@@ -25,7 +25,7 @@ den Backlog dieses Repos übergeben (`harness.repo` in der Config).
 
 - Claude Code mit Plugin-Unterstützung
 - Python 3.11 oder neuer (nur Standardbibliothek)
-- Git (für das Modul `daily`)
+- Git (für das Modul `daily` und den Teilbereich `worktree`)
 
 ## Installation
 

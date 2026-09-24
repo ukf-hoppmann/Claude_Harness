@@ -62,6 +62,15 @@ class ParseConfigTest(unittest.TestCase):
         })
         self.assertFalse(no_decomposition.part_enabled("decomposition"))
         self.assertTrue(no_decomposition.part_enabled("architecture"))
+        self.assertTrue(on.part_enabled("worktree"))
+        self.assertFalse(off.part_enabled("worktree"))
+        no_worktree = parse_config({
+            "version": 1,
+            "modules": {"development": True},
+            "development": {"worktree": False},
+        })
+        self.assertFalse(no_worktree.part_enabled("worktree"))
+        self.assertTrue(no_worktree.part_enabled("decomposition"))
 
     def test_harness_repo(self):
         self.assertEqual(parse_config({"version": 1}).harness_repos, ())
@@ -90,6 +99,7 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "techdocs": {"path": "/abs"}},
             {"version": 1, "development": {"architecture": "yes"}},
             {"version": 1, "development": {"decomposition": 1}},
+            {"version": 1, "development": {"worktree": "on"}},
             {"version": 1, "development": {"unknown": True}},
             {"version": 1, "development": {"path": "../x"}},
             {"version": 1, "harness": {"repo": "/abs/harness"}},

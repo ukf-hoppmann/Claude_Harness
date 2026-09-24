@@ -117,8 +117,9 @@ Englisch (Architekturregel 6). Beschreibung ein Satz, wann laden.
 
 ### Arbeiten
 
-Coden und committen im Worktree. Backlog-, Techdocs- und Daily-Änderungen des
-Changes gehören in denselben Branch.
+Coden und committen im Worktree. Backlog- und Techdocs-Änderungen des
+Changes gehören in denselben Branch. Tagesberichte entstehen wie bisher nach
+dem Merge im Haupt-Checkout (Skill `daily`).
 
 ### Abschluss (ohne Rückfrage)
 

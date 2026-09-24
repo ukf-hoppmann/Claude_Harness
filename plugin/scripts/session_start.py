@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 
 from architecture import load_scopes, reset_read, rules_path
 from backlog import TODO_FILE, validate_backlog
 from techdocs import document_paths
 from harness_config import CONFIG_RELATIVE_PATH, ConfigError, load_config, project_root
+from worktree import base_ref_setting, is_git_repo
 
 MAX_REPORTED = 5
 
@@ -106,6 +108,17 @@ def main() -> int:
             "Decomposition: rules in skill claude-harness:decomposition (load it when planning or "
             "starting an implementation, or splitting backlog items)."
         )
+
+    if config.part_enabled("worktree"):
+        lines.append(
+            "Change workflow: rules in skill claude-harness:worktree (load it when a plan was "
+            "approved or a worktree is to be merged back)."
+        )
+        if is_git_repo(root) and base_ref_setting(root, Path.home()) != "head":
+            lines.append(
+                'Worktree base: worktree.baseRef is not "head", so worktrees would branch from the '
+                "default branch instead of the current one. Work locally; see skill claude-harness:worktree."
+            )
 
     print("\n".join(lines))
     return 0

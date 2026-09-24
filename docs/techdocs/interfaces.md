@@ -31,7 +31,7 @@ tun nichts, wenn ihr Modul aus oder die Config ungültig ist.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
-| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand, Fehler der Scope-Tabelle; bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
+| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand, Fehler der Scope-Tabelle; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes | JSON mit `permissionDecision: deny` und Grund |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Merker, wenn eine Datei im Backlog-Ordner geändert wurde | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“ | keine |
@@ -90,6 +90,29 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Claude Code und dient nur dem Vorschlag; fehlt sie oder passt ihr Format
   nicht, gibt es keine Ausgabe.
 - Exit-Code 0, 2 bei falschem Aufruf.
+
+## Skript `worktree.py`
+
+- Aufruf: `python3 plugin/scripts/worktree.py start|check` im Worktree eines
+  Changes (Arbeitsverzeichnis, nicht `CLAUDE_PROJECT_DIR`). Die AI ruft es
+  laut Skill `worktree` auf.
+- Ausgabe: Zeilen `key: value`; bei Fehlern `error: <Grund>`.
+- `start`: speichert den im Haupt-Checkout ausgecheckten Branch als
+  Ausgangsbranch in `branch.<worktree-branch>.harnessBase` und spiegelt die
+  ignorierten Dateien des Haupt-Checkouts in den Worktree. `node_modules`,
+  `.venv` und `venv` werden verlinkt, `__pycache__`, `.pytest_cache`,
+  `.mypy_cache`, `dist` und `build` ausgelassen, `.git` und
+  `.claude/worktrees/` nie übernommen; vorhandene Dateien bleiben
+  unverändert. Ausgabe: `base`, `copied: <n> files`, `linked`, `skipped`
+  (Listen oder `none`).
+- `check`: Befunde vor dem Merge: `base`, `main` (Pfad des Haupt-Checkouts),
+  `clean` (keine nicht committeten oder unversionierten, nicht ignorierten
+  Dateien im Worktree), `base_moved` (Ausgangsbranch hat Commits, die im
+  Worktree fehlen), `main_on_base` (Haupt-Checkout steht noch auf dem
+  Ausgangsbranch).
+- Exit-Code: 0; 1 bei Fehlern (nicht in einem Worktree, Haupt-Checkout
+  detached, kein Ausgangsbranch gespeichert) und bei `check`, wenn `clean`
+  oder `main_on_base` `no` ist; 2 bei falschem Aufruf.
 
 ## Dateiformate
 

@@ -22,7 +22,7 @@ disable-model-invocation: true
      `configuration`, `operations`);
    - for `development`: the folder relative to `docs.root` (default
      `development`) and which parts to switch off (all parts are on by
-     default; currently `architecture` and `decomposition`);
+     default; currently `architecture`, `decomposition`, and `worktree`);
    - the path of the Claude_Harness repository on this machine
      (`harness.repo`, optional; used to hand harness wishes over to its
      backlog). Propose the output of

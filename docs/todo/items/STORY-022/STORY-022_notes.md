@@ -62,3 +62,12 @@
   kopiert, Caches und Build-Ausgaben ausgelassen, `.claude/worktrees/` nie
   übernommen. Das erledigt `worktree.py start`; damit ist die Frage nach
   einem eingebauten Mechanismus von Claude Code hinfällig.
+
+## 2026-09-24 — Umsetzung
+
+### Decided
+
+- Tagesberichte gehören nicht in den Worktree-Branch, sondern entstehen wie
+  bisher nach dem Merge im Haupt-Checkout (Skill `daily`); die Spec war hier
+  ungenau und ist korrigiert.
+- Dieses Repo setzt `worktree.baseRef = "head"` in `.claude/settings.json`.
