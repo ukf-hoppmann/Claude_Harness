@@ -95,3 +95,25 @@
 - Erprobung an einem realen Feature nach dem Skill (Plan mit Abschnitten
   vorab vorgelegt) und Vergleich zweier ähnlicher Aufgaben. Bis dahin bleiben
   `STORY-004` und `STORY-005` in Arbeit.
+
+## 2026-09-24 — Erprobung an STORY-022
+
+### Discussed
+
+- Der Umsetzungsplan zu `STORY-022` (Session „Story22 native
+  implementation“) wurde nach dem Skill erstellt und vorab vorgelegt: sieben
+  Abschnitte mit Ziel, Dateien, eigenem Test, Test-zuerst-Angabe,
+  „nicht anfassen“ und „nachfragen, wenn“; Schnittstellen vorab festgelegt;
+  Integration am Schluss; Dimensions-Zeile am Ende (erfüllt `STORY-005`).
+
+### Decided
+
+- Der Projektverantwortliche akzeptiert als Vergleich zweier ähnlicher
+  Aufgaben den Plan zu `STORY-022` und die Umsetzung dieser Story (gleiches
+  Muster: Config, Startzeile, Skill, Doku, Integration).
+- Sobald `STORY-022` nach diesem Plan umgesetzt ist, gehen `STORY-004` und
+  `STORY-005` auf `Awaiting confirmation`.
+
+### Open
+
+- Abschluss der Umsetzung von `STORY-022`.
