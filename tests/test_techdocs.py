@@ -77,6 +77,7 @@ class TechdocsHookTest(unittest.TestCase):
             "docs/todo/TODO.md",
             "docs/development/daily/2026-09-23_daily.md",
             "docs/techdocs/interfaces.md",
+            ".claude-harness/config.toml",
         ]
         for index, path in enumerate(ignored):
             with self.subTest(path=path):

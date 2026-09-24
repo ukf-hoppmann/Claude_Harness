@@ -273,7 +273,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Created: 2026-09-23.
   - Area: Architektur.
   - Priority: Important.
-  - Dependencies: `STORY-018`.
+  - Dependencies: `STORY-018`, `STORY-023`.
   - Goal: Verbindlich festlegen, welche Inhalte in die Root-`CLAUDE.md`, in
     Skills, in Unterordner-`CLAUDE.md` und in Hooks gehören.
   - Completion criteria: Die Regel ist dokumentiert, und für jedes bestehende
@@ -283,7 +283,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-007`.
   - Required for parent: No.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-23.
   - Area: Architektur.
   - Priority: Important.
@@ -295,3 +295,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: In einem Projekt ohne Harness entstehen nach dem
     Befehl und Freigabe eine gültige Config und ein gültiger leerer Backlog; in
     einem bereits eingerichteten Projekt wird nichts verändert.
+  - Summary: In my_story_game getestet: Einrichtung nach Rückfragen
+    erfolgreich, ein zweiter Aufruf ändert nichts. Zwei kleine
+    Verbesserungsideen stehen in den Notizen.
+  - Notes: `items/STORY-021/STORY-021_notes.md`.

@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from pathlib import Path, PurePosixPath
 
-from harness_config import HarnessConfig
+from harness_config import CONFIG_RELATIVE_PATH, HarnessConfig
 
 README = PurePosixPath("README.md")
 _TEST_NAME = re.compile(r"^test_|_test\.|\.test\.")
@@ -30,7 +30,8 @@ def classify(root: Path, config: HarnessConfig, file_path: str) -> str | None:
         return "docs"
     if rel.is_relative_to(config.todo_path) or rel.is_relative_to(config.daily_path):
         return None
-    if (rel.parts and rel.parts[0] == ".git") or _is_test(rel):
+    harness_dirs = (".git", CONFIG_RELATIVE_PATH.parts[0])
+    if (rel.parts and rel.parts[0] in harness_dirs) or _is_test(rel):
         return None
     return "project"
 

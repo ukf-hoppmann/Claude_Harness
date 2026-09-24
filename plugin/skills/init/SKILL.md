@@ -25,7 +25,9 @@ disable-model-invocation: true
    content.
 5. If `todo` is enabled and `TODO.md` does not exist in the chosen folder, ask
    separately whether to create `TODO.md` and `archive.md` from
-   `${CLAUDE_PLUGIN_ROOT}/templates/todo/`. Never convert or overwrite an
+   `${CLAUDE_PLUGIN_ROOT}/templates/todo/`. Translate the prose into
+   `docs.language`, but keep the `## Work items` heading and all field names
+   in English; the backlog check needs them. Never convert or overwrite an
    existing backlog without explicit approval.
 6. If `techdocs` is enabled, look for existing documentation (README,
    architecture or API docs) and mention it. Ask separately whether to create

@@ -39,9 +39,9 @@ Schleife entsteht.
 
 Klassifikation für `techdocs`: Als Doku zählen `README.md` im Projekt-Root und
 Dateien im techdocs-Ordner. Nicht berücksichtigt werden Dateien außerhalb des
-Projekts, im Backlog- oder Daily-Ordner, unter `.git/` sowie Tests (Pfadteil
-`test`/`tests`, Dateiname `test_*`, `*_test.*`, `*.test.*`). Alles andere im
-Projekt zählt als Projektänderung. Änderungen über Bash statt Write/Edit
+Projekts, im Backlog- oder Daily-Ordner, unter `.git/` und `.claude-harness/`
+sowie Tests (Pfadteil `test`/`tests`, Dateiname `test_*`, `*_test.*`,
+`*.test.*`). Alles andere im Projekt zählt als Projektänderung. Änderungen über Bash statt Write/Edit
 erkennt der Hook nicht.
 
 ## Skript `backlog.py`
