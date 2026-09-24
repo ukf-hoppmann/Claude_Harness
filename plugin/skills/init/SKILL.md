@@ -15,7 +15,7 @@ disable-model-invocation: true
    - which modules to enable (currently: `todo`, `daily`, `techdocs`);
    - for `todo`: the backlog folder relative to `docs.root` (default `todo`);
    - for `daily`: the report folder relative to `docs.root` (default
-     `development/daily`);
+     `daily`);
    - for `techdocs`: the folder relative to `docs.root` (default `techdocs`)
      and which documents the project keeps (`architecture`, `interfaces`,
      `configuration`, `operations`).

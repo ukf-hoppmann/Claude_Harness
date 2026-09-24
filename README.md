@@ -50,7 +50,7 @@ Plugin unter `plugin/`. In einem Projekt einbinden, z. B. über
 - `plugin/` ist das ausgelieferte Produkt; alles andere dient der Entwicklung.
 - Dieses Repo nutzt das Plugin selbst (`.claude/settings.json`).
 - Tests: `python3 -m unittest discover tests`
-- Backlog: `docs/todo/`, Tagesberichte: `docs/development/daily/`
+- Backlog: `docs/todo/`, Tagesberichte: `docs/daily/`
 
 ## Dokumentation
 

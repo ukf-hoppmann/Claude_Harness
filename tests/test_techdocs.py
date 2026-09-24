@@ -75,7 +75,7 @@ class TechdocsHookTest(unittest.TestCase):
             "src/app_test.go",
             "web/app.test.ts",
             "docs/todo/TODO.md",
-            "docs/development/daily/2026-09-23_daily.md",
+            "docs/daily/2026-09-23_daily.md",
             "docs/techdocs/interfaces.md",
             ".claude-harness/config.toml",
         ]

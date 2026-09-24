@@ -83,14 +83,14 @@ class DailyHookTest(unittest.TestCase):
         pending = self.run_script("daily.py", "pending")
         self.assertEqual(pending.returncode, 0)
         self.assertIn("feature", pending.stdout)
-        self.assertIn("docs/development/daily/", pending.stdout)
+        self.assertIn("docs/daily/", pending.stdout)
         self.assertEqual(self.run_script("daily.py", "ack").returncode, 0)
         self.assertIn("No pending commits", self.run_script("daily.py", "pending").stdout)
         self.assertEqual(self.stop().returncode, 0)
 
     def test_daily_only_commit_is_ignored(self):
         self.baseline()
-        self.commit("docs/development/daily/2026-09-23_daily.md", "daily report")
+        self.commit("docs/daily/2026-09-23_daily.md", "daily report")
         self.assertEqual(self.stop().returncode, 0)
 
     def test_backlog_only_commit_is_ignored(self):

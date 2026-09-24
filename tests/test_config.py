@@ -28,7 +28,7 @@ class ParseConfigTest(unittest.TestCase):
         self.assertFalse(config.enabled("daily"))
         self.assertEqual(config.language, "en")
         self.assertEqual(config.todo_path, PurePosixPath("docs/todo"))
-        self.assertEqual(config.daily_path, PurePosixPath("docs/development/daily"))
+        self.assertEqual(config.daily_path, PurePosixPath("docs/daily"))
         self.assertFalse(config.enabled("techdocs"))
         self.assertEqual(config.techdocs_path, PurePosixPath("docs/techdocs"))
         self.assertEqual(config.techdocs, ("architecture", "interfaces", "configuration"))

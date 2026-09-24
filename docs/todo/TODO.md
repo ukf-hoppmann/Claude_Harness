@@ -29,7 +29,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-004`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-09-24.
   - Area: Entwicklung.
   - Priority: Important.
@@ -42,6 +42,28 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Completion criteria: Ort, Format, Ladeweg und Änderungsverfahren der
     Architektur-Definitionen sind festgelegt und in mindestens einem Projekt
     angewendet.
+  - Summary: Architekturregeln werden Teil einer Modul-Suite `development`,
+    liegen englisch im Doku-Ordner und werden per Hook vor der ersten
+    Code-Änderung einer Session gelesen.
+  - Notes: `items/STORY-023/STORY-023_notes.md`.
+
+- `STORY-025` **Regelverstöße und Regeländerungen**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-24.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: `STORY-023`.
+  - Goal: Festlegen, was geschieht, wenn eine Anforderung nicht zu den
+    verbindlichen Regeln der Suite `development` passt (keine lokalen
+    Ausnahmen, sondern stoppen und die kleinste Regeländerung vorschlagen) und
+    wie Änderungen an den Regeldateien erst mit Freigabe des
+    Projektverantwortlichen bindend werden.
+  - Completion criteria: Das Verfahren ist im Plugin festgelegt, gilt für alle
+    Teilbereiche der Suite, und direkte Änderungen an Regeldateien lösen einen
+    Hinweis auf die nötige Freigabe aus.
 
 - `STORY-004` **Zerlegungs-Heuristik definieren**
   - Type: Story.
@@ -278,24 +300,3 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Skills, in Unterordner-`CLAUDE.md` und in Hooks gehören.
   - Completion criteria: Die Regel ist dokumentiert, und für jedes bestehende
     Modul ist nachvollziehbar, auf welcher Stufe es liegt und warum.
-
-- `STORY-021` **Harness in Projekten initialisieren**
-  - Type: Story.
-  - Parent: `EPIC-007`.
-  - Required for parent: No.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-23.
-  - Area: Architektur.
-  - Priority: Important.
-  - Dependencies: `STORY-018`.
-  - Goal: Ein Befehl `/claude-harness:init` richtet den Harness in einem
-    Projekt ein: Er legt `.claude-harness/config.toml` aus einer Vorlage an und
-    bietet bei aktivem `todo`-Modul an, den Backlog aus Vorlagen anzulegen —
-    jeweils erst nach Freigabe und ohne Bestehendes zu überschreiben.
-  - Completion criteria: In einem Projekt ohne Harness entstehen nach dem
-    Befehl und Freigabe eine gültige Config und ein gültiger leerer Backlog; in
-    einem bereits eingerichteten Projekt wird nichts verändert.
-  - Summary: In my_story_game getestet: Einrichtung nach Rückfragen
-    erfolgreich, ein zweiter Aufruf ändert nichts. Zwei kleine
-    Verbesserungsideen stehen in den Notizen.
-  - Notes: `items/STORY-021/STORY-021_notes.md`.

@@ -14,7 +14,7 @@ techdocs = true
 path = "todo"
 
 [daily]
-path = "development/daily"
+path = "daily"
 
 [techdocs]
 path = "techdocs"

@@ -16,7 +16,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `modules.daily` | Boolean | `false` | nein | Schaltet die Tagesberichte ein |
 | `modules.techdocs` | Boolean | `false` | nein | Schaltet die Systemdoku-Regeln ein |
 | `todo.path` | Pfad | `"todo"` | nein | Backlog-Ordner, relativ zu `docs.root` |
-| `daily.path` | Pfad | `"development/daily"` | nein | Ordner der Tagesberichte, relativ zu `docs.root` |
+| `daily.path` | Pfad | `"daily"` | nein | Ordner der Tagesberichte, relativ zu `docs.root` |
 | `techdocs.path` | Pfad | `"techdocs"` | nein | Ordner der Systemdoku, relativ zu `docs.root` |
 | `techdocs.documents` | Liste | `["architecture", "interfaces", "configuration"]` | nein | Geführte Dokumente; erlaubt sind `architecture`, `interfaces`, `configuration`, `operations`; Dateiname `<Art>.md`. `README.md` im Projekt-Root gehört immer dazu |
 
@@ -49,7 +49,7 @@ techdocs = true
 path = "todo"
 
 [daily]
-path = "development/daily"
+path = "daily"
 
 [techdocs]
 path = "techdocs"

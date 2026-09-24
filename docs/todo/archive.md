@@ -256,3 +256,25 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     existiert; eine Regel zum Umgang mit erkennbaren Geheimnissen in Output
     und Dateien ist dokumentiert und wurde mindestens einmal angewendet.
   - Resolution: Rejected by the project owner on 2026-09-24: merged into `EPIC-004`; STORY-015 became a task of `STORY-024`, STORY-016 a story of `EPIC-004`.
+
+- `STORY-021` **Harness in Projekten initialisieren**
+  - Type: Story.
+  - Parent: `EPIC-007`.
+  - Required for parent: No.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Architektur.
+  - Priority: Important.
+  - Dependencies: `STORY-018`.
+  - Goal: Ein Befehl `/claude-harness:init` richtet den Harness in einem
+    Projekt ein: Er legt `.claude-harness/config.toml` aus einer Vorlage an und
+    bietet bei aktivem `todo`-Modul an, den Backlog aus Vorlagen anzulegen —
+    jeweils erst nach Freigabe und ohne Bestehendes zu überschreiben.
+  - Completion criteria: In einem Projekt ohne Harness entstehen nach dem
+    Befehl und Freigabe eine gültige Config und ein gültiger leerer Backlog; in
+    einem bereits eingerichteten Projekt wird nichts verändert.
+  - Summary: In my_story_game getestet: Einrichtung nach Rückfragen
+    erfolgreich, ein zweiter Aufruf ändert nichts. Zwei kleine
+    Verbesserungsideen stehen in den Notizen.
+  - Notes: `items/STORY-021/STORY-021_notes.md`.
+  - Resolution: Confirmed by the project owner on 2026-09-24.

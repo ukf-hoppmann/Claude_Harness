@@ -18,7 +18,7 @@ path = "todo"
 
 # Daily development reports, relative to docs.root.
 [daily]
-path = "development/daily"
+path = "daily"
 
 # Technical documentation, relative to docs.root. README.md in the project
 # root always belongs to it. Known documents: architecture, interfaces,

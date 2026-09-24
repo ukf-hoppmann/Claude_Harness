@@ -1,7 +1,7 @@
 # Architektur
 
 Beschreibt den aktuellen Stand. Der Verlauf steht in den Tagesberichten
-(`docs/development/daily/`), die Begründungen in den Backlog-Notizen.
+(`docs/daily/`), die Begründungen in den Backlog-Notizen.
 
 ## Überblick
 
