@@ -183,3 +183,59 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     inklusive Abbruch-/Cleanup-Fällen, und wurde an einem realen Change
     durchlaufen.
   - Resolution: Rejected by the project owner on 2026-09-24: merged into `EPIC-004` as `STORY-022`; STORY-006, STORY-007, STORY-008 and TASK-001 became its tasks.
+
+- `STORY-001` **Policy-Schema definieren**
+  - Type: Story.
+  - Parent: `EPIC-001`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Konfiguration.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Die Projektkonfiguration `.claude-harness/config.toml` festlegen:
+    Grundfelder (Version, Doku-Wurzel, Sprache, Modulschalter) und die Regel,
+    dass jedes Modul seine Felder selbst ergänzt, in `configuration.md`
+    dokumentiert und ihre Validierung testet. Kein Approval-Modus.
+  - Completion criteria: Ein dokumentiertes Schema (Ort, Felder, Typen, Pflicht
+    vs. optional, Standardwerte) liegt vor und deckt alle bestehenden Module
+    ab.
+  - Resolution: Confirmed by the project owner on 2026-09-24.
+
+- `STORY-003` **Module unabhängig aktivierbar/deaktivierbar machen**
+  - Type: Story.
+  - Parent: `EPIC-001`.
+  - Required for parent: No.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Konfiguration.
+  - Priority: Prospective.
+  - Dependencies: `STORY-001`, `STORY-018`.
+  - Goal: Jedes Regelmodul (Testing, TDD, Daily-Report, Backlog, …) soll pro
+    Projekt über eine Schalterliste in der Konfiguration ein- oder
+    ausschaltbar sein. Alle Module liegen in einem Plugin; die Skills und Hooks
+    eines abgeschalteten Moduls prüfen den Schalter und werden nicht aktiv.
+  - Completion criteria: Ein abgeschaltetes Modul greift nachweislich nicht
+    (seine Hooks tun nichts, sein Skill verweist auf den Schalter), ein
+    eingeschaltetes Modul greift vollständig.
+  - Resolution: Confirmed by the project owner on 2026-09-24.
+
+- `EPIC-001` **Konfigurierbarer Harness (Policy)**
+  - Type: Epic.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Konfiguration.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Eine projekteigene Konfigurationsdatei für das Claude_Harness-Plugin
+    definieren, die nur echte Projektwerte enthält (Pfade, Sprache, aktive
+    Module) und von Skills und Hooks gelesen wird. Weitere Felder bringt jedes
+    Modul selbst mit. Genehmigungen und Rechte bleiben bei den nativen
+    Claude-Code-Einstellungen.
+  - Completion criteria: Das Konfigurationsschema ist validiert und
+    dokumentiert und wird von den Hooks mehrerer Module tatsächlich gelesen und
+    angewendet.
+  - Summary: Jedes Projekt bekommt eine kleine Einstellungsdatei, in der steht,
+    wo Dinge liegen, wie getestet wird und welche Harness-Teile an sind.
+  - Notes: `items/EPIC-001/EPIC-001_notes.md`.
+  - Resolution: Confirmed by the project owner on 2026-09-24.
