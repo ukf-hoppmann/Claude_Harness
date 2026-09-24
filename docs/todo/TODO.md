@@ -246,21 +246,3 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Klartext in Dateien schreiben, vor dem Committen prüfen).
   - Completion criteria: Die Regel ist dokumentiert und deckt mindestens die
     Fälle Logging, Dateien und Git-Commits ab.
-
-- `EPIC-007` **Plugin-Architektur**
-  - Type: Epic.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-23.
-  - Area: Architektur.
-  - Priority: Urgent.
-  - Dependencies: None.
-  - Goal: Claude_Harness als Claude-Code-Plugin aufbauen, in dem die Module
-    als Skills und die harten Regeln als Hooks umgesetzt sind, sodass Regeln
-    gestuft geladen werden und bei unbeteiligten Aufgaben kaum Tokens kosten.
-  - Completion criteria: Das Plugin ist in diesem Repo aktiv, mindestens ein
-    Modul läuft als Skill mit zugehörigem Hook, und die Root-`CLAUDE.md`
-    enthält nur Verweise statt Regeltexten.
-  - Summary: Der Harness wird ein Zusatzpaket für Claude Code. Regeln werden
-    nur dann geladen, wenn sie zur aktuellen Aufgabe passen; Pflichtregeln
-    prüft ein Skript automatisch.
-  - Notes: `items/EPIC-007/EPIC-007_notes.md`.
