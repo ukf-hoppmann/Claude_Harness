@@ -51,7 +51,17 @@ class ParseConfigTest(unittest.TestCase):
             "development": {"path": "rules", "architecture": False},
         })
         self.assertFalse(opted_out.part_enabled("architecture"))
+        self.assertTrue(opted_out.part_enabled("decomposition"))
         self.assertEqual(opted_out.development_path, PurePosixPath("docs/rules"))
+        self.assertFalse(off.part_enabled("decomposition"))
+        self.assertTrue(on.part_enabled("decomposition"))
+        no_decomposition = parse_config({
+            "version": 1,
+            "modules": {"development": True},
+            "development": {"decomposition": False},
+        })
+        self.assertFalse(no_decomposition.part_enabled("decomposition"))
+        self.assertTrue(no_decomposition.part_enabled("architecture"))
 
     def test_harness_repo(self):
         self.assertEqual(parse_config({"version": 1}).harness_repos, ())
@@ -79,6 +89,7 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "techdocs": {"documents": "interfaces"}},
             {"version": 1, "techdocs": {"path": "/abs"}},
             {"version": 1, "development": {"architecture": "yes"}},
+            {"version": 1, "development": {"decomposition": 1}},
             {"version": 1, "development": {"unknown": True}},
             {"version": 1, "development": {"path": "../x"}},
             {"version": 1, "harness": {"repo": "/abs/harness"}},

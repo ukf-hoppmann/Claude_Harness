@@ -13,7 +13,7 @@ sind und wo die Dokumente liegen, steht pro Projekt in
 | `todo` | Typisierter Projekt-Backlog (`TODO.md`, `archive.md`, Notizen und Specs pro Eintrag) mit automatischer Formatprüfung |
 | `daily` | Ein Tagesbericht pro Arbeitstag über relevante Änderungen, die auf dem Hauptzweig angekommen sind |
 | `techdocs` | Technische Systemdoku (README, Architektur, Schnittstellen, Konfiguration, Betrieb) mit Erinnerung, sie im selben Change mitzupflegen |
-| `development` | Suite verbindlicher Entwicklungsregeln für die AI (englisch). Teilbereich `architecture`: Architekturregeln mit Scopes, die vor der ersten Code-Änderung einer Session gelesen werden müssen |
+| `development` | Suite verbindlicher Entwicklungsregeln für die AI (englisch). Teilbereich `architecture`: Architekturregeln mit Scopes, die vor der ersten Code-Änderung einer Session gelesen werden müssen. Teilbereich `decomposition`: Aufgaben werden in kleine, einzeln testbare Schritte zerlegt |
 
 Unabhängig von den Modulen gilt: Widerspricht eine Anforderung oder ein Wunsch
 des Projektverantwortlichen den Projektregeln oder einer Vorgabe des Harness,

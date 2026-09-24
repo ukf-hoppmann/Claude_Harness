@@ -101,6 +101,12 @@ def main() -> int:
                 if len(scope_errors) > MAX_REPORTED:
                     lines.append(f"- … {len(scope_errors) - MAX_REPORTED} more")
 
+    if config.part_enabled("decomposition"):
+        lines.append(
+            "Decomposition: rules in skill claude-harness:decomposition (load it when planning "
+            "an implementation or splitting backlog items)."
+        )
+
     print("\n".join(lines))
     return 0
 

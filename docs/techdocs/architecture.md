@@ -25,6 +25,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Modul `daily` | Skill, Git-Auswertung, Erinnerungs-Hook | `plugin/skills/daily/`, `plugin/scripts/daily.py`, `check_daily.py` |
 | Modul `techdocs` | Skill, Dateiklassifikation, Erinnerungs-Hooks | `plugin/skills/techdocs/`, `plugin/scripts/techdocs.py`, `mark_techdocs.py`, `check_techdocs.py` |
 | Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py` |
+| Suite `development`, Teil `decomposition` | Skill mit Kriterien zur Zerlegung in Backlog-Tasks und Plan-Abschnitte, Dimensions-Checkliste | `plugin/skills/decomposition/` |
 | Konflikte | Skill für Konflikte mit Projektregeln und Harness-Vorgaben, Suche des Harness-Repos für die Übergabe von Harness-Wünschen | `plugin/skills/conflicts/`, `plugin/scripts/harness_repo.py` |
 | Befehl `init` | Richtet den Harness in einem Projekt ein | `plugin/skills/init/` |
 | Vorlagen | Config, Backlog, Tagesbericht, Systemdoku, Architekturregeln | `plugin/templates/` |
@@ -42,6 +43,7 @@ die Skill-Beschreibungen (je ein Satz) und eine Startzeile pro Modul.
 | `daily` | Erinnerung bei neuen Commits auf dem Hauptzweig | Berichtsregeln | `daily.py` (offene Commits, Bestätigen) | Das Fehlen eines Berichts ist erkennbar; Schreiben ist nur nach Commits Thema; die Git-Auswertung ist stures Abarbeiten |
 | `techdocs` | Erinnerung, wenn Code, aber keine Doku geändert wurde | Doku-Regeln | – | Vergessene Doku ist erkennbar; die Regeln braucht es nur bei dokumentationsrelevanten Änderungen |
 | `development` / `architecture` | Blockiert Plan, Spec und Code-Änderungen, bis die Regeln gelesen sind | Umgang mit Architekturregeln | – | Die Regeln gelten für jede Code-Änderung und dürfen nicht übergangen werden; Bereichsregeln als Scopes nur für passende Pfade |
+| `development` / `decomposition` | – | Kriterien für Backlog-Tasks und Plan-Abschnitte, Dimensions-Checkliste | – | Ob gut zerlegt wurde, kann kein Skript prüfen; die Kriterien braucht es nur beim Planen |
 | Konflikte (kein Modul, immer aktiv) | – | Verfahren bei Konflikten, Übergabe an den Harness-Backlog | `harness_repo.py` (Harness-Repo finden oder vorschlagen) | Konflikte lassen sich nicht mechanisch erkennen; das Verfahren braucht es nur im Konfliktfall, dann aber für alle Module |
 | `init` | – | Einrichtungsablauf, nur vom Nutzer aufrufbar | – | Wird einmal pro Projekt gebraucht |
 
@@ -92,4 +94,5 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 | Systemdoku im selben Change wie der Code | Doku und Code bleiben in jedem Stand konsistent | `STORY-012` |
 | Gestufte Ablage: Hook → Scope → Skill → Skript → Root-`CLAUDE.md` | Nur das Nötigste ist immer im Kontext; Pflichtregeln prüft ein Hook | `STORY-019` |
 | Architekturregeln als Teil der Suite `development`, englisch, Scopes als Tabelle in der Regeldatei, Lesen per Hook erzwungen | Regeln werden zuverlässig gelesen; Spezielles nur, wo es gilt | `STORY-023` |
+| Zerlegung als Teil der Suite `development`, Kriterien fest im Plugin, kein Hook | Kleine, einzeln testbare Schritte senken Fehler und Aufwand; die Güte einer Zerlegung ist nicht mechanisch prüfbar | `STORY-004` |
 | Nur Python-Standardbibliothek | Keine Installationsschritte in Zielprojekten | `STORY-018` |

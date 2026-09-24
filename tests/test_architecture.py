@@ -251,6 +251,17 @@ class ArchitectureHookTest(unittest.TestCase):
         self.assertIn("architecture/llm.md", out)
         self.assertIn("missing", out)
 
+    def test_session_start_mentions_decomposition(self):
+        start = {"session_id": "s1", "source": "startup"}
+        self.assertIn("claude-harness:decomposition", self.run_hook("session_start.py", start).stdout)
+        config = self.project / ".claude-harness" / "config.toml"
+        config.write_text('version = 1\n[modules]\ndevelopment = true\n[development]\ndecomposition = false\n')
+        out = self.run_hook("session_start.py", start).stdout
+        self.assertNotIn("claude-harness:decomposition", out)
+        self.assertIn("claude-harness:architecture", out)
+        self.write_config(suite=False)
+        self.assertNotIn("claude-harness:decomposition", self.run_hook("session_start.py", start).stdout)
+
     def test_session_start_missing_rules(self):
         self.rules.unlink()
         out = self.run_hook("session_start.py", {"session_id": "s1", "source": "startup"}).stdout

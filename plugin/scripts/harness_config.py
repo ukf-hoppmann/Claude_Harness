@@ -18,7 +18,7 @@ DEFAULT_DAILY_PATH = PurePosixPath("daily")
 DEFAULT_TECHDOCS_PATH = PurePosixPath("techdocs")
 DEFAULT_DEVELOPMENT_PATH = PurePosixPath("development")
 # Parts of the development suite; each is on while the suite is on unless set to false.
-DEVELOPMENT_PARTS = ("architecture",)
+DEVELOPMENT_PARTS = ("architecture", "decomposition")
 TECHDOC_KINDS = ("architecture", "interfaces", "configuration", "operations")
 DEFAULT_TECHDOCS = ("architecture", "interfaces", "configuration")
 
