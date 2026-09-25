@@ -220,26 +220,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     eingeschaltetes Modul greift vollständig.
   - Resolution: Confirmed by the project owner on 2026-09-24.
 
-- `EPIC-001` **Konfigurierbarer Harness (Policy)**
-  - Type: Epic.
-  - Status: Completed.
-  - Created: 2026-09-23.
-  - Area: Konfiguration.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Eine projekteigene Konfigurationsdatei für das Claude_Harness-Plugin
-    definieren, die nur echte Projektwerte enthält (Pfade, Sprache, aktive
-    Module) und von Skills und Hooks gelesen wird. Weitere Felder bringt jedes
-    Modul selbst mit. Genehmigungen und Rechte bleiben bei den nativen
-    Claude-Code-Einstellungen.
-  - Completion criteria: Das Konfigurationsschema ist validiert und
-    dokumentiert und wird von den Hooks mehrerer Module tatsächlich gelesen und
-    angewendet.
-  - Summary: Jedes Projekt bekommt eine kleine Einstellungsdatei, in der steht,
-    wo Dinge liegen, wie getestet wird und welche Harness-Teile an sind.
-  - Notes: `items/EPIC-001/EPIC-001_notes.md`.
-  - Resolution: Confirmed by the project owner on 2026-09-24.
-
 - `EPIC-006` **Verifikationsnachweis & Umgang mit sensiblen Daten (Vorschlag)**
   - Type: Epic.
   - Status: Rejected.

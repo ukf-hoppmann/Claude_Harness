@@ -81,3 +81,17 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
 - Neues Kriterium für `EPIC-001`: Schema validiert, dokumentiert und von den
   Hooks mehrerer Module tatsächlich gelesen und angewendet.
 - `STORY-001` und `EPIC-001` damit auf `Awaiting confirmation`.
+
+## 2026-09-25 — Wiedereröffnung
+
+### Discussed
+
+- Der Harness kennt bisher nur ein Projekt pro Repository mit der
+  Konfiguration im Repo-Root. In geteilten Repos (Beispiel EZF-Backend mit
+  Plugin-Struktur) soll er nur für einzelne Teilprojekte gelten.
+
+### Decided
+
+- Der Project Owner hat `EPIC-001` wieder geöffnet. Grund: Der Einsatz in
+  geteilten Repos und Monorepos mit mehreren Teilprojekten war im
+  Konfigurationsschema nicht abgedeckt. Neue Pflicht-Story: `STORY-027`.
