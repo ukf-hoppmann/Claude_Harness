@@ -4,8 +4,9 @@ import json
 import sys
 
 from backlog import validate_backlog
-from harness_config import ConfigError, load_config, project_root
-from state import delivered_notices_file, dirty_marker
+from harness_config import ROOT_PROJECT, ConfigError, project_root
+from projects import load_projects
+from state import delivered_notices_file, dirty_marker, read_names, write_names
 
 
 def _load_delivered(session_id: str) -> set[str]:
@@ -21,6 +22,10 @@ def _save_delivered(session_id: str, notices: set[str]) -> None:
     path.write_text(json.dumps(sorted(notices)))
 
 
+def _notice_key(project: str, notice: str) -> str:
+    return notice if project == ROOT_PROJECT else f"{project}: {notice}"
+
+
 def main() -> int:
     try:
         hook_input = json.load(sys.stdin)
@@ -30,39 +35,41 @@ def main() -> int:
     if not session_id:
         return 0
     marker = dirty_marker(session_id)
-    if not marker.exists():
+    dirty = read_names(marker)
+    if not dirty:
         return 0
-
-    root = project_root(hook_input)
     try:
-        config = load_config(root)
+        projects = load_projects(project_root(hook_input))
     except ConfigError:
         return 0
-    if config is None or not config.enabled("todo"):
-        marker.unlink(missing_ok=True)
-        return 0
-
-    report = validate_backlog(root / config.todo_path)
     delivered = _load_delivered(session_id)
-    new_notices = [n for n in report.notices if n not in delivered]
-
-    if report.ok:
-        marker.unlink(missing_ok=True)
-    if not report.errors and not new_notices:
+    still_dirty: set[str] = set()
+    blocks: list[str] = []
+    for name in sorted(dirty):
+        project = projects.get(name) if projects else None
+        if project is None or not project.config.enabled("todo"):
+            continue
+        report = validate_backlog(project.root / project.config.todo_path)
+        new_notices = [n for n in report.notices if _notice_key(name, n) not in delivered]
+        # With errors the project stays marked so its backlog is checked again at the next stop.
+        if not report.ok:
+            still_dirty.add(name)
+        if not report.errors and not new_notices:
+            continue
+        lines = [f"Claude_Harness backlog check after your edits in {project.path / project.config.todo_path}:"]
+        if report.errors:
+            lines.append("Fix these errors:")
+            lines += [f"- {e}" for e in report.errors]
+        if new_notices:
+            lines.append("Handle these notices (each is shown once per session):")
+            lines += [f"- {n}" for n in new_notices]
+            delivered |= {_notice_key(name, n) for n in new_notices}
+        blocks.append("\n".join(lines))
+    write_names(marker, still_dirty)
+    if not blocks or hook_input.get("stop_hook_active"):
         return 0
-    # With errors the marker stays so the backlog is checked again at the next stop.
-    if hook_input.get("stop_hook_active"):
-        return 0
-
-    lines = [f"Claude_Harness backlog check after your edits in {config.todo_path}:"]
-    if report.errors:
-        lines.append("Fix these errors:")
-        lines += [f"- {e}" for e in report.errors]
-    if new_notices:
-        lines.append("Handle these notices (each is shown once per session):")
-        lines += [f"- {n}" for n in new_notices]
-        _save_delivered(session_id, delivered | set(new_notices))
-    print("\n".join(lines), file=sys.stderr)
+    _save_delivered(session_id, delivered)
+    print("\n\n".join(blocks), file=sys.stderr)
     return 2
 
 

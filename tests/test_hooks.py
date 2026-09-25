@@ -130,6 +130,34 @@ class HookTest(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertIn("Priority", result.stderr)
 
+    def test_subproject_backlog_is_checked_alone(self):
+        self.write_config()
+        self.write_subprojects()
+        write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
+        plugin_todo = self.project / "Plugins/A/docs/todo"
+        write_backlog(plugin_todo, [item("STORY-001", Priority="Wrong")])
+        self.edit(plugin_todo / "TODO.md")
+        result = self.stop()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("after your edits in Plugins/A/docs/todo:", result.stderr)
+        self.assertNotIn("in docs/todo:", result.stderr)
+        write_backlog(plugin_todo, [item("STORY-001")])
+        self.assertEqual(self.stop().returncode, 0)
+        # The marker is gone once the plugin backlog is valid.
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_root_and_subproject_backlogs_reported_separately(self):
+        self.write_config()
+        self.write_subprojects()
+        write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
+        plugin_todo = self.project / "Plugins/A/docs/todo"
+        write_backlog(plugin_todo, [item("STORY-002", Priority="Wrong")])
+        self.edit(self.todo_dir / "TODO.md")
+        self.edit(plugin_todo / "TODO.md")
+        result = self.stop()
+        self.assertIn("after your edits in docs/todo:", result.stderr)
+        self.assertIn("after your edits in Plugins/A/docs/todo:", result.stderr)
+
     def test_stop_without_backlog_edit_does_nothing(self):
         self.write_config()
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])

@@ -76,12 +76,13 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 5. **Stop:** Die Prüf-Hooks laufen nacheinander. Melden sie etwas, beenden sie
    sich mit Exit-Code 2; Claude Code gibt die Meldung an Claude zurück, das
    daraufhin weiterarbeitet.
-   - `check_backlog.py`: prüft den Backlog nach Änderungen daran.
+   - `check_backlog.py`: prüft jeden Backlog, der in der Session geändert
+     wurde, bei Teilprojekten also pro Projekt.
    - `check_daily.py`: erinnert an den Tagesbericht, wenn neue Commits auf dem
      Hauptzweig noch nicht erfasst sind. Commits, die nur Daily- oder
      Backlog-Ordner ändern, zählen nicht; der Backlog dokumentiert sich selbst.
-   - `check_techdocs.py`: erinnert einmal pro Session, wenn Projektdateien,
-     aber keine Systemdoku geändert wurden.
+   - `check_techdocs.py`: erinnert einmal pro Projekt und Session, wenn
+     Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden.
 
 ## Zustand und Ablage
 
