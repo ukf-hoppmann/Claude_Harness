@@ -208,5 +208,28 @@ class StopHookTest(SemverRepoTest):
         self.assertIn("A (Plugins/A): docs/VERSION does not exist", result.stderr)
 
 
+class SessionStartTest(SemverRepoTest):
+    def start(self):
+        return self.run_script("session_start.py", payload={"source": "startup"}).stdout
+
+    def test_single_project_line(self):
+        self.assertIn("SemVer: docs/VERSION (0.1.0; no release tag yet); rules in skill claude-harness:semver", self.start())
+        self.git("tag", "v0.1.0")
+        self.commit("src/app.py", "feature")
+        self.assertIn("SemVer: docs/VERSION (0.1.0; 1 unreleased commit(s) since v0.1.0)", self.start())
+
+    def test_module_off_has_no_line(self):
+        (self.project / ".claude-harness/config.toml").write_text("version = 1\n")
+        self.assertNotIn("SemVer", self.start())
+
+    def test_subproject_line(self):
+        self.write_config(extra='[projects]\nA = "Plugins/A"\n')
+        self.write_config(root=self.project / "Plugins/A")
+        self.write("docs/VERSION", "2.0.0\n", root=self.project / "Plugins/A")
+        out = self.start()
+        self.assertIn("semver Plugins/A/docs/VERSION (2.0.0; no release tag yet)", out)
+        self.assertEqual(out.count("claude-harness:semver"), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
