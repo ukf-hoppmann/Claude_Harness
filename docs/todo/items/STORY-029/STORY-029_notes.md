@@ -88,3 +88,20 @@ einstufen und hochzählen soll, und das dann umsetzen.
 ### Decided
 - Der Owner hat den Vorschlag bestätigt: ein Versionsschritt pro Merge
   eines Worktrees. Die Spec ist angepasst und die Umsetzung freigegeben.
+
+## 2026-09-25 — Umsetzung
+
+### Decided
+- Das Release läuft wie der Merge ohne Rückfrage. Nur ein Major-Schritt ab
+  `1.0.0` braucht vorher die Bestätigung des Owners, weil er für Nutzer
+  inkompatibel ist.
+- Die Stop-Hook-Meldung wird über Projekt und Befundtexte entdoppelt. Die
+  Texte nennen Version, Tag und Datei.
+- Geprüft in der Plugin-Doku von Claude Code: `version` in `plugin.json` hält
+  installierte Plugins auf dieser Version fest. Zielprojekte erhalten
+  Änderungen also erst mit einem Release. Das steht in `interfaces.md`.
+- In diesem Repo ist das Modul eingeschaltet: `docs/VERSION` = `0.1.0`,
+  Spiegel `plugin/.claude-plugin/plugin.json`, `paths = ["plugin"]`.
+
+### Open
+- Ausgangs-Tag `v0.1.0` und erstes Release nach dem Merge.

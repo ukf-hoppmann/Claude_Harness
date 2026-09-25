@@ -151,6 +151,11 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Tag schreibt Claude nach Skill `semver`.
 - Exit-Code 1, wenn das Modul im gewählten Projekt aus ist oder die Config
   ungültig ist; 2 bei falschem Aufruf.
+- In diesem Repo spiegelt `plugin/.claude-plugin/plugin.json` die Version.
+  Claude Code hält installierte Plugins auf dieser Version fest, bis sie sich
+  ändert. Zielprojekte erhalten Änderungen am Plugin also erst mit einem
+  Release. Ausgenommen sind Plugins, die direkt aus einem lokal
+  hinzugefügten Marketplace-Ordner geladen werden.
 
 ## Dateiformate
 
