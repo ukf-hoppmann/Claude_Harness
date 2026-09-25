@@ -103,5 +103,11 @@ einstufen und hochzählen soll, und das dann umsetzen.
 - In diesem Repo ist das Modul eingeschaltet: `docs/VERSION` = `0.1.0`,
   Spiegel `plugin/.claude-plugin/plugin.json`, `paths = ["plugin"]`.
 
-### Open
-- Ausgangs-Tag `v0.1.0` und erstes Release nach dem Merge.
+## 2026-09-25 — Abschluss
+
+### Decided
+- Owner: Kein Release `0.2.0`. Die Zählung beginnt mit `v0.1.0`, sobald
+  STORY-029 und EPIC-004 abgeschlossen sind. Claude darf beide selbst
+  schließen.
+- STORY-029 ist abgeschlossen; danach wird `v0.1.0` auf dem Stand von `main`
+  gesetzt.
