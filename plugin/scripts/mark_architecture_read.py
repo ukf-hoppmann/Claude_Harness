@@ -5,7 +5,8 @@ import sys
 from pathlib import Path
 
 from architecture import mark_read, rules_path, scopes_dir
-from harness_config import ConfigError, load_config, project_root, project_relative
+from harness_config import ConfigError, project_root
+from projects import load_projects
 
 
 def main() -> int:
@@ -19,20 +20,22 @@ def main() -> int:
     if not file_path or not session_id:
         return 0
 
-    root = project_root(hook_input)
     try:
-        config = load_config(root)
+        projects = load_projects(project_root(hook_input))
     except ConfigError:
         return 0
-    if config is None or not config.part_enabled("architecture"):
+    project = projects.for_file(file_path) if projects else None
+    if project is None or not project.config.part_enabled("architecture"):
         return 0
 
-    rel = project_relative(root, file_path)
-    if rel is None or (rel != rules_path(config) and rel.parent != scopes_dir(config)):
+    config = project.config
+    rel = project.relative(file_path)
+    if rel != rules_path(config) and rel.parent != scopes_dir(config):
         return 0
-    if not _complete_read(root / rel, tool_input):
+    if not _complete_read(project.root / rel, tool_input):
         return 0
-    mark_read(session_id, rel)
+    # Stored relative to the session root, so equally named files of two projects stay apart.
+    mark_read(session_id, project.path / rel)
     return 0
 
 

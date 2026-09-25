@@ -185,3 +185,17 @@
 - Zwischenstand: Die übrigen Hooks (Architektur, Backlog, techdocs, Daily)
   behandeln Dateien in Teilprojekten noch als Dateien des Root-Projekts.
   Das ändern `TASK-008` bis `TASK-011`.
+
+## 2026-09-25 — TASK-008 umgesetzt
+
+### Discussed
+
+- Architektur-Hooks arbeiten pro Projekt:
+  - Eine Datei verlangt die Regeln und Scopes ihres Projekts.
+  - Eine Spec verlangt die Regeln des Projekts, in dessen Backlog sie liegt.
+  - Ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext
+    vorkommt, sonst die Regeln von root.
+  - Der Lese-Status speichert Pfade relativ zum Session-Root, damit
+    gleichnamige Regeldateien verschiedener Projekte getrennt bleiben.
+- Root-Scopes gelten nicht für Dateien in Teilprojekten, auch wenn ihre
+  Muster passen. Die Muster sind relativ zum jeweiligen Projekt.
