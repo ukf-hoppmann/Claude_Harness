@@ -63,9 +63,8 @@ Verweis auf den Skill):
 3. Eine Spiegel-Datei fehlt oder enthält die Versionszeichenkette nicht
    (reine Textsuche, formatunabhängig).
 
-Jeder Befund wird pro Session und Zustand (Projekt, Inhalt der
-Versionsdatei, letztes Release, Inhalte der Spiegel-Dateien) nur einmal
-gemeldet, damit ein bewusst stehengelassener Zustand nicht jeden Turn
+Dieselben Befunde eines Projekts werden pro Session nur einmal gemeldet
+(Schlüssel: Projekt und Befundtexte, die Version, Tag und Datei nennen), damit ein bewusst stehengelassener Zustand nicht jeden Turn
 blockiert (Muster wie `check_daily.py`, Zustand über `state.py`).
 
 ## Session-Start
@@ -108,8 +107,10 @@ erinnert, Modul wird eingerichtet). Inhalt:
   Projekts ein: inkompatible Änderung eines öffentlichen Vertrags → major,
   neue kompatible Fähigkeit oder Einstellung → minor, kompatible Korrektur →
   patch, nur Internes/Doku → kein Release nötig. Solange MAJOR `0` ist, zählt
-  eine inkompatible Änderung als minor. Claude nennt Version und Begründung
-  zusammen mit dem Merge; die Freigabe des Merges gilt auch für die Version.
+  eine inkompatible Änderung als minor. Wie der Merge im Worktree-Ablauf
+  läuft das Release ohne Rückfrage; Claude berichtet Version und
+  Begründung. Nur ein Major-Schritt ab `1.0.0` braucht vorher die
+  Bestätigung des Owners.
 - **Schreiben:** Versionsdatei und alle Spiegel-Dateien ändern (in jedem
   Format, von Hand), ein Commit „Release <Tag>“ auf dem Hauptbranch nach dem
   Merge, dann ein annotierter Tag lokal. Pushen von Commit und Tag bleibt

@@ -23,7 +23,7 @@ are relative to it.
    - which language generated documents use (`docs.language`, default `en`);
    - which folder holds all harness documents (`docs.root`, default `docs`);
    - which modules to enable (currently: `todo`, `daily`, `techdocs`,
-     `development`);
+     `development`, `semver`; `semver` is off unless the user wants it);
    - for `todo`: the backlog folder relative to `docs.root` (default `todo`);
    - for `daily`: the report folder relative to `docs.root` (default
      `daily`);
@@ -66,13 +66,15 @@ are relative to it.
    English regardless of `docs.language`. Never overwrite existing files. For
    a subproject, ask whether rules of the root project should apply as well;
    if so, list them under `## Inherited rules`.
-10. Ask whether the harness configs should stay out of Git (e.g. when
+10. If `semver` is enabled, set it up as described under "Setup" in skill
+    `claude-harness:semver`.
+11. Ask whether the harness configs should stay out of Git (e.g. when
     colleagues should not see them): propose adding `.claude-harness/` to
     `.gitignore` and change it only after approval. The documents under
     `docs.root` are normally committed. Mention that the plugin can be
     enabled in `.claude/settings.local.json` instead of the committed
     `.claude/settings.json`.
-11. Validate the result:
+12. Validate the result:
     `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <target folder>/<docs.root>/<todo.path>`
     and report the outcome. For a subproject, the next session start lists it
     among the projects.
