@@ -12,7 +12,9 @@ description: Rules for daily development reports (one report per day about mater
 2. Reports live in `<docs.root>/<daily.path>/<YYYY-MM-DD>_daily.md`, written
    in `docs.language`.
 3. Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" pending`. It prints
-   today's report path and the unrecorded commits on the main branch. If it
+   today's report path and the unrecorded commits on the main branch. With
+   subprojects every project has its own reports: add `--project <name>`
+   (the reminder names the projects) and handle each project separately. If it
    says reports are unavailable here (worktree, other branch), stop: reports
    are written only in the main checkout after the change is merged.
 
@@ -24,8 +26,8 @@ description: Rules for daily development reports (one report per day about mater
 3. Otherwise read today's report if it exists, else start from
    `${CLAUDE_PLUGIN_ROOT}/templates/daily/daily.md`. Update existing rows
    instead of adding duplicates; bundle related commits into one row.
-4. Finally run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" ack`, also
-   when nothing was material. Commits that only change the report or backlog
+4. Finally run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" ack` (with
+   the same `--project`), also when nothing was material. Commits that only change the report or backlog
    folders are ignored, so committing the report does not trigger a new
    reminder.
 
