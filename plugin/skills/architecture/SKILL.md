@@ -24,6 +24,11 @@ description: Rules for working with the project's binding architecture rules (de
   rules has to be redone later. Read them in full with
   the Read tool; the hook only counts complete reads.
 - A scope applies in addition to the rules file, never instead of it.
+- In a repository with subprojects, a project may list rules of another
+  project under `## Inherited rules` (for example the core's rules for a
+  plugin). Read them as well; the hook requires them. If an inherited rule
+  contradicts a rule of the project itself, the project's own rule wins:
+  name the conflict (skill `claude-harness:conflicts`).
 - Check your plan against the rules before you present it, and follow them
   while implementing.
 - If a requirement or design does not fit the rules, load skill
@@ -43,6 +48,11 @@ description: Rules for working with the project's binding architecture rules (de
   the project root in backticks, comma-separated; `*` stays within one path
   part, `**` spans any number of parts. The session start reports errors in
   the table.
+- Inherited rules table format: `| Project | Rules |`. Project is a name from
+  `[projects]` of the root config or `root`; Rules are `architecture.md` or
+  scope names of that project, in backticks. An inherited scope applies
+  regardless of its path patterns; nothing is inherited further. The session
+  start reports errors in this table too.
 
 ## The hook
 

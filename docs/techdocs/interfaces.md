@@ -35,7 +35,7 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
-| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand, Fehler der Scope-Tabelle; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt, jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
+| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand, Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt, jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Merker, wenn eine Datei im Backlog-Ordner geändert wurde | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“ | keine |
@@ -126,10 +126,20 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 | `TODO.md`, `archive.md`, `items/<ID>/` | Backlog-Format v1 (Markdown) | `plugin/skills/todo/format.md` |
 | `<YYYY-MM-DD>_daily.md` | Markdown nach Vorlage | `plugin/templates/daily/daily.md`, Skill `daily` |
 | Systemdoku | Markdown nach Vorlagen | `plugin/templates/techdocs/` |
-| `architecture.md`, `architecture/<Scope>.md` | Markdown, englisch, Regeln mit MUST/SHOULD/MAY; Abschnitt `## Scopes` mit Tabelle `\| Scope \| Paths \| Covers \|` | `plugin/templates/development/architecture.md`, Skill `architecture` |
+| `architecture.md`, `architecture/<Scope>.md` | Markdown, englisch, Regeln mit MUST/SHOULD/MAY; Abschnitt `## Scopes` mit Tabelle `\| Scope \| Paths \| Covers \|`, optional `## Inherited rules` mit Tabelle `\| Project \| Rules \|` | `plugin/templates/development/architecture.md`, Skill `architecture` |
 
 Scope-Tabelle: Name aus Kleinbuchstaben, Ziffern und `-`; Datei
 `architecture/<Scope>.md` neben der Regeldatei. Pfadmuster relativ zum
 Projekt-Root in Backticks, kommagetrennt; `*` und `?` innerhalb eines
 Pfadteils, `**` über beliebig viele Pfadteile. HTML-Kommentare werden
 ignoriert. Ein Scope gilt zusätzlich zur Regeldatei.
+
+Tabelle der geerbten Regeln (nur bei Teilprojekten sinnvoll): `Project` ist
+ein Name aus `[projects]` der Root-Config oder `root`, nicht das eigene
+Projekt; `Rules` sind in Backticks `architecture.md` (Hauptdatei jenes
+Projekts) oder Scope-Namen jenes Projekts. Ein geerbter Scope gilt unabhängig
+von seinen Pfadmustern; es wird nicht weitervererbt. Der Architektur-Hook
+verlangt die geerbten Dateien vor jeder Änderung einer Projektdatei;
+fehlerhafte Einträge (unbekanntes oder unwirksames Projekt, Projekt ohne
+Architektur, unbekannter Scope, fehlende Datei) überspringt er, der
+Session-Start meldet sie.

@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path, PurePosixPath
 
 from helpers import REPO_ROOT, SCRIPTS
-from architecture import match_path, parse_scopes
+from architecture import match_path, parse_inherited, parse_scopes
 
 RULES = """# Architecture rules
 
@@ -60,6 +60,39 @@ class ParseScopesTest(unittest.TestCase):
         text = (REPO_ROOT / "plugin/templates/development/architecture.md").read_text()
         self.assertIn("## Scopes", text)
         self.assertEqual(parse_scopes(text)[1], [])
+
+
+class ParseInheritedTest(unittest.TestCase):
+    def test_parses_table(self):
+        text = (
+            "## Inherited rules\n\n| Project | Rules |\n|---|---|\n"
+            "| root | `architecture.md`, `plugin-api` |\n| Other_1 | `architecture.md` |\n"
+        )
+        entries, errors = parse_inherited(text)
+        self.assertEqual(errors, [])
+        self.assertEqual([(e.project, e.rules) for e in entries],
+                         [("root", ("architecture.md", "plugin-api")), ("Other_1", ("architecture.md",))])
+
+    def test_no_section(self):
+        self.assertEqual(parse_inherited(RULES), ([], []))
+
+    def test_invalid_rows(self):
+        text = (
+            "## Inherited rules\n\n| Project | Rules |\n|---|---|\n"
+            "| root |\n"
+            "| 1bad | `architecture.md` |\n"
+            "| A | architecture.md |\n"
+            "| B | `Bad Scope` |\n"
+            "| root | `x` |\n| root | `y` |\n"
+        )
+        entries, errors = parse_inherited(text)
+        self.assertEqual([e.project for e in entries], ["root"])
+        self.assertEqual(len(errors), 5)
+
+    def test_template_is_valid(self):
+        text = (REPO_ROOT / "plugin/templates/development/architecture.md").read_text()
+        self.assertIn("## Inherited rules", text)
+        self.assertEqual(parse_inherited(text), ([], []))
 
 
 class MatchPathTest(unittest.TestCase):
@@ -367,6 +400,36 @@ class SubprojectArchitectureTest(unittest.TestCase):
         reason = self.plan("Add a module to the core.")
         self.assertIn("docs/development/architecture.md", reason)
         self.assertNotIn("Plugins/A", reason)
+
+    def inherit(self, rows):
+        self.plugin_rules.write_text(
+            "# Plugin rules\n\n## Inherited rules\n\n| Project | Rules |\n|---|---|\n" + rows
+        )
+
+    def test_inherited_rules_are_required_too(self):
+        self.inherit("| root | `architecture.md` |\n")
+        self.read(self.plugin_rules)
+        reason = self.edit("Plugins/A/src/filter.py")
+        self.assertIn("docs/development/architecture.md", reason)
+        self.assertNotIn("Plugins/A/docs/development/architecture.md", reason)
+        self.read(self.root_rules)
+        self.assertIsNone(self.edit("Plugins/A/src/filter.py"))
+
+    def test_inherited_scope_applies_regardless_of_its_patterns(self):
+        self.inherit("| root | `llm` |\n")
+        self.read(self.plugin_rules)
+        reason = self.edit("Plugins/A/src/filter.py")
+        self.assertIn("docs/development/architecture/llm.md", reason)
+        self.assertNotIn("docs/development/architecture.md", reason)
+
+    def test_broken_inheritance_is_skipped_and_reported(self):
+        self.inherit("| Nope | `architecture.md` |\n| A | `architecture.md` |\n| root | `missing` |\n")
+        self.read(self.plugin_rules)
+        self.assertIsNone(self.edit("Plugins/A/src/filter.py"))
+        out = self.run_hook("session_start.py", {}).stdout
+        self.assertIn("A: Inherited rules: unknown or unusable project 'Nope'", out)
+        self.assertIn("A: Inherited rules: project 'A' cannot inherit from itself", out)
+        self.assertIn("A: Inherited rules: project 'root' has no scope 'missing'", out)
 
     def test_unusable_subproject_is_not_checked(self):
         (self.plugin / ".claude-harness/config.toml").unlink()

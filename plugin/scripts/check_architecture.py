@@ -4,7 +4,7 @@ import json
 import re
 import sys
 
-from architecture import read_files, required_files, rules_path
+from architecture import inherited_files, read_files, required_files, rules_path
 from harness_config import ROOT_PROJECT, ConfigError, project_root
 from projects import Project, ProjectSet, load_projects
 
@@ -60,6 +60,7 @@ def main() -> int:
     if config.is_harness_file(rel):
         return 0
     required = [(project.path / p).as_posix() for p in required_files(project.root, config, rel)]
+    required += [p.as_posix() for p in inherited_files(projects, project)[0]]
     missing = [p for p in required if p not in done]
     if missing:
         _deny(

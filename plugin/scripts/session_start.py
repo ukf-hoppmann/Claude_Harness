@@ -5,7 +5,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path, PurePosixPath
 
-from architecture import load_scopes, reset_read, rules_path
+from architecture import inherited_files, load_scopes, reset_read, rules_path
 from backlog import TODO_FILE, validate_backlog
 from techdocs import document_paths
 from harness_config import (
@@ -72,13 +72,15 @@ def main() -> int:
     if projects.has_subprojects():
         lines = _several_projects(projects)
     else:
-        lines = _single_project(root, projects.projects[0].config)
+        lines = _single_project(root, projects)
     print("\n".join(lines))
     return 0
 
 
-def _single_project(root: Path, config: HarnessConfig) -> list[str]:
+def _single_project(root: Path, projects: ProjectSet) -> list[str]:
     show: Show = str
+    project = projects.projects[0]
+    config = project.config
     states = ", ".join(
         f"{name}={'on' if enabled else 'off'}" for name, enabled in sorted(config.modules.items())
     ) or "none"
@@ -104,6 +106,7 @@ def _single_project(root: Path, config: HarnessConfig) -> list[str]:
         else:
             lines.append(f"Architecture rules: {rules} {ARCHITECTURE_HINT}")
             lines += _scope_problems(root, config)
+            lines += _inherited_problems(projects, project)
     if config.part_enabled("decomposition"):
         lines.append(DECOMPOSITION_LINE)
     if config.part_enabled("worktree"):
@@ -145,7 +148,7 @@ def _several_projects(projects: ProjectSet) -> list[str]:
         if is_git_repo(root) and base_ref_setting(root, Path.home()) != "head":
             lines.append(BASE_REF_LINE)
     for project in projects.projects:
-        lines += [f"{project.name}: {problem}" for problem in _project_problems(project)]
+        lines += [f"{project.name}: {problem}" for problem in _project_problems(projects, project)]
     return lines
 
 
@@ -165,7 +168,7 @@ def _project_line(project: Project) -> str:
     return f"Project {project.name} ({project.path}): {'; '.join(parts)}."
 
 
-def _project_problems(project: Project) -> list[str]:
+def _project_problems(projects: ProjectSet, project: Project) -> list[str]:
     root, config, show = project.root, project.config, _shown_in(project)
     problems: list[str] = []
     if config.enabled("todo"):
@@ -180,6 +183,7 @@ def _project_problems(project: Project) -> list[str]:
             problems.append(_architecture_missing(config, show))
         else:
             problems += _scope_problems(root, config)
+            problems += _inherited_problems(projects, project)
     return problems
 
 
@@ -227,6 +231,10 @@ def _scope_problems(root: Path, config: HarnessConfig) -> list[str]:
     if not scope_errors:
         return []
     return [f"Architecture scope table has {len(scope_errors)} errors:"] + _limited(scope_errors)
+
+
+def _inherited_problems(projects: ProjectSet, project: Project) -> list[str]:
+    return [f"Inherited rules: {error}" for error in inherited_files(projects, project)[1]]
 
 
 def _limited(problems: list[str]) -> list[str]:

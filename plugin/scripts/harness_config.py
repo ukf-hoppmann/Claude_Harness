@@ -37,7 +37,7 @@ _TOP_LEVEL_KEYS = {"version", "modules", "projects", *TABLE_KEYS}
 # Tables only the root project may contain: the subproject registry and the harness repo.
 _ROOT_ONLY_TABLES = ("projects", "harness")
 _LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
-_PROJECT_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
+PROJECT_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
 ROOT_PROJECT = "root"
 
 
@@ -223,7 +223,7 @@ def _projects(value: Any, errors: list[str]) -> tuple[tuple[str, PurePosixPath],
         return ()
     projects: list[tuple[str, PurePosixPath]] = []
     for name, raw_path in value.items():
-        if name == ROOT_PROJECT or not _PROJECT_NAME.fullmatch(name):
+        if name == ROOT_PROJECT or not PROJECT_NAME.fullmatch(name):
             errors.append(
                 f"invalid project name {name!r} (a letter, then letters, digits, '_', '-'; "
                 f"'{ROOT_PROJECT}' is reserved)"

@@ -21,6 +21,20 @@ part, `**` spans any number of parts. Example row:
 | Scope | Paths | Covers |
 |---|---|---|
 
+## Inherited rules
+
+<!-- Only in a repository with subprojects: rules of another project that
+apply here as well, e.g. the core's rules for a plugin. Project: a name from
+[projects] of the root config, or root. Rules in backticks: architecture.md
+(that project's main rules file) or scope names of that project; an inherited
+scope applies regardless of its path patterns. Nothing is inherited further.
+If an inherited rule contradicts a rule of this project, this project's rule
+wins and the conflict is named. Example row:
+| root | `architecture.md`, `plugin-api` | -->
+
+| Project | Rules |
+|---|---|
+
 ## Changing these rules
 
 These rules are guidelines the project owner may deliberately break. If a
