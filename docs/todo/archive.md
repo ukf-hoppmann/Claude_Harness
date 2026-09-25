@@ -752,3 +752,51 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Summary: Wird zusammen mit STORY-004 geplant und landet im selben Skill;
     die Entscheidungen stehen in dessen Notizen.
   - Resolution: Confirmed by the project owner on 2026-09-24.
+
+- `STORY-026` **Abschnitte an Subagenten übergeben**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: No.
+  - Status: Rejected.
+  - Created: 2026-09-24.
+  - Area: Entwicklung.
+  - Priority: Prospective.
+  - Dependencies: `STORY-004`.
+  - Goal: Prüfen, ob und wie Plan-Abschnitte an einen Subagenten mit
+    günstigerem Modell übergeben werden: eigener Agent im Plugin, Auftrag aus
+    dem Abschnitts-Vertrag samt nötiger Architekturregeln, Rückmeldung in
+    festem Format, Kontrolle jedes Abschnitts durch die Hauptsession,
+    Verhalten der Hooks im Subagenten und eine Schwelle, ab wann sich die
+    Übergabe lohnt.
+  - Completion criteria: Es ist entschieden, ob Abschnitte übergeben werden.
+    Falls ja, wurde mindestens ein Abschnitt eines realen Features von einem
+    Subagenten ohne Rückfrage korrekt umgesetzt und von der Hauptsession
+    geprüft.
+  - Resolution: Rejected by the project owner on 2026-09-25 — kein konkreter
+    Bedarf, Priorität Prospective; bei spürbarem Kostendruck bei großen Plänen
+    neu aufsetzen.
+
+- `STORY-016` **Umgang mit Secrets/Credentials**
+  - Type: Story.
+  - Parent: `EPIC-004`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Sicherheit.
+  - Priority: Prospective.
+  - Dependencies: None.
+  - Goal: Eine Regel festlegen, dass Secrets nie direkt im Code oder in
+    einzucheckenden Dateien landen, sondern in einer zentralen,
+    nicht versionierten Config gehalten werden, auf die der Code zur
+    Laufzeit verweist. Eine Template-Datei mit Platzhaltern wird eingecheckt,
+    damit ersichtlich ist, was konfiguriert werden kann. Welche Config im
+    Einzelfall genutzt wird, ist zu klären, sofern nicht bereits eindeutig.
+  - Completion criteria: Die Regel ist als bindende Architekturregel
+    dokumentiert und deckt ab: kein Secret im Code, Ablage in einer
+    zentralen gitignorten Config, eingecheckte Template-Datei mit
+    Platzhaltern, Klärung der Config-Zuordnung mit dem Projekt-Owner.
+  - Summary: Secrets landen nie im Code, sondern in einer zentralen,
+    gitignorten Config; eine Template-Datei zeigt, was konfigurierbar ist.
+    Welche Config genutzt wird, wird im Zweifel mit dem Owner geklärt.
+  - Notes: `items/STORY-016/STORY-016_notes.md`.
+  - Resolution: Confirmed by the project owner on 2026-09-25.

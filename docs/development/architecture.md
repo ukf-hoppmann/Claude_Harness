@@ -49,7 +49,21 @@ RFC 2119 meaning.
 - Documents for people (backlog, daily reports, technical docs) MUST be written
   in `docs.language`; machine-checked field names and headings stay English.
 
-### 7. Load tiers
+### 7. Secrets
+
+- Code and files checked into version control MUST NOT contain literal
+  secrets (credentials, API keys, tokens, connection strings with
+  passwords).
+- Secrets MUST be read at runtime from a project-local, git-ignored
+  configuration (e.g. `.env`, `config.local.*`).
+- A checked-in template file with placeholder values (e.g. `.env.example`)
+  MUST exist so it is visible what can be configured; code MUST reference the
+  real, git-ignored config, never the template.
+- Which config a given secret belongs to MUST be clarified with the project
+  owner unless an existing config already clearly covers it; the AI MUST
+  point this out before writing the secret anywhere.
+
+### 8. Load tiers
 
 Everything that is always in context costs tokens in every session. A new
 rule or piece of module behavior MUST be placed by answering these questions

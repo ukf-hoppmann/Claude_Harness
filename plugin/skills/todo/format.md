@@ -86,7 +86,10 @@ A completed or rejected entry contains `Resolution`, recording the explicit
 project-owner decision; active entries never contain it. Missing historical
 evidence remains visible and is never invented.
 
-Priorities are `Urgent`, `Important`, and `Prospective`.
+Priorities are `Urgent`, `Important`, `Normal`, and `Prospective`. `Urgent`
+and `Important` mark work that must proceed promptly; `Prospective` marks
+work that can wait. `Normal` is the neutral default: use it whenever an item
+is neither urgent/important nor explicitly deferred.
 
 Areas are free text. An existing area is reused whenever it plausibly fits; a
 new area is introduced only when no existing one fits.

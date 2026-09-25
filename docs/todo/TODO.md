@@ -25,26 +25,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Zerlegungs-Heuristik, Change-Ablauf und Testkommando sind dokumentiert und
     werden bei mindestens einem Change sichtbar angewendet.
 
-- `STORY-026` **Abschnitte an Subagenten übergeben**
-  - Type: Story.
-  - Parent: `EPIC-004`.
-  - Required for parent: No.
-  - Status: Open.
-  - Created: 2026-09-24.
-  - Area: Entwicklung.
-  - Priority: Prospective.
-  - Dependencies: `STORY-004`.
-  - Goal: Prüfen, ob und wie Plan-Abschnitte an einen Subagenten mit
-    günstigerem Modell übergeben werden: eigener Agent im Plugin, Auftrag aus
-    dem Abschnitts-Vertrag samt nötiger Architekturregeln, Rückmeldung in
-    festem Format, Kontrolle jedes Abschnitts durch die Hauptsession,
-    Verhalten der Hooks im Subagenten und eine Schwelle, ab wann sich die
-    Übergabe lohnt.
-  - Completion criteria: Es ist entschieden, ob Abschnitte übergeben werden.
-    Falls ja, wurde mindestens ein Abschnitt eines realen Features von einem
-    Subagenten ohne Rückfrage korrekt umgesetzt und von der Hauptsession
-    geprüft.
-
 - `STORY-009` **Entwicklungsprinzipien-Dokument**
   - Type: Story.
   - Parent: `EPIC-004`.
@@ -60,17 +40,22 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     zu belassen.
   - Completion criteria: Ein kurzes, prüfbares Prinzipien-Dokument liegt vor.
 
-- `STORY-016` **Umgang mit Secrets/Credentials**
+- `STORY-028` **Keine hartkodierten Pfade/Config-Werte im Code**
   - Type: Story.
   - Parent: `EPIC-004`.
   - Required for parent: Yes.
   - Status: Open.
-  - Created: 2026-09-23.
-  - Area: Sicherheit.
-  - Priority: Prospective.
+  - Created: 2026-09-25.
+  - Area: Entwicklung.
+  - Priority: Normal.
   - Dependencies: None.
-  - Goal: Eine Regel festlegen, wie mit erkennbaren Zugangsdaten in
-    Kommandozeilen-Output, Logs oder Dateien umgegangen wird (z. B. nie in
-    Klartext in Dateien schreiben, vor dem Committen prüfen).
-  - Completion criteria: Die Regel ist dokumentiert und deckt mindestens die
-    Fälle Logging, Dateien und Git-Commits ab.
+  - Goal: Eine Regel festlegen, dass Pfade und Verweise auf Configs,
+    Datenbanken o. Ä. nicht fest im Code stehen, sondern über eine Config
+    änderbar sind, da sie sich zwischen Umgebungen typischerweise
+    unterscheiden. Fälle, in denen ein Pfad/eine URL bewusst fix im Code
+    stehen soll, bleiben als benannte Ausnahme möglich.
+  - Completion criteria: Die Regel ist als bindende Architekturregel
+    dokumentiert und deckt ab: Pfade/Config-Verweise gehören in eine Config
+    statt in den Code, mit einer klar benannten Ausnahme für bewusst fixe
+    Werte.
+

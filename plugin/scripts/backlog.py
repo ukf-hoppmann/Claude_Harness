@@ -18,7 +18,7 @@ REJECTED_REQUIRED_HINT = (
     "for a Rejected required child, ask the owner whether to set Required for parent: No, "
     "adjust the parent's Goal and Completion criteria, or reject the parent"
 )
-PRIORITIES = {"Urgent", "Important", "Prospective"}
+PRIORITIES = {"Urgent", "Important", "Normal", "Prospective"}
 REQUIRED_FIELDS = {
     "Type",
     "Status",
