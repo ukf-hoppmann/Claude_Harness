@@ -41,7 +41,7 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
 | PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
 | Stop | `check_backlog.py` | Prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
-| Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Hauptzweig (nur Haupt-Checkout; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD und Session | Exit 2 + stderr |
+| Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Hauptzweig (nur Haupt-Checkout; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
 | Stop | `check_techdocs.py` | Erinnert einmal pro Projekt und Session, wenn Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden; mit Teilprojekten nennt die Meldung jedes betroffene Projekt mit seinen Doku-Pfaden | Exit 2 + stderr |
 
 Bei gesetztem `stop_hook_active` bleiben die Stop-Hooks still, damit keine
@@ -70,14 +70,20 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 
 ## Skript `daily.py`
 
-- Aufruf: `python3 plugin/scripts/daily.py pending|ack` im Projekt-Root
-  (oder mit gesetztem `CLAUDE_PROJECT_DIR`).
-- `pending`: Pfad des heutigen Berichts (`exists`/`new`), Dokumentsprache und
-  offene Commits (kurzer Hash, Datum, Betreff), älteste zuerst. Commits, die
-  nur den Daily- oder Backlog-Ordner ändern, werden ausgelassen.
-- `ack`: setzt den bestätigten Stand auf HEAD.
-- Exit-Code 1, wenn das Modul aus ist oder nicht im Haupt-Checkout auf dem
-  Hauptzweig aufgerufen wird; 2 bei falschem Aufruf.
+- Aufruf: `python3 plugin/scripts/daily.py pending|ack [--project <Name>]`
+  im Projekt-Root (oder mit gesetztem `CLAUDE_PROJECT_DIR`). Ohne
+  `--project` gilt das Root-Projekt.
+- `pending`: Pfad des heutigen Berichts relativ zum Session-Root
+  (`exists`/`new`), Dokumentsprache und offene Commits (kurzer Hash, Datum,
+  Betreff), älteste zuerst. Ein Commit zählt nur, wenn er Dateien des
+  Projekts außerhalb seines Daily- und Backlog-Ordners ändert; für das
+  Root-Projekt zählen Dateien in eingetragenen Teilprojekten nicht. Das gilt
+  auch, wenn das Projekt unterhalb des Git-Roots liegt.
+- `ack`: setzt den bestätigten Stand des Projekts auf HEAD.
+- Exit-Code 1, wenn das Modul im gewählten Projekt aus ist (die Meldung
+  nennt die Projekte mit Daily), das Projekt unbekannt oder unwirksam ist
+  oder nicht im Haupt-Checkout auf dem Hauptzweig aufgerufen wird; 2 bei
+  falschem Aufruf.
 - Hauptzweig: Ziel von `origin/HEAD`, sonst `main`, sonst `master`.
 
 ## Skript `harness_repo.py`

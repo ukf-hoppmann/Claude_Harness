@@ -123,6 +123,75 @@ class DailyHookTest(unittest.TestCase):
         self.assertEqual(self.stop(cwd=worktree).returncode, 0)
         self.assertNotEqual(self.run_script("daily.py", "pending", cwd=worktree).returncode, 0)
 
+    def write_subproject(self, root_daily=True):
+        (self.project / ".claude-harness/config.toml").write_text(
+            f'version = 1\n[modules]\ndaily = {"true" if root_daily else "false"}\n[projects]\nA = "Plugins/A"\n'
+        )
+        config = self.project / "Plugins/A/.claude-harness/config.toml"
+        config.parent.mkdir(parents=True)
+        config.write_text("version = 1\n[modules]\ndaily = true\n")
+        self.commit("src/app.py", "set up subproject")
+
+    def test_plugin_commit_counts_only_for_plugin(self):
+        self.write_subproject()
+        self.baseline()
+        self.commit("Plugins/A/src/filter.py", "plugin feature")
+        result = self.stop()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("A (1, Plugins/A/docs/daily/)", result.stderr)
+        self.assertIn("--project A", result.stderr)
+        self.assertNotIn("root (", result.stderr)
+        self.assertIn("No pending commits", self.run_script("daily.py", "pending").stdout)
+        pending = self.run_script("daily.py", "pending", "--project", "A").stdout
+        self.assertIn("plugin feature", pending)
+        self.assertIn("Plugins/A/docs/daily/", pending)
+
+    def test_core_commit_counts_only_for_root(self):
+        self.write_subproject()
+        self.baseline()
+        self.commit("src/core.py", "core feature")
+        result = self.stop()
+        self.assertIn("root (1, docs/daily/)", result.stderr)
+        self.assertIn("No pending commits", self.run_script("daily.py", "pending", "--project", "A").stdout)
+
+    def test_plugin_backlog_only_commit_counts_nowhere(self):
+        self.write_subproject()
+        self.baseline()
+        self.commit("Plugins/A/docs/todo/TODO.md", "plugin backlog")
+        self.commit("Plugins/A/docs/daily/2026-09-25_daily.md", "plugin daily")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_acknowledged_states_are_separate(self):
+        self.write_subproject()
+        self.baseline()
+        self.commit("Plugins/A/src/filter.py", "plugin feature")
+        self.commit("src/core.py", "core feature")
+        self.assertEqual(self.run_script("daily.py", "ack", "--project", "A").returncode, 0)
+        self.assertIn("No pending commits", self.run_script("daily.py", "pending", "--project", "A").stdout)
+        self.assertIn("core feature", self.run_script("daily.py", "pending").stdout)
+
+    def test_project_selection_errors(self):
+        self.write_subproject(root_daily=False)
+        unknown = self.run_script("daily.py", "pending", "--project", "Nope")
+        self.assertEqual(unknown.returncode, 1)
+        self.assertIn("A", unknown.stderr)
+        missing = self.run_script("daily.py", "pending")
+        self.assertEqual(missing.returncode, 1)
+        self.assertIn("--project A", missing.stderr)
+        self.assertEqual(self.run_script("daily.py", "pending", "--project").returncode, 2)
+
+    def test_session_in_subproject_below_git_root(self):
+        plugin = self.project / "Plugins/A"
+        (plugin / ".claude-harness").mkdir(parents=True)
+        (plugin / ".claude-harness/config.toml").write_text("version = 1\n[modules]\ndaily = true\n")
+        self.commit("Plugins/A/src/filter.py", "plugin set up")
+        self.assertEqual(self.stop(cwd=plugin).returncode, 0)
+        self.commit("src/core.py", "outside the plugin")
+        self.commit("Plugins/A/docs/todo/TODO.md", "plugin backlog")
+        self.assertEqual(self.stop(cwd=plugin).returncode, 0)
+        self.commit("Plugins/A/src/filter.py", "plugin feature")
+        self.assertEqual(self.stop(cwd=plugin).returncode, 2)
+
     def test_module_off_is_silent(self):
         self.write_config(daily=False)
         self.baseline()

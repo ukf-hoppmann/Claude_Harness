@@ -227,3 +227,23 @@
   - Doku zählt nur für ihr eigenes Projekt.
   - Die Erinnerung kommt einmal pro Projekt und Session.
   - Ohne Teilprojekte sind Texte und Merker-Dateinamen unverändert.
+
+## 2026-09-25 — TASK-011 umgesetzt
+
+### Discussed
+
+- Daily Reports gibt es pro Projekt:
+  - Die geänderten Dateien eines Commits werden über den Ordner des
+    Projekts relativ zum Git-Root (`rev-parse --show-prefix`) eingegrenzt.
+  - Für root zählen Dateien in eingetragenen Teilprojekten nicht.
+  - Damit ist auch der Start im Teilprojekt mit Git-Root darüber gelöst
+    (Fall 1).
+- CLI: `daily.py pending|ack [--project <Name>]`.
+- Die Erinnerung nennt jedes Projekt mit offenen Commits.
+
+### Decided
+
+- Abweichung von der Spec: Der Bestätigungsstand wird nach dem Projektordner
+  benannt (`daily-ack-<Ordner>`), nicht nach dem Projektnamen. So teilt ein
+  Teilprojekt seinen Stand, egal ob die Session im Root oder im Teilprojekt
+  startet. root behält `daily-ack`.

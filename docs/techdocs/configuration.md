@@ -117,9 +117,8 @@ der Harness die Projekte selbst
   die nicht eingecheckte `.claude/settings.local.json` aktiviert werden. Die
   Dokumente unter `docs/` jedes Projekts werden eingecheckt.
 
-Stand: Nur der Session-Start wertet die Teilprojekte bisher aus; die übrigen
-Hooks behandeln Dateien in Teilprojekten noch als Dateien des Root-Projekts
-(`TASK-008` bis `TASK-011`).
+Alle Hooks wenden die Einstellungen des Projekts an, zu dem eine Datei
+gehört; Tagesberichte zählen pro Projekt nur dessen Commits.
 
 ## Umgebungsvariablen
 
