@@ -199,3 +199,17 @@
     gleichnamige Regeldateien verschiedener Projekte getrennt bleiben.
 - Root-Scopes gelten nicht für Dateien in Teilprojekten, auch wenn ihre
   Muster passen. Die Muster sind relativ zum jeweiligen Projekt.
+
+## 2026-09-25 — TASK-009 umgesetzt
+
+### Discussed
+
+- `## Inherited rules` in `architecture.md`:
+  - Der Parser steht in `architecture.py` (`parse_inherited`,
+    `inherited_files`).
+  - Der Hook verlangt die geerbten Dateien zusätzlich.
+  - Der Session-Start meldet fehlerhafte Einträge als Problemzeilen des
+    Projekts, auch ohne Teilprojekte.
+  - Template und Skill `architecture` sind ergänzt.
+- Ein geerbter Scope gilt unabhängig von seinen Pfadmustern. Geerbt wird
+  nur, was direkt genannt ist.

@@ -1,4 +1,4 @@
-"""Architecture rules of the development suite: scope table, path matching, read state."""
+"""Architecture rules of the development suite: scope table, inherited rules, path matching, read state."""
 
 from __future__ import annotations
 
@@ -7,11 +7,13 @@ import re
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 
-from harness_config import HarnessConfig
+from harness_config import PROJECT_NAME, HarnessConfig
+from projects import Project, ProjectSet
 from state import architecture_read_file
 
 RULES_FILE = "architecture.md"
 SCOPES_HEADING = "## Scopes"
+INHERITED_HEADING = "## Inherited rules"
 _SCOPE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
 _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 _SEPARATOR_ROW = re.compile(r"\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?")
@@ -21,6 +23,13 @@ _SEPARATOR_ROW = re.compile(r"\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?")
 class Scope:
     name: str
     patterns: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class Inherited:
+    project: str
+    # RULES_FILE for the main rules file, otherwise scope names of that project.
+    rules: tuple[str, ...]
 
 
 def rules_path(config: HarnessConfig) -> PurePosixPath:
@@ -39,7 +48,7 @@ def parse_scopes(text: str) -> tuple[list[Scope], list[str]]:
     """Read the scope table below '## Scopes'. Returns scopes and error messages."""
     scopes: list[Scope] = []
     errors: list[str] = []
-    rows = _scope_rows(text)
+    rows = _table_rows(text, SCOPES_HEADING)
     for row in rows[1:]:  # rows[0] is the header
         cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
         if len(cells) < 2:
@@ -64,12 +73,75 @@ def parse_scopes(text: str) -> tuple[list[Scope], list[str]]:
     return scopes, errors
 
 
-def _scope_rows(text: str) -> list[str]:
+def parse_inherited(text: str) -> tuple[list[Inherited], list[str]]:
+    """Read the table below '## Inherited rules'. Returns entries and error messages."""
+    entries: list[Inherited] = []
+    errors: list[str] = []
+    for row in _table_rows(text, INHERITED_HEADING)[1:]:
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) < 2:
+            errors.append(f"inherited rules row needs Project and Rules: {row.strip()}")
+            continue
+        project, rules_cell = cells[0], cells[1]
+        if not PROJECT_NAME.fullmatch(project):
+            errors.append(f"invalid project name {project!r}")
+            continue
+        rules = tuple(r.strip() for r in re.findall(r"`([^`]+)`", rules_cell) if r.strip())
+        if not rules:
+            errors.append(f"project {project!r} has no rules in backticks")
+            continue
+        invalid = [r for r in rules if r != RULES_FILE and not _SCOPE_NAME.fullmatch(r)]
+        if invalid:
+            errors.append(f"project {project!r}: rules must be {RULES_FILE} or scope names: {', '.join(invalid)}")
+            continue
+        if any(entry.project == project for entry in entries):
+            errors.append(f"project {project!r} is listed twice")
+            continue
+        entries.append(Inherited(project, rules))
+    return entries, errors
+
+
+def inherited_files(projects: ProjectSet, project: Project) -> tuple[list[PurePosixPath], list[str]]:
+    """Rule files (relative to the session root) that project inherits, plus errors.
+
+    Entries with errors are skipped; inherited files are not inherited further.
+    """
+    rules = project.root / rules_path(project.config)
+    if not rules.is_file():
+        return [], []
+    entries, errors = parse_inherited(rules.read_text(encoding="utf-8"))
+    files: list[PurePosixPath] = []
+    for entry in entries:
+        if entry.project == project.name:
+            errors.append(f"project {entry.project!r} cannot inherit from itself")
+            continue
+        other = projects.get(entry.project)
+        if other is None:
+            errors.append(f"unknown or unusable project {entry.project!r}")
+            continue
+        other_rules = rules_path(other.config)
+        if not other.config.part_enabled("architecture") or not (other.root / other_rules).is_file():
+            errors.append(f"project {entry.project!r} has no active architecture rules")
+            continue
+        scopes = {scope.name for scope in load_scopes(other.root, other.config)[0]}
+        for name in entry.rules:
+            if name == RULES_FILE:
+                files.append(other.path / other_rules)
+            elif name not in scopes:
+                errors.append(f"project {entry.project!r} has no scope {name!r}")
+            elif (other.root / scope_path(other.config, name)).is_file():
+                files.append(other.path / scope_path(other.config, name))
+            else:
+                errors.append(f"scope file {other.path / scope_path(other.config, name)} is missing")
+    return files, errors
+
+
+def _table_rows(text: str, heading: str) -> list[str]:
     rows: list[str] = []
     in_section = False
     for line in _COMMENT.sub("", text).splitlines():
         if line.startswith("## "):
-            in_section = line.strip() == SCOPES_HEADING
+            in_section = line.strip() == heading
             continue
         if in_section and line.lstrip().startswith("|") and not _SEPARATOR_ROW.fullmatch(line.strip()):
             rows.append(line)

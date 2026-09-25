@@ -25,7 +25,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Modul `todo` | Skill mit Backlog-Regeln, Formatprüfung, Prüf-Hooks | `plugin/skills/todo/`, `plugin/scripts/backlog.py`, `mark_backlog_dirty.py`, `check_backlog.py` |
 | Modul `daily` | Skill, Git-Auswertung, Erinnerungs-Hook | `plugin/skills/daily/`, `plugin/scripts/daily.py`, `check_daily.py` |
 | Modul `techdocs` | Skill, Dateiklassifikation, Erinnerungs-Hooks | `plugin/skills/techdocs/`, `plugin/scripts/techdocs.py`, `mark_techdocs.py`, `check_techdocs.py` |
-| Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py` |
+| Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, geerbte Regeln anderer Projekte, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py` |
 | Suite `development`, Teil `decomposition` | Skill mit Kriterien zur Zerlegung in Backlog-Tasks und Plan-Abschnitte, Regeln, wann der Test zuerst entsteht (TDD), Dimensions-Checkliste | `plugin/skills/decomposition/` |
 | Suite `development`, Teil `worktree` | Skill für den Change-Workflow im Worktree, Skript für Ausgangsbranch, Spiegeln ignorierter Dateien und Vorprüfung vor dem Merge, Prüfung von `worktree.baseRef` beim Session-Start | `plugin/skills/worktree/`, `plugin/scripts/worktree.py` |
 | Konflikte | Skill für Konflikte mit Projektregeln und Harness-Vorgaben, Suche des Harness-Repos für die Übergabe von Harness-Wünschen | `plugin/skills/conflicts/`, `plugin/scripts/harness_repo.py` |
