@@ -31,9 +31,32 @@
 
 ### Open
 
-- Genaues Format der Migrationsliste in `harness_config.py` (Datenstruktur,
-  wo die Beschreibung je Schritt steht).
-- Ob der `update`-Skill auch für registrierte Subprojekte (`[projects]`)
-  automatisch mitläuft oder separat aufgerufen werden muss.
-- Ob/wie der Session-Start-Hook auf eine veraltete Config hinweisen soll,
-  statt dass der Owner den Skill von sich aus aufrufen muss.
+- ~~Genaues Format der Migrationsliste in `harness_config.py`.~~ Entschieden
+  und umgesetzt: `Migration`-Dataclass (`from_version`, `to_version`,
+  `description`, `upgrade`), `MIGRATIONS`-Tupel, `_migration_chain`,
+  `migrate_data`, Exception `ConfigOutdated`.
+- ~~Ob der `update`-Skill auch für registrierte Subprojekte (`[projects]`)
+  automatisch mitläuft.~~ Entschieden: nein, ein Aufruf aktualisiert genau
+  ein Projekt; Teilprojekte werden einzeln aufgerufen (wie bei `init`).
+- ~~Ob/wie der Session-Start-Hook auf eine veraltete Config hinweisen
+  soll.~~ Umgesetzt: eigener `ConfigOutdated`-Zweig in `session_start.py`
+  (`outdated_message`), verweist auf `/claude-harness:update`.
+
+## 2026-09-25 — Umsetzung
+
+### Decided
+
+- Plan umgesetzt in Worktree `worktree-STORY-030`: Migrationsrahmen in
+  `plugin/scripts/harness_config.py` (test-first, `tests/test_config.py`),
+  eigene Hook-Meldung in `plugin/scripts/session_start.py` (test-first,
+  neues `tests/test_session_start.py`), neuer Skill
+  `plugin/skills/update/SKILL.md` analog `init`, Doku in
+  `docs/techdocs/interfaces.md` und `docs/techdocs/configuration.md`
+  ergänzt.
+- `CONFIG_VERSION` bleibt `1`, `MIGRATIONS` bleibt leer — kein echter
+  Schema-Bruch für diese Story. Der Rahmen ist über Tests mit einer
+  gemockten synthetischen Migration abgedeckt (`mock.patch.object` auf
+  `CONFIG_VERSION`/`MIGRATIONS`).
+- Alle Acceptance criteria aus `STORY-030_spec.md` erfüllt: 188 Tests grün,
+  Backlog-Check fehlerfrei, `update`-Skill würde gegen die eigene Config
+  dieses Repos "bereits aktuell" melden.

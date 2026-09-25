@@ -9,7 +9,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 
 | Einstellung | Typ | Standard | Pflicht | Wirkung |
 |---|---|---|---|---|
-| `version` | Ganzzahl | – | ja | Schema-Version; muss `1` sein |
+| `version` | Ganzzahl | – | ja | Schema-Version, aktuell `1`. Eine ältere Version mit bekanntem Migrationspfad wird erkannt und über `/claude-harness:update` aktualisiert statt sofort abgelehnt zu werden |
 | `docs.root` | Pfad | `"docs"` | nein | Ordner für alle Harness-Dokumente, relativ zum Projekt-Root |
 | `docs.language` | ISO-639-1-Code | `"en"` | nein | Sprache aller erzeugten Dokumente (Fließtext und Überschriften, nicht maschinell geprüfte Feldnamen) |
 | `modules.todo` | Boolean | `false` | nein | Schaltet das Backlog-Modul ein |

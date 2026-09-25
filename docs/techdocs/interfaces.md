@@ -21,6 +21,27 @@ Dateiformate.
 - Fehlerfall: Ist die Config im Zielordner schon vorhanden, zeigt er sie und
   ändert nichts.
 
+## Befehl `/claude-harness:update`
+
+- Zweck: die `.claude-harness/config.toml` eines bereits eingerichteten
+  Projekts oder Teilprojekts auf das aktuelle Schema bringen.
+- Aufruf: nur durch den Nutzer (`disable-model-invocation`).
+- Wirkung: fragt, welches Projekt (Root oder ein registriertes
+  Teilprojekt) aktualisiert wird; vergleicht dessen `version` mit
+  `CONFIG_VERSION` (`harness_config.py`). Ist sie gleich, meldet er
+  "bereits aktuell" und ändert nichts. Ist sie älter und es gibt einen
+  durchgängigen Migrationspfad (`MIGRATIONS`), zeigt er die fehlenden
+  Schritte in Klartext, fragt nur bei neuen, nicht aus der
+  Migrationsbeschreibung ableitbaren Werten nach, zeigt die konkrete
+  Änderung an der Datei und schreibt sie erst nach Freigabe — bestehende
+  Kommentare und unveränderte Werte bleiben erhalten. Ein Aufruf
+  aktualisiert genau ein Projekt; Teilprojekte werden einzeln aufgerufen.
+- Fehlerfall: Fehlt die Config im Zielordner, verweist er auf
+  `/claude-harness:init` statt etwas anzulegen. Ist die Version neuer als
+  `CONFIG_VERSION` oder gibt es keinen durchgängigen Migrationspfad, meldet
+  er das als ungültige Konfiguration, wie `init` und der
+  Session-Start-Hook es auch sonst tun.
+
 ## Skills
 
 | Skill | Wird geladen, wenn … |

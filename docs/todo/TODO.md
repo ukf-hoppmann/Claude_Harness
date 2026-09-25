@@ -31,7 +31,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-007`.
   - Required for parent: No.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-25.
   - Area: Architektur.
   - Priority: Normal.
@@ -49,7 +49,9 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     bei neuen, wirklich zu entscheidenden Werten) und schreibt die Config auf
     die aktuelle Version; auf eine bereits aktuelle Config wird gemeldet, dass
     nichts zu tun ist; das Ergebnis besteht die bestehende Config-Validierung.
-  - Summary: Ein neuer Befehl soll bestehende Harness-Configs in anderen
-    Projekten automatisch auf den neuesten Stand bringen, ähnlich wie der
-    Einrichtungs-Befehl das für neue Projekte tut.
+  - Summary: Der neue Befehl `/claude-harness:update` bringt die Harness-Config
+    eines Projekts automatisch auf den neuesten Stand, ähnlich wie der
+    Einrichtungs-Befehl das für neue Projekte tut. Er erkennt "bereits
+    aktuell" ohne etwas zu ändern und würde bei einer künftigen
+    Schema-Änderung die fehlenden Schritte nachtragen.
   - Notes: `items/STORY-030/STORY-030_notes.md`.
