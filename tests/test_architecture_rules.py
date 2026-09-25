@@ -35,6 +35,7 @@ class ConfigurationRuleTest(unittest.TestCase):
         doc = (REPO_ROOT / "docs/techdocs/configuration.md").read_text(encoding="utf-8")
         keys = ["version"] + [f"modules.{name}" for name in KNOWN_MODULES]
         keys += [f"{table}.{key}" for table, table_keys in TABLE_KEYS.items() for key in sorted(table_keys)]
+        keys.append("projects.<Name>")
         for key in keys:
             with self.subTest(key=key):
                 self.assertTrue(f"`{key}`" in doc, f"{key} is missing in configuration.md")

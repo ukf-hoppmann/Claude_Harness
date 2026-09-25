@@ -20,7 +20,8 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Marketplace | Macht das Plugin lokal installierbar | `.claude-plugin/marketplace.json` |
 | Hook-Registrierung | Verknüpft Ereignisse mit Skripten | `plugin/hooks/hooks.json` |
 | Config-Lader | Liest und validiert `.claude-harness/config.toml` | `plugin/scripts/harness_config.py` |
-| Session-Start | Meldet aktive Module, Sprache, fehlende Dateien und Backlog-Fehler | `plugin/scripts/session_start.py` |
+| Projekte | Lädt das Root-Projekt und die in `[projects]` eingetragenen Teilprojekte und ordnet jede Datei ihrem Projekt zu | `plugin/scripts/projects.py` |
+| Session-Start | Meldet aktive Module, Sprache, fehlende Dateien und Backlog-Fehler, bei Teilprojekten pro Projekt | `plugin/scripts/session_start.py` |
 | Modul `todo` | Skill mit Backlog-Regeln, Formatprüfung, Prüf-Hooks | `plugin/skills/todo/`, `plugin/scripts/backlog.py`, `mark_backlog_dirty.py`, `check_backlog.py` |
 | Modul `daily` | Skill, Git-Auswertung, Erinnerungs-Hook | `plugin/skills/daily/`, `plugin/scripts/daily.py`, `check_daily.py` |
 | Modul `techdocs` | Skill, Dateiklassifikation, Erinnerungs-Hooks | `plugin/skills/techdocs/`, `plugin/scripts/techdocs.py`, `mark_techdocs.py`, `check_techdocs.py` |
@@ -36,7 +37,8 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 
 Wo jedes Modul liegt und warum. Die Regel dahinter steht in
 `docs/development/architecture.md`, Abschnitt 7. Immer im Kontext sind nur
-die Skill-Beschreibungen (je ein Satz) und eine Startzeile pro Modul.
+die Skill-Beschreibungen (je ein Satz) und eine Startzeile pro Modul; bei
+Teilprojekten steht jeder Skill-Hinweis einmal, dazu eine Zeile pro Projekt.
 
 | Modul | Hook (prüft, kostet nichts, solange alles stimmt) | Skill (lädt beim Thema) | Skript | Warum so |
 |---|---|---|---|---|
@@ -54,9 +56,13 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 
 ## Ablauf
 
-1. **SessionStart:** `session_start.py` lädt die Config und schreibt eine
-   Kurzfassung in den Kontext (aktive Module, Dokumentsprache, Orte der
-   Dokumente, fehlende Dateien, Backlog-Fehler).
+1. **SessionStart:** `session_start.py` lädt über `projects.py` die Config
+   des Root-Projekts und die der Teilprojekte und schreibt eine Kurzfassung in
+   den Kontext (aktive Module, Dokumentsprache, Orte der Dokumente, fehlende
+   Dateien, Backlog-Fehler). Mit Teilprojekten: eine Zeile pro Projekt mit
+   Sprache, Modulen und Orten (Pfade relativ zum Session-Root), jeder
+   Skill-Hinweis einmal, Fehler mit Projektnamen; ein Teilprojekt ohne oder
+   mit ungültiger Config wird gemeldet, die anderen bleiben wirksam.
 2. **PreToolUse (Write/Edit/MultiEdit/NotebookEdit/ExitPlanMode):**
    `check_architecture.py` lehnt das Vorlegen eines Plans, das Schreiben einer
    Backlog-Spec und die Änderung einer Projektdatei ab, bis die

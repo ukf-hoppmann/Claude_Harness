@@ -24,6 +24,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `development.decomposition` | Boolean | `true` | nein | Teilbereich Zerlegung (Skill `claude-harness:decomposition`); nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `development.worktree` | Boolean | `true` | nein | Teilbereich Change-Workflow (Skill `claude-harness:worktree`): Changes mit freigegebenem Plan laufen in einem Worktree vom aktuellen Branch und werden von der AI zurückgemerged; nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `techdocs.documents` | Liste | `["architecture", "interfaces", "configuration"]` | nein | Geführte Dokumente; erlaubt sind `architecture`, `interfaces`, `configuration`, `operations`; Dateiname `<Art>.md`. `README.md` im Projekt-Root gehört immer dazu |
+| `projects.<Name>` | Pfad | – | nein | Trägt ein Teilprojekt ein: Name → Ordner relativ zum Projekt-Root. Nur in der Konfiguration des Root-Projekts erlaubt; siehe „Teilprojekte“ |
 | `harness.repo` | Liste von Pfaden | `[]` | nein | Mögliche Orte des Claude_Harness-Repos, einer pro Rechner; absolut oder mit `~` beginnend. Gilt der erste, der auf dem Rechner existiert und das Harness-Repo ist. Wird für die Übergabe von Harness-Wünschen an den Harness-Backlog gebraucht (Skill `claude-harness:conflicts`); ohne passenden Eintrag gibt die AI den Auftrag als Text aus |
 
 Nicht aufgeführte Module sind aus. Teilbereiche der Suite `development` sind
@@ -39,7 +40,12 @@ nichts):
 - unbekannte oder doppelte Einträge in `techdocs.documents`;
 - Teilbereiche von `development`, die kein Boolean sind;
 - `harness.repo`, das keine Liste nicht leerer Strings ist oder relative
-  Pfade enthält.
+  Pfade enthält;
+- `[projects]`, das keine Tabelle ist; Projektnamen, die nicht mit einem
+  Buchstaben beginnen, andere Zeichen als Buchstaben, Ziffern, `_` und `-`
+  enthalten oder `root` heißen; Projektpfade, die leer, absolut, `.` oder mit
+  `..` sind; Projektpfade, die gleich sind oder ineinander liegen;
+- `[projects]` oder `[harness]` in der Konfiguration eines Teilprojekts.
 
 `harness.repo` enthält rechnerspezifische Pfade in einer eingecheckten Datei.
 Deshalb ist es eine Liste: Jeder Rechner ergänzt seinen Pfad; Einträge, die
@@ -77,6 +83,43 @@ architecture = true
 [harness]
 repo = ["~/Documents/GitHub/Claude_Harness"]
 ```
+
+## Teilprojekte
+
+Ein Repository kann neben dem Root-Projekt (Name `root`) Teilprojekte mit
+eigener Konfiguration, Sprache und eigenen Dokumenten enthalten, z. B. je ein
+Plugin einer Anwendung. Die Session startet im Repo-Root; Claude Code lädt
+`.claude/settings.json` nur aus dem Startverzeichnis, deshalb unterscheidet
+der Harness die Projekte selbst
+(Hintergrund: `docs/todo/items/STORY-027/STORY-027_notes.md`).
+
+- Die Konfiguration des Root-Projekts trägt die Teilprojekte in
+  `[projects]` ein:
+
+  ```toml
+  [projects]
+  VariantFilter = "Plugins/VariantFilter"
+  OtherPlugin = "Plugins/OtherPlugin"
+  ```
+
+- Jedes Teilprojekt hat eine eigene `<Pfad>/.claude-harness/config.toml`
+  mit denselben Einstellungen wie oben. Ihre Pfade gelten relativ zum Ordner
+  des Teilprojekts. `[projects]` und `[harness]` sind dort nicht erlaubt;
+  verschachtelte Teilprojekte gibt es nicht.
+- Das Root-Projekt kann reine Registry sein: Ohne eingeschaltete Module
+  gelten für Dateien außerhalb der Teilprojekte keine Harness-Regeln.
+- Eine Datei gehört zu dem Teilprojekt, dessen Ordner sie enthält, sonst zum
+  Root-Projekt. Fehlt die Konfiguration eines Teilprojekts oder ist sie
+  ungültig, meldet der Session-Start das; die anderen Projekte bleiben
+  wirksam.
+- Ist die Konfiguration des Root-Projekts ungültig, ist kein Projekt wirksam.
+- Die Konfigurationsdateien dürfen in die `.gitignore`; das Plugin kann über
+  die nicht eingecheckte `.claude/settings.local.json` aktiviert werden. Die
+  Dokumente unter `docs/` jedes Projekts werden eingecheckt.
+
+Stand: Nur der Session-Start wertet die Teilprojekte bisher aus; die übrigen
+Hooks behandeln Dateien in Teilprojekten noch als Dateien des Root-Projekts
+(`TASK-008` bis `TASK-011`).
 
 ## Umgebungsvariablen
 

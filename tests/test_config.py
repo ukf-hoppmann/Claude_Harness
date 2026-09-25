@@ -78,6 +78,41 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.harness_repos, ("/abs/harness", "~/code/harness"))
         self.assertEqual(parse_config({"version": 1, "harness": {"repo": []}}).harness_repos, ())
 
+    def test_projects(self):
+        self.assertEqual(parse_config({"version": 1}).projects, ())
+        config = parse_config({
+            "version": 1,
+            "projects": {"VariantFilter": "Plugins/VariantFilter", "other_2": "Plugins/Other/"},
+        })
+        self.assertEqual(config.projects, (
+            ("VariantFilter", PurePosixPath("Plugins/VariantFilter")),
+            ("other_2", PurePosixPath("Plugins/Other")),
+        ))
+
+    def test_rejects_invalid_projects(self):
+        cases = [
+            {"projects": "Plugins/A"},
+            {"projects": {"root": "Plugins/A"}},
+            {"projects": {"1st": "Plugins/A"}},
+            {"projects": {"a b": "Plugins/A"}},
+            {"projects": {"A": "/abs"}},
+            {"projects": {"A": "../outside"}},
+            {"projects": {"A": "."}},
+            {"projects": {"A": ""}},
+            {"projects": {"A": 1}},
+            {"projects": {"A": "Plugins/A", "B": "Plugins/A"}},
+            {"projects": {"A": "Plugins", "B": "Plugins/B"}},
+        ]
+        for extra in cases:
+            with self.subTest(data=extra), self.assertRaises(ConfigError):
+                parse_config({"version": 1, **extra})
+
+    def test_subproject_rejects_registry_and_harness(self):
+        self.assertEqual(parse_config({"version": 1}, subproject=True).projects, ())
+        for extra in ({"projects": {"A": "Plugins/A"}}, {"harness": {"repo": []}}):
+            with self.subTest(data=extra), self.assertRaises(ConfigError):
+                parse_config({"version": 1, **extra}, subproject=True)
+
     def test_rejects_invalid_values(self):
         cases = [
             {"version": 2},

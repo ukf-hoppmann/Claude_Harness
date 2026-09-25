@@ -31,8 +31,12 @@ TABLE_KEYS = {
     "development": {"path", *DEVELOPMENT_PARTS},
     "harness": {"repo"},
 }
-_TOP_LEVEL_KEYS = {"version", "modules", *TABLE_KEYS}
+_TOP_LEVEL_KEYS = {"version", "modules", "projects", *TABLE_KEYS}
+# Tables only the root project may contain: the subproject registry and the harness repo.
+_ROOT_ONLY_TABLES = ("projects", "harness")
 _LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
+_PROJECT_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
+ROOT_PROJECT = "root"
 
 
 class ConfigError(ValueError):
@@ -53,6 +57,8 @@ class HarnessConfig:
     development_parts: dict[str, bool]
     # Candidate paths of the Claude_Harness repository, one per machine; absolute or starting with '~'.
     harness_repos: tuple[str, ...] = ()
+    # Subprojects registered in the root project: (name, path relative to the project root).
+    projects: tuple[tuple[str, PurePosixPath], ...] = ()
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
@@ -88,7 +94,7 @@ def project_relative(root: Path, file_path: str) -> PurePosixPath | None:
         return None
 
 
-def load_config(root: Path) -> HarnessConfig | None:
+def load_config(root: Path, *, subproject: bool = False) -> HarnessConfig | None:
     """Return the parsed config, or None when the project has no config file."""
     path = root / CONFIG_RELATIVE_PATH
     if not path.is_file():
@@ -97,11 +103,14 @@ def load_config(root: Path) -> HarnessConfig | None:
         data = tomllib.loads(path.read_text(encoding="utf-8"))
     except tomllib.TOMLDecodeError as exc:
         raise ConfigError(f"{CONFIG_RELATIVE_PATH}: invalid TOML: {exc}") from exc
-    return parse_config(data)
+    return parse_config(data, subproject=subproject)
 
 
-def parse_config(data: dict[str, Any]) -> HarnessConfig:
+def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessConfig:
     errors: list[str] = []
+
+    if subproject:
+        errors += [f"[{name}] is only allowed in the root project" for name in _ROOT_ONLY_TABLES if name in data]
 
     unknown = sorted(set(data) - _TOP_LEVEL_KEYS)
     if unknown:
@@ -149,6 +158,7 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
             errors.append(f"development.{part} must be true or false")
 
     harness_repos = _harness_repos(_table(data, "harness", errors).get("repo", []), errors)
+    projects = _projects(data.get("projects", {}), errors)
 
     if errors:
         raise ConfigError(
@@ -165,7 +175,36 @@ def parse_config(data: dict[str, Any]) -> HarnessConfig:
         development_path=docs_root / development_path,
         development_parts=development_parts,
         harness_repos=harness_repos,
+        projects=projects,
     )
+
+
+def _projects(value: Any, errors: list[str]) -> tuple[tuple[str, PurePosixPath], ...]:
+    if not isinstance(value, dict):
+        errors.append("[projects] must be a table")
+        return ()
+    projects: list[tuple[str, PurePosixPath]] = []
+    for name, raw_path in value.items():
+        if name == ROOT_PROJECT or not _PROJECT_NAME.fullmatch(name):
+            errors.append(
+                f"invalid project name {name!r} (a letter, then letters, digits, '_', '-'; "
+                f"'{ROOT_PROJECT}' is reserved)"
+            )
+            continue
+        try:
+            path = _relative_path(raw_path)
+        except ConfigError as exc:
+            errors.append(f"projects.{name} {exc}")
+            continue
+        if path == PurePosixPath("."):
+            errors.append(f"projects.{name} must not be the project root itself")
+            continue
+        projects.append((name, path))
+    for i, (name, path) in enumerate(projects):
+        for other, other_path in projects[i + 1:]:
+            if path.is_relative_to(other_path) or other_path.is_relative_to(path):
+                errors.append(f"projects.{name} and projects.{other} overlap; nested projects are not supported")
+    return tuple(projects)
 
 
 def _harness_repos(value: Any, errors: list[str]) -> tuple[str, ...]:
