@@ -3,7 +3,8 @@ from __future__ import annotations
 import json
 import sys
 
-from harness_config import ConfigError, load_config, project_root
+from harness_config import ConfigError, project_root
+from projects import load_projects
 from state import techdocs_marker
 from techdocs import classify
 
@@ -18,17 +19,17 @@ def main() -> int:
     if not file_path or not session_id:
         return 0
 
-    root = project_root(hook_input)
     try:
-        config = load_config(root)
+        projects = load_projects(project_root(hook_input))
     except ConfigError:
         return 0
-    if config is None or not config.enabled("techdocs"):
+    project = projects.for_file(file_path) if projects else None
+    if project is None or not project.config.enabled("techdocs"):
         return 0
 
-    kind = classify(root, config, file_path)
+    kind = classify(project, file_path)
     if kind:
-        marker = techdocs_marker(session_id, kind)
+        marker = techdocs_marker(session_id, kind, project.name)
         marker.parent.mkdir(parents=True, exist_ok=True)
         marker.touch()
     return 0

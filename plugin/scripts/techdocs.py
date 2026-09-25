@@ -3,9 +3,10 @@
 from __future__ import annotations
 
 import re
-from pathlib import Path, PurePosixPath
+from pathlib import PurePosixPath
 
-from harness_config import README, HarnessConfig, project_relative
+from harness_config import README, HarnessConfig
+from projects import Project
 
 _TEST_NAME = re.compile(r"^test_|_test\.|\.test\.")
 
@@ -16,11 +17,12 @@ def _is_test(path: PurePosixPath) -> bool:
     )
 
 
-def classify(root: Path, config: HarnessConfig, file_path: str) -> str | None:
-    """Return 'docs', 'project', or None for files that do not matter."""
-    rel = project_relative(root, file_path)
+def classify(project: Project, file_path: str) -> str | None:
+    """Return 'docs', 'project', or None for files of project that do not matter."""
+    rel = project.relative(file_path)
     if rel is None:
         return None
+    config = project.config
     if rel == README or rel.is_relative_to(config.techdocs_path):
         return "docs"
     if config.is_harness_file(rel) or _is_test(rel):

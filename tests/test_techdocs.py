@@ -70,6 +70,40 @@ class TechdocsHookTest(unittest.TestCase):
         result = self.run_hook("check_techdocs.py", {"session_id": "s1", "cwd": str(worktree)})
         self.assertEqual(result.returncode, 0, result.stderr)
 
+    def write_subproject(self):
+        (self.project / ".claude-harness/config.toml").write_text(
+            'version = 1\n[modules]\ntechdocs = true\n[projects]\nA = "Plugins/A"\n'
+        )
+        config = self.project / "Plugins/A/.claude-harness/config.toml"
+        config.parent.mkdir(parents=True)
+        config.write_text("version = 1\n[modules]\ntechdocs = true\n")
+
+    def test_docs_count_only_for_their_own_project(self):
+        self.write_subproject()
+        self.edit("Plugins/A/src/filter.py")
+        self.edit("docs/techdocs/interfaces.md")
+        result = self.stop()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("A (Plugins/A/README.md, Plugins/A/docs/techdocs/)", result.stderr)
+        self.assertNotIn("root (", result.stderr)
+
+    def test_plugin_docs_satisfy_plugin_changes(self):
+        self.write_subproject()
+        self.edit("Plugins/A/src/filter.py")
+        self.edit("Plugins/A/README.md")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_reminds_once_per_project(self):
+        self.write_subproject()
+        self.edit("Plugins/A/src/filter.py")
+        self.assertEqual(self.stop().returncode, 2)
+        self.assertEqual(self.stop().returncode, 0)
+        self.edit("src/core.py")
+        result = self.stop()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("root (README.md, docs/techdocs/)", result.stderr)
+        self.assertNotIn("Plugins/A", result.stderr)
+
     def test_sessions_are_independent(self):
         self.edit("src/app.py", session="s1")
         self.assertEqual(self.stop(session="s2").returncode, 0)

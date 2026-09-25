@@ -213,3 +213,17 @@
   - Template und Skill `architecture` sind ergänzt.
 - Ein geerbter Scope gilt unabhängig von seinen Pfadmustern. Geerbt wird
   nur, was direkt genannt ist.
+
+## 2026-09-25 — TASK-010 umgesetzt
+
+### Discussed
+
+- Backlog:
+  - Der Merker enthält die Namen der Projekte, deren Backlog geändert
+    wurde. Eine leere Merker-Datei aus älteren Sessions gilt als `root`.
+  - Der Stop-Hook prüft jedes Backlog einzeln und meldet es mit seinem Pfad.
+- techdocs:
+  - Merker gibt es pro Projekt.
+  - Doku zählt nur für ihr eigenes Projekt.
+  - Die Erinnerung kommt einmal pro Projekt und Session.
+  - Ohne Teilprojekte sind Texte und Merker-Dateinamen unverändert.
