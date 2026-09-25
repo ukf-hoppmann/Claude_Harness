@@ -202,6 +202,17 @@ class WorktreeScriptTest(unittest.TestCase):
         self.assertEqual(fields["linked"], ".venv")
         self.assertEqual(fields["skipped"], "__pycache__, local/__pycache__")
 
+    def test_start_mirrors_ignored_harness_configs_of_subprojects(self):
+        with (self.main / ".gitignore").open("a") as gitignore:
+            gitignore.write(".claude-harness/\n")
+        for folder in (self.main, self.main / "Plugins/A"):
+            (folder / ".claude-harness").mkdir(parents=True)
+            (folder / ".claude-harness/config.toml").write_text(f"version = 1 # {folder.name}\n")
+        result = self.run_script("start")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((self.wt / ".claude-harness/config.toml").read_text(), "version = 1 # main\n")
+        self.assertEqual((self.wt / "Plugins/A/.claude-harness/config.toml").read_text(), "version = 1 # A\n")
+
     def test_start_keeps_existing_files(self):
         (self.main / ".env").write_text("main\n")
         (self.wt / ".env").write_text("worktree\n")

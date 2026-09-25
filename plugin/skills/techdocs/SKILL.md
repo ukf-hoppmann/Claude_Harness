@@ -7,9 +7,10 @@ description: Rules for the project's technical documentation (README, architectu
 
 ## Before you start
 
-1. Read `.claude-harness/config.toml` in the project root. If
-   `[modules].techdocs` is not `true`, these rules do not apply — say so and
-   stop.
+1. Read `.claude-harness/config.toml` of the project the work belongs to (with
+   subprojects, the session start lists each project and its folder; paths
+   below are relative to that folder). If `[modules].techdocs` is not `true`,
+   these rules do not apply — say so and stop.
 2. The documents are `README.md` in the project root plus
    `<docs.root>/<techdocs.path>/<document>.md` for each entry in
    `[techdocs].documents`. Write them in `[docs].language`.

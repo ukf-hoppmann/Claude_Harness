@@ -7,9 +7,11 @@ description: Rules for running a change in its own git worktree and merging it b
 
 ## Before you start
 
-Read `.claude-harness/config.toml` in the project root. The rules apply only
-if `[modules].development` is `true` and `[development].worktree` is not
-`false`; otherwise say so and stop.
+Read `.claude-harness/config.toml` of the project the work belongs to (with
+subprojects, the session start lists each project and its folder; paths below
+are relative to that folder). The rules apply only if `[modules].development`
+is `true` and `[development].worktree` is not `false`; otherwise say so and
+stop.
 
 `worktree.py` below means
 `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/worktree.py"`, run inside the

@@ -7,9 +7,11 @@ description: Rules for splitting work into small, separately testable steps and 
 
 ## Before you start
 
-Read `.claude-harness/config.toml` in the project root. The rules apply only
-if `[modules].development` is `true` and `[development].decomposition` is not
-`false`; otherwise say so and stop.
+Read `.claude-harness/config.toml` of the project the work belongs to (with
+subprojects, the session start lists each project and its folder; paths below
+are relative to that folder). The rules apply only if `[modules].development`
+is `true` and `[development].decomposition` is not `false`; otherwise say so
+and stop.
 
 ## Why
 
@@ -52,6 +54,9 @@ of these hold:
 Order sections by their dependencies: each section uses only sections that
 are already implemented and tested. There is no fixed direction such as
 bottom-up.
+
+With subprojects, a plan that touches several projects names each of them;
+every file follows the rules of its own project.
 
 The last section is always **integration**: check the whole flow against the
 original goal.

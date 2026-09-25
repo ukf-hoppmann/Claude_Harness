@@ -7,8 +7,10 @@ description: Rules for daily development reports (one report per day about mater
 
 ## Before you start
 
-1. Read `.claude-harness/config.toml` in the project root. If `[modules].daily`
-   is not `true`, these rules do not apply — say so and stop.
+1. Read `.claude-harness/config.toml` of the project the work belongs to (with
+   subprojects, the session start lists each project and its folder; paths
+   below are relative to that folder). If `[modules].daily` is not `true`,
+   these rules do not apply — say so and stop.
 2. Reports live in `<docs.root>/<daily.path>/<YYYY-MM-DD>_daily.md`, written
    in `docs.language`.
 3. Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" pending`. It prints

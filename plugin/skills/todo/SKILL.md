@@ -7,8 +7,10 @@ description: Rules for the project backlog (TODO.md, archive.md, per-item notes 
 
 ## Before you start
 
-1. Read `.claude-harness/config.toml` in the project root. If `[modules].todo`
-   is not `true`, these rules do not apply — say so and stop.
+1. Read `.claude-harness/config.toml` of the project the work belongs to (with
+   subprojects, the session start lists each project and its folder; paths
+   below are relative to that folder). If `[modules].todo` is not `true`,
+   these rules do not apply — say so and stop.
 2. The backlog folder is `[todo].path` below `[docs].root` (default
    `docs/todo`). Write backlog texts in `[docs].language`; field names stay
    English.
@@ -55,6 +57,8 @@ Read only what the task needs:
 - New work goes under an existing epic or story whenever one fits — including
   archived ones. Prefer proposing to reopen a closed parent (owner approval,
   reason recorded in its notes) over creating a new epic or story.
+- With subprojects, each project has its own backlog. New items go into the
+  backlog of the project the work belongs to; if that is unclear, ask.
 - Reuse existing areas before inventing new ones. New IDs take the next free
   number of their type.
 
