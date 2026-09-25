@@ -95,3 +95,16 @@ Grundlage ist die Plugin-Architektur aus `EPIC-007`.
 - Der Project Owner hat `EPIC-001` wieder geöffnet. Grund: Der Einsatz in
   geteilten Repos und Monorepos mit mehreren Teilprojekten war im
   Konfigurationsschema nicht abgedeckt. Neue Pflicht-Story: `STORY-027`.
+
+## 2026-09-25 — Abschlussprüfung nach STORY-027
+
+### Discussed
+
+- Alle Pflicht-Stories sind abgeschlossen, zuletzt `STORY-027`
+  (bestätigt am 2026-09-25).
+- Die Abschlusskriterien sind erfüllt:
+  - Das Schema ist validiert (`harness_config.py`).
+  - Es ist dokumentiert (`configuration.md`).
+  - Die Hooks aller Module lesen es und wenden es an, jetzt auch pro
+    Teilprojekt.
+- Status auf `Awaiting confirmation`.

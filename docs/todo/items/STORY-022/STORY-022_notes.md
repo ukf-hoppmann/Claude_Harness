@@ -108,3 +108,27 @@
 ### Discussed
 
 - Der reale Durchlauf ist der Abschluss von `TASK-013` selbst.
+
+## 2026-09-25 — Abschlussprüfung
+
+### Discussed
+
+- `TASK-013` ist bestätigt. Die übrigen Tasks sind abgelehnt, die Story hat
+  also keine offenen Kinder mehr.
+- Der reale Durchlauf ist erfüllt: `TASK-007` bis `TASK-013` liefen jeweils
+  mit freigegebenem Plan durch den ganzen Ablauf ohne Rückfrage:
+  - Worktree vom Ausgangsbranch `main`
+  - Merge-Commit mit `--no-ff`
+  - Worktree und Branch gelöscht
+
+  Andere Worktrees wurden nicht angefasst.
+- Blockiert: `TASK-001` bis `TASK-003` sind Pflicht-Tasks mit Status
+  `Rejected`, ihr Inhalt ging 2026-09-24 in die Spec über. Laut
+  Backlog-Format braucht eine Story aber für `Completed` alle Pflicht-Tasks
+  als `Completed`. Status bleibt `In progress`, bis der Owner entscheidet,
+  z. B. diese Tasks auf `Required for parent: No` zu setzen.
+
+### Open
+
+- Wie werden abgelehnte Pflicht-Tasks behandelt, deren Inhalt in der Story
+  aufgegangen ist?
