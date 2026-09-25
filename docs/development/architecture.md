@@ -73,7 +73,9 @@ in order; the first "yes" decides:
 In addition:
 
 - The session start hook prints one line per active module (location and
-  skill), plus short lines only for missing files and errors.
+  skill); with several projects, the skill pointers appear once and each
+  project gets one line with its locations. Beyond that, only short lines
+  for missing files and errors.
 - Skills and hooks MUST NOT duplicate each other's rule texts beyond a short
   pointer.
 

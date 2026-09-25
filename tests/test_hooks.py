@@ -78,6 +78,42 @@ class HookTest(unittest.TestCase):
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
         self.assertIn("1 errors", self.run_hook("session_start.py", {}).stdout)
 
+    def write_subprojects(self, broken=False):
+        (self.project / ".claude-harness" / "config.toml").write_text(
+            'version = 1\n[docs]\nlanguage = "de"\n[modules]\ntodo = true\n'
+            '[projects]\nA = "Plugins/A"\nB = "Plugins/B"\n'
+        )
+        write_backlog(self.todo_dir, [])
+        a = self.project / "Plugins" / "A" / ".claude-harness" / "config.toml"
+        a.parent.mkdir(parents=True)
+        a.write_text('version = 1\n[docs]\nlanguage = "en"\n[modules]\ntodo = true\ntechdocs = true\n')
+        if not broken:
+            b = self.project / "Plugins" / "B" / ".claude-harness" / "config.toml"
+            b.parent.mkdir(parents=True)
+            b.write_text("version = 1\n")
+
+    def test_session_start_lists_subprojects(self):
+        self.write_config()
+        self.write_subprojects()
+        out = self.run_hook("session_start.py", {}).stdout
+        self.assertIn("projects root (.), A (Plugins/A), B (Plugins/B)", out)
+        self.assertIn("Project root (.): language de; modules todo; backlog docs/todo/TODO.md", out)
+        self.assertIn("Project A (Plugins/A): language en; modules techdocs, todo; backlog Plugins/A/docs/todo/TODO.md", out)
+        self.assertIn("Project B (Plugins/B): language en; modules none", out)
+        # Skill pointers appear once, however many projects use the module.
+        self.assertEqual(out.count("skill claude-harness:todo"), 1)
+        self.assertEqual(out.count("skill claude-harness:techdocs"), 1)
+        self.assertIn("A: Backlog: Plugins/A/docs/todo/TODO.md does not exist", out)
+        self.assertIn("A: Missing technical docs: Plugins/A/README.md", out)
+        self.assertNotIn("daily", out)
+
+    def test_session_start_reports_broken_subproject(self):
+        self.write_config()
+        self.write_subprojects(broken=True)
+        out = self.run_hook("session_start.py", {}).stdout
+        self.assertIn("Project B (Plugins/B): Plugins/B/.claude-harness/config.toml does not exist; its files get no harness rules.", out)
+        self.assertIn("Project A (Plugins/A)", out)
+
     def test_stop_without_backlog_edit_does_nothing(self):
         self.write_config()
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])

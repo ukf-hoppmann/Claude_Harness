@@ -2,15 +2,50 @@ from __future__ import annotations
 
 import json
 import sys
-from pathlib import Path
+from collections.abc import Callable
+from pathlib import Path, PurePosixPath
 
 from architecture import load_scopes, reset_read, rules_path
 from backlog import TODO_FILE, validate_backlog
 from techdocs import document_paths
-from harness_config import CONFIG_RELATIVE_PATH, ConfigError, load_config, project_root
+from harness_config import (
+    CONFIG_RELATIVE_PATH,
+    README,
+    ROOT_PROJECT,
+    ConfigError,
+    HarnessConfig,
+    project_root,
+)
+from projects import Project, ProjectSet, load_projects
 from worktree import base_ref_setting, is_git_repo
 
 MAX_REPORTED = 5
+
+# Skill pointers; with several projects each appears once (architecture rule 7).
+TODO_HINT = "rules in skill claude-harness:todo (load it only when working with the backlog)."
+DAILY_HINT = "rules in skill claude-harness:daily (load it when reminded or asked about daily reports)."
+TECHDOCS_HINT = (
+    "rules in skill claude-harness:techdocs (load it when changing documented behavior, interfaces, "
+    "configuration, or architecture, or when reminded)."
+)
+ARCHITECTURE_HINT = (
+    "(binding; read it before planning, designing, or changing code); "
+    "rules in skill claude-harness:architecture."
+)
+DECOMPOSITION_LINE = (
+    "Decomposition: rules in skill claude-harness:decomposition (load it when planning or "
+    "starting an implementation, or splitting backlog items)."
+)
+WORKTREE_LINE = (
+    "Change workflow: rules in skill claude-harness:worktree (load it when a plan was "
+    "approved or a worktree is to be merged back)."
+)
+BASE_REF_LINE = (
+    'Worktree base: worktree.baseRef is not "head", so worktrees would branch from the '
+    "default branch instead of the current one. Work locally; see skill claude-harness:worktree."
+)
+
+Show = Callable[[PurePosixPath], str]
 
 
 def main() -> int:
@@ -23,19 +58,27 @@ def main() -> int:
     if session_id and hook_input.get("source") in ("compact", "clear"):
         # Rules read earlier may no longer be in context.
         reset_read(session_id)
-
     try:
-        config = load_config(root)
+        projects = load_projects(root)
     except ConfigError as exc:
         print(f"Claude_Harness: invalid configuration — {exc}. Tell the user; do not guess values.")
         return 0
-    if config is None:
+    if projects is None:
         print(
             f"Claude_Harness: plugin active but no {CONFIG_RELATIVE_PATH} in this project. "
             "Set it up with /claude-harness:init if the user wants the harness here."
         )
         return 0
+    if projects.has_subprojects():
+        lines = _several_projects(projects)
+    else:
+        lines = _single_project(root, projects.projects[0].config)
+    print("\n".join(lines))
+    return 0
 
+
+def _single_project(root: Path, config: HarnessConfig) -> list[str]:
+    show: Show = str
     states = ", ".join(
         f"{name}={'on' if enabled else 'off'}" for name, enabled in sorted(config.modules.items())
     ) or "none"
@@ -43,85 +86,151 @@ def main() -> int:
         f"Claude_Harness: modules {states}.",
         f"Document language: {config.language} (write all harness documents in it).",
     ]
-
     if config.enabled("todo"):
-        todo_dir = root / config.todo_path
-        if not (todo_dir / TODO_FILE).is_file():
-            lines.append(
-                f"Backlog: {config.todo_path}/{TODO_FILE} does not exist. When the backlog "
-                "becomes relevant, tell the user and ask for permission before creating it — "
-                "it may just be located elsewhere."
-            )
+        if not (root / config.todo_path / TODO_FILE).is_file():
+            lines.append(_backlog_missing(config, show))
         else:
-            lines.append(
-                f"Backlog: {config.todo_path}/{TODO_FILE}; rules in skill claude-harness:todo "
-                "(load it only when working with the backlog)."
-            )
-            report = validate_backlog(todo_dir)
-            problems = report.errors + report.notices
-            if problems:
-                lines.append(f"Backlog check found {len(report.errors)} errors, {len(report.notices)} notices:")
-                lines += [f"- {p}" for p in problems[:MAX_REPORTED]]
-                if len(problems) > MAX_REPORTED:
-                    lines.append(f"- … {len(problems) - MAX_REPORTED} more")
-
+            lines.append(f"Backlog: {config.todo_path}/{TODO_FILE}; {TODO_HINT}")
+            lines += _backlog_problems(root, config)
     if config.enabled("daily"):
-        lines.append(
-            f"Daily reports: {config.daily_path}/; rules in skill claude-harness:daily "
-            "(load it when reminded or asked about daily reports)."
-        )
-
+        lines.append(f"Daily reports: {config.daily_path}/; {DAILY_HINT}")
     if config.enabled("techdocs"):
-        lines.append(
-            f"Technical docs: README.md and {config.techdocs_path}/; rules in skill "
-            "claude-harness:techdocs (load it when changing documented behavior, interfaces, "
-            "configuration, or architecture, or when reminded)."
-        )
-        missing = [str(p) for p in document_paths(config) if not (root / p).is_file()]
-        if missing:
-            lines.append(
-                f"Missing technical docs: {', '.join(missing)}. Propose creating them from the "
-                "templates when relevant; create only after approval."
-            )
-
+        lines.append(f"Technical docs: README.md and {config.techdocs_path}/; {TECHDOCS_HINT}")
+        lines += _techdocs_missing(root, config, show)
     if config.part_enabled("architecture"):
         rules = rules_path(config)
         if not (root / rules).is_file():
-            lines.append(
-                f"Architecture rules: {rules} does not exist. Propose creating it from the "
-                "template when architecture becomes relevant; create only after approval."
-            )
+            lines.append(_architecture_missing(config, show))
         else:
-            lines.append(
-                f"Architecture rules: {rules} (binding; read it before planning, designing, or changing code); "
-                "rules in skill claude-harness:architecture."
-            )
-            _, scope_errors = load_scopes(root, config)
-            if scope_errors:
-                lines.append(f"Architecture scope table has {len(scope_errors)} errors:")
-                lines += [f"- {e}" for e in scope_errors[:MAX_REPORTED]]
-                if len(scope_errors) > MAX_REPORTED:
-                    lines.append(f"- … {len(scope_errors) - MAX_REPORTED} more")
-
+            lines.append(f"Architecture rules: {rules} {ARCHITECTURE_HINT}")
+            lines += _scope_problems(root, config)
     if config.part_enabled("decomposition"):
-        lines.append(
-            "Decomposition: rules in skill claude-harness:decomposition (load it when planning or "
-            "starting an implementation, or splitting backlog items)."
-        )
-
+        lines.append(DECOMPOSITION_LINE)
     if config.part_enabled("worktree"):
-        lines.append(
-            "Change workflow: rules in skill claude-harness:worktree (load it when a plan was "
-            "approved or a worktree is to be merged back)."
-        )
+        lines.append(WORKTREE_LINE)
         if is_git_repo(root) and base_ref_setting(root, Path.home()) != "head":
-            lines.append(
-                'Worktree base: worktree.baseRef is not "head", so worktrees would branch from the '
-                "default branch instead of the current one. Work locally; see skill claude-harness:worktree."
-            )
+            lines.append(BASE_REF_LINE)
+    return lines
 
-    print("\n".join(lines))
-    return 0
+
+def _several_projects(projects: ProjectSet) -> list[str]:
+    paths = {ROOT_PROJECT: PurePosixPath("."), **dict(projects.registry)}
+    registered = ", ".join(f"{name} ({path})" for name, path in paths.items())
+    lines = [
+        f"Claude_Harness: projects {registered}. The project a file belongs to decides "
+        "which rules, documents, and language apply; write each project's documents in its language."
+    ]
+    lines += [_project_line(p) for p in projects.projects]
+    lines += [
+        f"Project {name} ({paths[name]}): {message}; its files get no harness rules."
+        for name, message in projects.errors
+    ]
+    configs = [p.config for p in projects.projects]
+    if any(c.enabled("todo") for c in configs):
+        lines.append(f"Backlog: {TODO_HINT}")
+    if any(c.enabled("daily") for c in configs):
+        lines.append(f"Daily reports: {DAILY_HINT}")
+    if any(c.enabled("techdocs") for c in configs):
+        lines.append(f"Technical docs: {TECHDOCS_HINT}")
+    if any(c.part_enabled("architecture") for c in configs):
+        lines.append(f"Architecture rules of each project {ARCHITECTURE_HINT}")
+    if any(c.part_enabled("decomposition") for c in configs):
+        lines.append(DECOMPOSITION_LINE)
+    if any(c.part_enabled("worktree") for c in configs):
+        lines.append(WORKTREE_LINE)
+        root = projects.session_root
+        if is_git_repo(root) and base_ref_setting(root, Path.home()) != "head":
+            lines.append(BASE_REF_LINE)
+    for project in projects.projects:
+        lines += [f"{project.name}: {problem}" for problem in _project_problems(project)]
+    return lines
+
+
+def _project_line(project: Project) -> str:
+    config = project.config
+    show = _shown_in(project)
+    modules = ", ".join(sorted(name for name, enabled in config.modules.items() if enabled)) or "none"
+    parts = [f"language {config.language}", f"modules {modules}"]
+    if config.enabled("todo"):
+        parts.append(f"backlog {show(config.todo_path)}/{TODO_FILE}")
+    if config.enabled("daily"):
+        parts.append(f"daily {show(config.daily_path)}/")
+    if config.enabled("techdocs"):
+        parts.append(f"techdocs {show(README)}, {show(config.techdocs_path)}/")
+    if config.part_enabled("architecture"):
+        parts.append(f"architecture {show(rules_path(config))}")
+    return f"Project {project.name} ({project.path}): {'; '.join(parts)}."
+
+
+def _project_problems(project: Project) -> list[str]:
+    root, config, show = project.root, project.config, _shown_in(project)
+    problems: list[str] = []
+    if config.enabled("todo"):
+        if not (root / config.todo_path / TODO_FILE).is_file():
+            problems.append(_backlog_missing(config, show))
+        else:
+            problems += _backlog_problems(root, config)
+    if config.enabled("techdocs"):
+        problems += _techdocs_missing(root, config, show)
+    if config.part_enabled("architecture"):
+        if not (root / rules_path(config)).is_file():
+            problems.append(_architecture_missing(config, show))
+        else:
+            problems += _scope_problems(root, config)
+    return problems
+
+
+def _shown_in(project: Project) -> Show:
+    """Show project paths relative to the session root, where the AI works."""
+    return lambda path: str(project.path / path)
+
+
+def _backlog_missing(config: HarnessConfig, show: Show) -> str:
+    return (
+        f"Backlog: {show(config.todo_path)}/{TODO_FILE} does not exist. When the backlog "
+        "becomes relevant, tell the user and ask for permission before creating it — "
+        "it may just be located elsewhere."
+    )
+
+
+def _backlog_problems(root: Path, config: HarnessConfig) -> list[str]:
+    report = validate_backlog(root / config.todo_path)
+    problems = report.errors + report.notices
+    if not problems:
+        return []
+    lines = [f"Backlog check found {len(report.errors)} errors, {len(report.notices)} notices:"]
+    return lines + _limited(problems)
+
+
+def _techdocs_missing(root: Path, config: HarnessConfig, show: Show) -> list[str]:
+    missing = [show(p) for p in document_paths(config) if not (root / p).is_file()]
+    if not missing:
+        return []
+    return [
+        f"Missing technical docs: {', '.join(missing)}. Propose creating them from the "
+        "templates when relevant; create only after approval."
+    ]
+
+
+def _architecture_missing(config: HarnessConfig, show: Show) -> str:
+    return (
+        f"Architecture rules: {show(rules_path(config))} does not exist. Propose creating it from the "
+        "template when architecture becomes relevant; create only after approval."
+    )
+
+
+def _scope_problems(root: Path, config: HarnessConfig) -> list[str]:
+    _, scope_errors = load_scopes(root, config)
+    if not scope_errors:
+        return []
+    return [f"Architecture scope table has {len(scope_errors)} errors:"] + _limited(scope_errors)
+
+
+def _limited(problems: list[str]) -> list[str]:
+    lines = [f"- {p}" for p in problems[:MAX_REPORTED]]
+    if len(problems) > MAX_REPORTED:
+        lines.append(f"- … {len(problems) - MAX_REPORTED} more")
+    return lines
 
 
 if __name__ == "__main__":
