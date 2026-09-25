@@ -87,4 +87,5 @@
   aktiv. Die Completion criteria waren bereits am 2026-09-24 als erfüllt
   geprüft (siehe oben); erneut bestätigt. Status auf `Awaiting confirmation`
   gesetzt, Owner informiert.
+- Vom Owner am 2026-09-25 als `Completed` bestätigt.
 
