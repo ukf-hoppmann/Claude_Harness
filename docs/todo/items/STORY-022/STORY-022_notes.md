@@ -89,3 +89,22 @@
 ### Decided
 
 - Der Owner hat einen Eintrag für beide Befunde freigegeben: `TASK-013`.
+
+## 2026-09-25 — TASK-013 umgesetzt
+
+### Decided
+
+- Neuer Abschluss:
+  1. `worktree.py check`
+  2. `ExitWorktree keep`
+  3. Merge im Haupt-Checkout
+  4. `git worktree remove` und `git branch -d`
+
+  Spec und Skill sind angepasst.
+- Hooks erkennen einen Worktree von Claude Code am `cwd` der Hook-Eingabe
+  oder am Pfad der bearbeiteten Datei und nutzen ihn als Projekt-Root
+  (`project_root` in `harness_config.py`). Dafür ist kein Git-Aufruf nötig.
+
+### Discussed
+
+- Der reale Durchlauf ist der Abschluss von `TASK-013` selbst.

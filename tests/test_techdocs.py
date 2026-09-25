@@ -56,6 +56,20 @@ class TechdocsHookTest(unittest.TestCase):
         self.edit("src/other.py")
         self.assertEqual(self.stop().returncode, 0)
 
+    def test_docs_change_in_worktree_counts_as_docs(self):
+        worktree = self.project / ".claude/worktrees/w1"
+        (worktree / ".claude-harness").mkdir(parents=True)
+        (worktree / ".claude-harness/config.toml").write_text(
+            (self.project / ".claude-harness/config.toml").read_text()
+        )
+        for rel in ("src/app.py", "docs/techdocs/interfaces.md"):
+            self.run_hook("mark_techdocs.py", {
+                "session_id": "s1", "cwd": str(worktree), "tool_name": "Edit",
+                "tool_input": {"file_path": str(worktree / rel)},
+            })
+        result = self.run_hook("check_techdocs.py", {"session_id": "s1", "cwd": str(worktree)})
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_sessions_are_independent(self):
         self.edit("src/app.py", session="s1")
         self.assertEqual(self.stop(session="s2").returncode, 0)

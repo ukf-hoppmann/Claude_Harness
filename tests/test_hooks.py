@@ -114,6 +114,22 @@ class HookTest(unittest.TestCase):
         self.assertIn("Project B (Plugins/B): Plugins/B/.claude-harness/config.toml does not exist; its files get no harness rules.", out)
         self.assertIn("Project A (Plugins/A)", out)
 
+    def test_backlog_edit_in_worktree_is_checked(self):
+        self.write_config()
+        worktree = self.project / ".claude/worktrees/w1"
+        (worktree / ".claude-harness").mkdir(parents=True)
+        (worktree / ".claude-harness/config.toml").write_text(
+            (self.project / ".claude-harness/config.toml").read_text()
+        )
+        write_backlog(worktree / "docs/todo", [item("STORY-001", Priority="Wrong")])
+        self.run_hook("mark_backlog_dirty.py", {
+            "session_id": "s1", "cwd": str(worktree), "tool_name": "Edit",
+            "tool_input": {"file_path": str(worktree / "docs/todo/TODO.md")},
+        })
+        result = self.run_hook("check_backlog.py", {"session_id": "s1", "cwd": str(worktree)})
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("Priority", result.stderr)
+
     def test_stop_without_backlog_edit_does_nothing(self):
         self.write_config()
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])

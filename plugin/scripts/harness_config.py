@@ -9,6 +9,8 @@ from typing import Any
 
 CONFIG_RELATIVE_PATH = PurePosixPath(".claude-harness/config.toml")
 README = PurePosixPath("README.md")
+# Where Claude Code creates worktrees (EnterWorktree), relative to the project root.
+WORKTREES_DIR = PurePosixPath(".claude/worktrees")
 CONFIG_VERSION = 1
 KNOWN_MODULES = ("todo", "daily", "techdocs", "development")
 DEFAULT_DOCS_ROOT = PurePosixPath("docs")
@@ -75,12 +77,48 @@ class HarnessConfig:
 
 
 def project_root(hook_input: dict[str, Any] | None = None) -> Path:
+    """The session root: CLAUDE_PROJECT_DIR, else cwd; inside a Claude Code worktree that worktree.
+
+    CLAUDE_PROJECT_DIR stays the main checkout while a session works in
+    <root>/.claude/worktrees/<name>, so the worktree is taken from the hook's cwd
+    or from the file the tool works on.
+    """
+    hook_input = hook_input or {}
     env_root = os.environ.get("CLAUDE_PROJECT_DIR")
     if env_root:
-        return Path(env_root)
-    if hook_input and hook_input.get("cwd"):
-        return Path(hook_input["cwd"])
-    return Path.cwd()
+        base = Path(env_root)
+    else:
+        cwd = Path(hook_input.get("cwd") or Path.cwd())
+        base = _enclosing_worktree(cwd) or cwd
+    tool_input = hook_input.get("tool_input") or {}
+    candidates = [hook_input.get("cwd"), tool_input.get("file_path"), tool_input.get("notebook_path")]
+    for candidate in filter(None, candidates):
+        worktree = _worktree_of(base, Path(candidate))
+        if worktree is not None:
+            return worktree
+    return base
+
+
+def _enclosing_worktree(path: Path) -> Path | None:
+    """The <root>/.claude/worktrees/<name> folder containing path, if any."""
+    parts = path.parts
+    marker = WORKTREES_DIR.parts
+    for i in range(len(parts) - len(marker)):
+        if parts[i:i + len(marker)] == marker:
+            return Path(*parts[:i + len(marker) + 1])
+    return None
+
+
+def _worktree_of(base: Path, path: Path) -> Path | None:
+    worktrees = base / WORKTREES_DIR
+    for root, target in ((worktrees, path), (worktrees.resolve(), path.resolve())):
+        try:
+            rel = target.relative_to(root)
+        except ValueError:
+            continue
+        if rel.parts:
+            return root / rel.parts[0]
+    return None
 
 
 def project_relative(root: Path, file_path: str) -> PurePosixPath | None:
