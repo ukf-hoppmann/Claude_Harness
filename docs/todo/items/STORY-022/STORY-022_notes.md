@@ -132,3 +132,13 @@
 
 - Wie werden abgelehnte Pflicht-Tasks behandelt, deren Inhalt in der Story
   aufgegangen ist?
+
+## 2026-09-25 — Alte Tasks nicht mehr Pflicht
+
+### Decided
+
+- Der Owner hat entschieden: `TASK-001` bis `TASK-003` stehen auf
+  `Required for parent: No`, weil ihr Inhalt in der Spec aufgegangen ist.
+  Damit ist die offene Frage vom selben Tag beantwortet.
+- `STORY-022` steht auf `Awaiting confirmation`.
+- Die grundsätzliche Regel für abgelehnte Pflicht-Kinder klärt `TASK-014`.

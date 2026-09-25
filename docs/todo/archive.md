@@ -577,7 +577,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 - `TASK-002` **Workspace-Entscheidung formalisieren**
   - Type: Task.
   - Parent: `STORY-022`.
-  - Required for parent: Yes.
+  - Required for parent: No.
   - Status: Rejected.
   - Created: 2026-09-23.
   - Area: Governance.
@@ -596,7 +596,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 - `TASK-003` **Verbindlicher Change-Ablauf**
   - Type: Task.
   - Parent: `STORY-022`.
-  - Required for parent: Yes.
+  - Required for parent: No.
   - Status: Rejected.
   - Created: 2026-09-23.
   - Area: Governance.
@@ -627,7 +627,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 - `TASK-001` **Cleanup-Kriterien festlegen**
   - Type: Task.
   - Parent: `STORY-022`.
-  - Required for parent: Yes.
+  - Required for parent: No.
   - Status: Rejected.
   - Created: 2026-09-23.
   - Area: Governance.

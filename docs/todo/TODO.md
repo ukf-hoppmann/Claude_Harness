@@ -28,6 +28,28 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     wo Dinge liegen, wie getestet wird und welche Harness-Teile an sind.
   - Notes: `items/EPIC-001/EPIC-001_notes.md`.
 
+- `TASK-014` **Abgelehnte Pflicht-Kinder im Backlog-Lebenszyklus klären**
+  - Type: Task.
+  - Parent: None.
+  - Status: Open.
+  - Created: 2026-09-25.
+  - Area: Dokumentation.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Backlog-Format (`format.md`) und Prüfskript (`backlog.py`)
+    behandeln abgelehnte Pflicht-Kinder gleich. Heute blockiert das Skript
+    `Awaiting confirmation` auch bei abgelehnten Pflicht-Kindern, obwohl das
+    Format nur `Open` und `In progress` nennt. Die Meldung nennt abgelehnte
+    Kinder außerdem „active“. Für `Completed` verlangt das Format, dass alle
+    Pflicht-Kinder abgeschlossen sind; eine abgelehnte Pflicht-Task blockiert
+    den Parent damit dauerhaft.
+  - Completion criteria: Die Regel für abgelehnte Pflicht-Kinder ist
+    entschieden, in `format.md` beschrieben und im Prüfskript umgesetzt.
+    Tests decken `Awaiting confirmation` und `Completed` mit abgelehnten
+    Pflicht-Kindern ab, und die Meldungen benennen den Status richtig.
+  - Summary: Das Backlog-Prüfskript und die Formatbeschreibung widersprechen
+    sich, wenn eine Pflicht-Aufgabe abgelehnt wurde. Das wird vereinheitlicht.
+
 - `EPIC-004` **Entwicklungsprozess & Prinzipien**
   - Type: Epic.
   - Status: Open.
@@ -68,7 +90,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-004`.
   - Required for parent: Yes.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-24.
   - Area: Governance.
   - Priority: Urgent.
