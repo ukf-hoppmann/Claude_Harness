@@ -280,5 +280,98 @@ class ArchitectureHookTest(unittest.TestCase):
         self.assertIn("does not exist", out)
 
 
+class SubprojectArchitectureTest(unittest.TestCase):
+    """Root project (core) plus subproject Plugins/A, each with its own rules."""
+
+    def setUp(self):
+        self._tmp = tempfile.TemporaryDirectory()
+        base = Path(self._tmp.name).resolve()
+        self.project = base / "project"
+        self.data = base / "data"
+        self.plugin = self.project / "Plugins/A"
+        self.write(self.project / ".claude-harness/config.toml",
+                   'version = 1\n[modules]\ndevelopment = true\n[projects]\nA = "Plugins/A"\n')
+        self.write(self.plugin / ".claude-harness/config.toml", "version = 1\n[modules]\ndevelopment = true\n")
+        self.root_rules = self.write(self.project / "docs/development/architecture.md", RULES)
+        self.write(self.project / "docs/development/architecture/llm.md", "# LLM\n")
+        self.plugin_rules = self.write(self.plugin / "docs/development/architecture.md", "# Plugin rules\n")
+
+    def tearDown(self):
+        self._tmp.cleanup()
+
+    @staticmethod
+    def write(path, text):
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+        return path
+
+    def run_hook(self, script, payload):
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(self.data))
+        return subprocess.run(
+            [sys.executable, str(SCRIPTS / script)], input=json.dumps(payload), capture_output=True, text=True, env=env
+        )
+
+    def read(self, path):
+        self.run_hook("mark_architecture_read.py",
+                      {"session_id": "s1", "tool_name": "Read", "tool_input": {"file_path": str(path)}})
+
+    def deny_reason(self, tool, tool_input):
+        result = self.run_hook("check_architecture.py", {"session_id": "s1", "tool_name": tool, "tool_input": tool_input})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        if not result.stdout.strip():
+            return None
+        return json.loads(result.stdout)["hookSpecificOutput"]["permissionDecisionReason"]
+
+    def edit(self, rel_path):
+        return self.deny_reason("Edit", {"file_path": str(self.project / rel_path)})
+
+    def plan(self, text):
+        return self.deny_reason("ExitPlanMode", {"plan": text})
+
+    def test_plugin_file_needs_plugin_rules_only(self):
+        reason = self.edit("Plugins/A/src/filter.py")
+        self.assertIn("Plugins/A/docs/development/architecture.md", reason)
+        self.read(self.plugin_rules)
+        self.assertIsNone(self.edit("Plugins/A/src/filter.py"))
+        # Root scopes do not apply inside the plugin, even with matching patterns.
+        self.assertIsNone(self.edit("Plugins/A/src/llm/client.py"))
+
+    def test_core_file_needs_root_rules(self):
+        self.read(self.plugin_rules)
+        reason = self.edit("src/app.py")
+        self.assertIn("docs/development/architecture.md", reason)
+        self.assertNotIn("Plugins/A", reason)
+        self.read(self.root_rules)
+        self.assertIsNone(self.edit("src/app.py"))
+
+    def test_same_named_rules_are_not_confused(self):
+        self.read(self.root_rules)
+        self.assertIsNotNone(self.edit("Plugins/A/src/filter.py"))
+
+    def test_plugin_harness_files_are_not_checked(self):
+        for path in ("Plugins/A/README.md", "Plugins/A/docs/todo/TODO.md", "Plugins/A/.claude-harness/config.toml"):
+            with self.subTest(path=path):
+                self.assertIsNone(self.edit(path))
+
+    def test_spec_in_plugin_backlog_needs_plugin_rules(self):
+        reason = self.edit("Plugins/A/docs/todo/items/STORY-001/STORY-001_spec.md")
+        self.assertIn("Plugins/A/docs/development/architecture.md", reason)
+        self.read(self.plugin_rules)
+        self.assertIsNone(self.edit("Plugins/A/docs/todo/items/STORY-001/STORY-001_spec.md"))
+
+    def test_plan_needs_rules_of_mentioned_projects(self):
+        reason = self.plan("Change Plugins/A/src/filter.py and src/app.py.")
+        self.assertIn("Plugins/A/docs/development/architecture.md", reason)
+        self.read(self.plugin_rules)
+        self.assertIsNone(self.plan("Change Plugins/A/src/filter.py."))
+        reason = self.plan("Add a module to the core.")
+        self.assertIn("docs/development/architecture.md", reason)
+        self.assertNotIn("Plugins/A", reason)
+
+    def test_unusable_subproject_is_not_checked(self):
+        (self.plugin / ".claude-harness/config.toml").unlink()
+        self.assertIsNone(self.edit("Plugins/A/src/filter.py"))
+
+
 if __name__ == "__main__":
     unittest.main()
