@@ -13,6 +13,11 @@ ITEM_TYPES = {"Epic", "Story", "Task"}
 STATUSES = {"Open", "In progress", "Awaiting confirmation", "Completed", "Rejected"}
 CLOSED_STATUSES = {"Completed", "Rejected"}
 READY_CHILD_STATUSES = {"Awaiting confirmation", "Completed"}
+# A rejected required child is a gap in the parent's goal that only the owner can resolve.
+REJECTED_REQUIRED_HINT = (
+    "for a Rejected required child, ask the owner whether to set Required for parent: No, "
+    "adjust the parent's Goal and Completion criteria, or reject the parent"
+)
 PRIORITIES = {"Urgent", "Important", "Prospective"}
 REQUIRED_FIELDS = {
     "Type",
@@ -304,18 +309,18 @@ def _validate_lifecycle(report: BacklogReport) -> None:
                 f"{item.identifier} Epic with Status {item.status} requires at least one required child"
             )
         if item.status == "Awaiting confirmation":
-            unready = [c.identifier for c in required if c.status not in READY_CHILD_STATUSES]
+            unready = [c for c in required if c.status not in READY_CHILD_STATUSES]
             if unready:
                 report.errors.append(
                     f"{item.identifier} cannot be Awaiting confirmation while required "
-                    f"children are active: {', '.join(unready)}"
+                    f"children are not done: {_with_status(unready)}{_rejected_hint(unready)}"
                 )
         if item.status == "Completed":
-            incomplete = [c.identifier for c in required if c.status != "Completed"]
+            incomplete = [c for c in required if c.status != "Completed"]
             if incomplete:
                 report.errors.append(
                     f"{item.identifier} cannot be Completed while required children "
-                    f"are incomplete: {', '.join(incomplete)}"
+                    f"are incomplete: {_with_status(incomplete)}{_rejected_hint(incomplete)}"
                 )
             active = [
                 c.identifier for c in kids
@@ -343,12 +348,30 @@ def _validate_lifecycle(report: BacklogReport) -> None:
                     "reparent them before completion)"
                 )
             report.notices.append(notice)
+        elif (
+            item.status in {"Open", "In progress"}
+            and required
+            and all(c.status in CLOSED_STATUSES for c in required)
+        ):
+            rejected = [c for c in required if c.status == "Rejected"]
+            report.notices.append(
+                f"{item.identifier}: all required children are closed, but "
+                f"{_with_status(rejected)} can never be completed; {REJECTED_REQUIRED_HINT}"
+            )
         if item.status == "Rejected":
             active = [c.identifier for c in kids if c.status not in CLOSED_STATUSES]
             if active:
                 report.errors.append(
                     f"{item.identifier} is Rejected but has active children: {', '.join(active)}"
                 )
+
+
+def _with_status(items: list[BacklogItem]) -> str:
+    return ", ".join(f"{item.identifier} ({item.status})" for item in items)
+
+
+def _rejected_hint(items: list[BacklogItem]) -> str:
+    return f"; {REJECTED_REQUIRED_HINT}" if any(item.status == "Rejected" for item in items) else ""
 
 
 def _reject_cycles(edges: dict[str, tuple[str, ...]], label: str, report: BacklogReport) -> None:

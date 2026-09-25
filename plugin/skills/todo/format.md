@@ -94,9 +94,16 @@ new area is introduced only when no existing one fits.
 ## Parent lifecycle
 
 - An epic needs at least one required child before it leaves `Open`.
-- A parent cannot be `Awaiting confirmation` while a required child is `Open`
-  or `In progress`, and cannot be `Completed` until every required child is
-  `Completed`.
+- A parent cannot be `Awaiting confirmation` until every required child is
+  `Awaiting confirmation` or `Completed`, and cannot be `Completed` until
+  every required child is `Completed`.
+- A required child that is `Rejected` therefore blocks its parent. When a
+  required child is to be rejected, the agent asks the owner in the same step
+  whether to set it to `Required for parent: No`, to adjust the parent's
+  `Goal` and `Completion criteria`, or to reject the parent, and records the
+  decision in the parent's notes. If a rejected required child remains
+  anyway (e.g. after a status change outside the agent), the backlog check
+  reports it and the agent asks the same question.
 - A parent cannot be `Completed` or `Rejected` while any child — required or
   optional — is still active. Each child is closed (`Completed`/`Rejected`) or
   reparented first.

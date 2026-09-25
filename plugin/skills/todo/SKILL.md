@@ -50,6 +50,10 @@ Read only what the task needs:
   path, and write a plain-language `Summary` (required with `Notes`).
 - Record decisions in the item's notes as they happen, dated, under
   `Discussed` / `Decided` / `Open`.
+- Before rejecting a required child, ask in the same question whether it
+  becomes `Required for parent: No`, whether the parent's `Goal` and
+  `Completion criteria` change, or whether the parent is rejected too; record
+  the answer in the parent's notes.
 - When all required children of a parent are `Completed`, check the parent's
   own completion criteria: if met, set it to `Awaiting confirmation` and tell
   the owner; otherwise say what is missing. A parent is only completed or

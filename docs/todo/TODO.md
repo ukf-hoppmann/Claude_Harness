@@ -9,47 +9,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 ## Work items
 
-- `EPIC-001` **Konfigurierbarer Harness (Policy)**
-  - Type: Epic.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-23.
-  - Area: Konfiguration.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Eine projekteigene Konfigurationsdatei für das Claude_Harness-Plugin
-    definieren, die nur echte Projektwerte enthält (Pfade, Sprache, aktive
-    Module) und von Skills und Hooks gelesen wird. Weitere Felder bringt jedes
-    Modul selbst mit. Genehmigungen und Rechte bleiben bei den nativen
-    Claude-Code-Einstellungen.
-  - Completion criteria: Das Konfigurationsschema ist validiert und
-    dokumentiert und wird von den Hooks mehrerer Module tatsächlich gelesen und
-    angewendet.
-  - Summary: Jedes Projekt bekommt eine kleine Einstellungsdatei, in der steht,
-    wo Dinge liegen, wie getestet wird und welche Harness-Teile an sind.
-  - Notes: `items/EPIC-001/EPIC-001_notes.md`.
-
-- `TASK-014` **Abgelehnte Pflicht-Kinder im Backlog-Lebenszyklus klären**
-  - Type: Task.
-  - Parent: None.
-  - Status: Open.
-  - Created: 2026-09-25.
-  - Area: Dokumentation.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Backlog-Format (`format.md`) und Prüfskript (`backlog.py`)
-    behandeln abgelehnte Pflicht-Kinder gleich. Heute blockiert das Skript
-    `Awaiting confirmation` auch bei abgelehnten Pflicht-Kindern, obwohl das
-    Format nur `Open` und `In progress` nennt. Die Meldung nennt abgelehnte
-    Kinder außerdem „active“. Für `Completed` verlangt das Format, dass alle
-    Pflicht-Kinder abgeschlossen sind; eine abgelehnte Pflicht-Task blockiert
-    den Parent damit dauerhaft.
-  - Completion criteria: Die Regel für abgelehnte Pflicht-Kinder ist
-    entschieden, in `format.md` beschrieben und im Prüfskript umgesetzt.
-    Tests decken `Awaiting confirmation` und `Completed` mit abgelehnten
-    Pflicht-Kindern ab, und die Meldungen benennen den Status richtig.
-  - Summary: Das Backlog-Prüfskript und die Formatbeschreibung widersprechen
-    sich, wenn eine Pflicht-Aufgabe abgelehnt wurde. Das wird vereinheitlicht.
-
 - `EPIC-004` **Entwicklungsprozess & Prinzipien**
   - Type: Epic.
   - Status: Open.
@@ -85,32 +44,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Falls ja, wurde mindestens ein Abschnitt eines realen Features von einem
     Subagenten ohne Rückfrage korrekt umgesetzt und von der Hauptsession
     geprüft.
-
-- `STORY-022` **Change-Workflow im Worktree**
-  - Type: Story.
-  - Parent: `EPIC-004`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-24.
-  - Area: Governance.
-  - Priority: Urgent.
-  - Dependencies: None.
-  - Goal: Changes mit freigegebenem Plan laufen in einem eigenen Worktree,
-    der vom aktuell ausgecheckten Branch abzweigt. Nach Abschluss committet
-    die AI, merged selbstständig in diesen Ausgangsbranch zurück und löscht
-    den Worktree. Changes ohne Plan laufen lokal. So kann parallel gearbeitet
-    werden, ohne dass fremde Worktrees angefasst werden.
-  - Completion criteria: Der Ablauf ist als Teilbereich der Suite
-    `development` umgesetzt (Schalter, Session-Start-Hinweis, Skill) und
-    getestet. Ein realer Change mit Plan ist vom Ausgangsbranch über Worktree,
-    Merge-Commit und Löschen des Worktrees ohne Rückfrage durchgelaufen;
-    Worktrees anderer Sessions blieben unberührt.
-  - Summary: Größere Änderungen macht die AI in einer eigenen Arbeitskopie
-    und führt sie danach selbst in den Branch zurück, von dem sie gestartet
-    ist. Die früheren Tasks TASK-001 bis TASK-004 sind in der Spec
-    aufgegangen.
-  - Notes: `items/STORY-022/STORY-022_notes.md`.
-  - Spec: `items/STORY-022/STORY-022_spec.md`.
 
 - `STORY-009` **Entwicklungsprinzipien-Dokument**
   - Type: Story.

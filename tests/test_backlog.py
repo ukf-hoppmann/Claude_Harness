@@ -156,6 +156,41 @@ class BacklogTest(unittest.TestCase):
         ])
         self.assertEqual(report.notices, [])
 
+    def rejected_required(self, parent_status, **parent_fields):
+        return self.check(
+            [item("EPIC-001", Type="Epic", Status=parent_status, **parent_fields)],
+            [
+                item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes",
+                     Status="Completed", Resolution="Confirmed."),
+                item("STORY-002", Parent="`EPIC-001`", Required_for_parent="Yes",
+                     Status="Rejected", Resolution="Rejected."),
+            ],
+        )
+
+    def test_rejected_required_child_blocks_with_hint(self):
+        for status, extra in (("Awaiting confirmation", {}), ("Completed", {"Resolution": "Confirmed."})):
+            with self.subTest(status=status):
+                report = self.rejected_required(status, **extra)
+                self.assertError(report, "STORY-002 (Rejected)")
+                self.assertError(report, "Required for parent: No")
+                self.assertFalse(any("children are active" in e for e in report.errors), report.errors)
+
+    def test_rejected_required_child_notice_when_others_are_done(self):
+        report = self.rejected_required("In progress")
+        self.assertTrue(report.ok)
+        self.assertFalse(any("all required children are Completed" in n for n in report.notices))
+        notice = [n for n in report.notices if n.startswith("EPIC-001:")]
+        self.assertEqual(len(notice), 1)
+        self.assertIn("STORY-002 (Rejected)", notice[0])
+        self.assertIn("ask the owner", notice[0])
+
+    def test_open_required_child_message_names_status(self):
+        report = self.check([
+            item("EPIC-001", Type="Epic", Status="Awaiting confirmation"),
+            item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes", Status="In progress"),
+        ])
+        self.assertError(report, "STORY-001 (In progress)")
+
     def test_index_lists_both_files(self):
         from backlog import format_index
         report = self.check(
