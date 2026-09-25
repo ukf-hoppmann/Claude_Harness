@@ -1,9 +1,11 @@
+import os
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path, PurePosixPath
 
 import helpers  # noqa: F401  (adds plugin/scripts to sys.path)
-from harness_config import ConfigError, load_config, parse_config
+from harness_config import ConfigError, load_config, parse_config, project_root
 
 
 class ParseConfigTest(unittest.TestCase):
@@ -147,6 +149,32 @@ class ParseConfigTest(unittest.TestCase):
         for data in cases:
             with self.subTest(data=data), self.assertRaises(ConfigError):
                 parse_config(data)
+
+
+class ProjectRootTest(unittest.TestCase):
+    def test_worktree_of_the_project_becomes_the_root(self):
+        base = Path("/work/repo")
+        worktree = base / ".claude/worktrees/TASK-1"
+        with mock.patch.dict(os.environ, {"CLAUDE_PROJECT_DIR": str(base)}):
+            self.assertEqual(project_root({}), base)
+            self.assertEqual(project_root({"cwd": str(worktree / "tests")}), worktree)
+            self.assertEqual(
+                project_root({"cwd": str(base), "tool_input": {"file_path": str(worktree / "src/x.py")}}),
+                worktree,
+            )
+            self.assertEqual(
+                project_root({"tool_input": {"notebook_path": str(worktree / "n.ipynb")}}), worktree
+            )
+            self.assertEqual(project_root({"cwd": str(base / ".claude/worktrees")}), base)
+            self.assertEqual(project_root({"tool_input": {"file_path": "/elsewhere/.claude/worktrees/x/y"}}), base)
+
+    def test_without_project_dir_uses_cwd(self):
+        env = {k: v for k, v in os.environ.items() if k != "CLAUDE_PROJECT_DIR"}
+        with mock.patch.dict(os.environ, env, clear=True):
+            self.assertEqual(project_root({"cwd": "/work/repo"}), Path("/work/repo"))
+            self.assertEqual(
+                project_root({"cwd": "/work/repo/.claude/worktrees/a/b"}), Path("/work/repo/.claude/worktrees/a")
+            )
 
 
 class LoadConfigTest(unittest.TestCase):

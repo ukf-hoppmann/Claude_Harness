@@ -140,6 +140,18 @@ class ArchitectureHookTest(unittest.TestCase):
         self.read(self.rules)
         self.assertIsNone(self.edit("src/app.py"))
 
+    def test_worktree_files_need_the_same_rules(self):
+        worktree = self.project / ".claude/worktrees/w1"
+        for source in (self.project / ".claude-harness/config.toml", self.rules, self.scope):
+            target = worktree / source.relative_to(self.project)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(source.read_text())
+        reason = self.edit(".claude/worktrees/w1/src/app.py")
+        self.assertIn("docs/development/architecture.md", reason)
+        self.assertNotIn(".claude/worktrees", reason)
+        self.read(worktree / "docs/development/architecture.md")
+        self.assertIsNone(self.edit(".claude/worktrees/w1/src/app.py"))
+
     def test_all_edit_tools_are_checked(self):
         for tool in ("Write", "Edit", "MultiEdit", "NotebookEdit"):
             with self.subTest(tool=tool):
