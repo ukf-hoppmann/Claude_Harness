@@ -12,6 +12,7 @@ todo = true
 daily = false
 techdocs = true
 development = true
+semver = false
 
 # Backlog folder, relative to docs.root.
 [todo]
@@ -38,6 +39,15 @@ path = "development"
 architecture = true
 decomposition = true
 worktree = true
+
+# Release versions (SemVer). file: version file relative to docs.root, holding
+# only MAJOR.MINOR.PATCH. sync: files relative to the project root that must
+# contain the same version (e.g. "package.json", "Cargo.toml"). paths: what
+# belongs to the released product; only commits there count as unreleased.
+[semver]
+file = "VERSION"
+sync = []
+paths = ["."]
 
 # Claude_Harness repository, one path per machine (absolute or starting with
 # "~"). The first path that exists here is used to hand harness wishes over to

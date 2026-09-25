@@ -30,6 +30,7 @@ Dateiformate.
 | `claude-harness:techdocs` | eine Änderung Nutzung, Komponenten, Schnittstellen, Einstellungen oder Betrieb betrifft oder der techdocs-Hook erinnert |
 | `claude-harness:architecture` | Code geplant oder geändert wird, Architekturregeln geändert werden, eine Anforderung den Regeln widerspricht oder der Architektur-Hook eine Änderung ablehnt |
 | `claude-harness:decomposition` | eine Umsetzung geplant oder begonnen, ein Umsetzungsplan vorgelegt oder überlegt wird, ob ein Backlog-Item Kind-Tasks bekommt |
+| `claude-harness:semver` | eine Änderung in den Hauptzweig gemergt wird, ein Release gewünscht ist, der SemVer-Hook erinnert oder das Modul eingerichtet wird |
 | `claude-harness:conflicts` | eine Anforderung oder ein Wunsch des Projektverantwortlichen den Projektregeln oder einer Harness-Vorgabe widerspricht oder der Harness selbst ein Problem verursacht; gilt unabhängig von den Modul-Schaltern |
 
 ## Hooks
@@ -51,6 +52,7 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 | Stop | `check_backlog.py` | Prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
 | Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Hauptzweig (nur Haupt-Checkout; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
 | Stop | `check_techdocs.py` | Erinnert einmal pro Projekt und Session, wenn Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden; mit Teilprojekten nennt die Meldung jedes betroffene Projekt mit seinen Doku-Pfaden | Exit 2 + stderr |
+| Stop | `check_semver.py` | Nur in einem Git-Repo. Meldet pro Projekt mit Modul `semver`: Versionsdatei fehlt oder enthält keine gültige Version; Version liegt unter dem letzten Release oder mehr als einen Schritt darüber; eine Spiegel-Datei fehlt oder enthält die Version nicht. Derselbe Befund wird einmal pro Projekt und Session gemeldet; mit Teilprojekten nennt die Meldung jedes Projekt samt Aufruf `semver.py status --project <Name>` | Exit 2 + stderr |
 
 Bei gesetztem `stop_hook_active` bleiben die Stop-Hooks still, damit keine
 Schleife entsteht.
@@ -132,6 +134,29 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   detached, kein Ausgangsbranch gespeichert) und bei `check`, wenn `clean`
   oder `main_on_base` `no` ist; 2 bei falschem Aufruf.
 
+## Skript `semver.py`
+
+- Aufruf: `python3 plugin/scripts/semver.py status [--project <Name>]` im
+  Projekt-Root (oder mit gesetztem `CLAUDE_PROJECT_DIR`). Ohne `--project`
+  gilt das Root-Projekt.
+- `status`: Versionsdatei und Version, letztes Release, erlaubte nächste
+  Versionen (unverändert, patch, minor, major), Tag-Format, Spiegel-Dateien,
+  Befunde wie beim Stop-Hook und die Commits seit dem letzten Release unter
+  `semver.paths` (kurzer Hash, Datum, Betreff), älteste zuerst. Für das
+  Root-Projekt zählen Commits in eingetragenen Teilprojekten nicht.
+- Letztes Release: der Tag `<Präfix><MAJOR.MINOR.PATCH>` mit der höchsten
+  Version (nicht dem jüngsten Datum). Präfix `v` im Root-Projekt,
+  `<Projektname>-v` in einem Teilprojekt. Andere Tags werden ignoriert.
+- Das Skript liest nur; Versionsdatei, Spiegel-Dateien, Release-Commit und
+  Tag schreibt Claude nach Skill `semver`.
+- Exit-Code 1, wenn das Modul im gewählten Projekt aus ist oder die Config
+  ungültig ist; 2 bei falschem Aufruf.
+- In diesem Repo spiegelt `plugin/.claude-plugin/plugin.json` die Version.
+  Claude Code hält installierte Plugins auf dieser Version fest, bis sie sich
+  ändert. Zielprojekte erhalten Änderungen am Plugin also erst mit einem
+  Release. Ausgenommen sind Plugins, die direkt aus einem lokal
+  hinzugefügten Marketplace-Ordner geladen werden.
+
 ## Dateiformate
 
 | Datei | Format | Definition |
@@ -140,6 +165,8 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 | `TODO.md`, `archive.md`, `items/<ID>/` | Backlog-Format v1 (Markdown) | `plugin/skills/todo/format.md` |
 | `<YYYY-MM-DD>_daily.md` | Markdown nach Vorlage | `plugin/templates/daily/daily.md`, Skill `daily` |
 | Systemdoku | Markdown nach Vorlagen | `plugin/templates/techdocs/` |
+| Versionsdatei (`semver.file`, Standard `docs/VERSION`) | eine Zeile `MAJOR.MINOR.PATCH` (Ganzzahlen ohne führende Nullen), keine Vorabversionen | Skill `semver` |
+| Release-Tag | annotierter Tag `<Präfix><Version>`, z. B. `v0.2.0`, `ezf-ui-v1.4.0` | Skill `semver` |
 | `architecture.md`, `architecture/<Scope>.md` | Markdown, englisch, Regeln mit MUST/SHOULD/MAY; Abschnitt `## Scopes` mit Tabelle `\| Scope \| Paths \| Covers \|`, optional `## Inherited rules` mit Tabelle `\| Project \| Rules \|` | `plugin/templates/development/architecture.md`, Skill `architecture` |
 
 Scope-Tabelle: Name aus Kleinbuchstaben, Ziffern und `-`; Datei

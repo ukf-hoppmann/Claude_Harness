@@ -28,6 +28,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, geerbte Regeln anderer Projekte, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py` |
 | Suite `development`, Teil `decomposition` | Skill mit Kriterien zur Zerlegung in Backlog-Tasks und Plan-Abschnitte, Regeln, wann der Test zuerst entsteht (TDD), Dimensions-Checkliste | `plugin/skills/decomposition/` |
 | Suite `development`, Teil `worktree` | Skill für den Change-Workflow im Worktree, Skript für Ausgangsbranch, Spiegeln ignorierter Dateien und Vorprüfung vor dem Merge, Prüfung von `worktree.baseRef` beim Session-Start | `plugin/skills/worktree/`, `plugin/scripts/worktree.py` |
+| Modul `semver` | Skill für Einstufung und Release, Prüfung von Versionsdatei, Tag-Schritt und Spiegel-Dateien, Prüf-Hook | `plugin/skills/semver/`, `plugin/scripts/semver.py`, `check_semver.py` |
 | Konflikte | Skill für Konflikte mit Projektregeln und Harness-Vorgaben, Suche des Harness-Repos für die Übergabe von Harness-Wünschen | `plugin/skills/conflicts/`, `plugin/scripts/harness_repo.py` |
 | Befehl `init` | Richtet den Harness in einem Projekt oder Teilprojekt ein | `plugin/skills/init/` |
 | Vorlagen | Config, Backlog, Tagesbericht, Systemdoku, Architekturregeln | `plugin/templates/` |
@@ -48,6 +49,7 @@ Teilprojekten steht jeder Skill-Hinweis einmal, dazu eine Zeile pro Projekt.
 | `development` / `architecture` | Blockiert Plan, Spec und Code-Änderungen, bis die Regeln gelesen sind | Umgang mit Architekturregeln | – | Die Regeln gelten für jede Code-Änderung und dürfen nicht übergangen werden; Bereichsregeln als Scopes nur für passende Pfade |
 | `development` / `decomposition` | – | Kriterien für Backlog-Tasks und Plan-Abschnitte, Test-zuerst-Regeln, Dimensions-Checkliste | – | Ob gut zerlegt oder zuerst getestet wurde, kann kein Skript prüfen; die Regeln braucht es nur beim Planen und Umsetzen |
 | `development` / `worktree` | Session-Start meldet, wenn `worktree.baseRef` nicht `"head"` ist | Ablauf von der Entscheidung bis zum Aufräumen, Verbote | `worktree.py` (Ausgangsbranch merken, ignorierte Dateien spiegeln, Vorprüfung) | Eine falsche Basis wäre unbemerkt fatal und ist prüfbar; den Ablauf braucht es nur bei Changes mit Plan; die Git-Auswertung ist stures Abarbeiten |
+| `semver` | Meldet ungültige Version, zu großen Schritt seit dem letzten Release-Tag und abweichende Spiegel-Dateien; Session-Start zeigt Version und unveröffentlichte Commits | Wann und wie eingestuft und released wird, Einrichtung | `semver.py` (Status, Prüfung, Commits seit dem Release) | Der Schritt lässt sich prüfen, weil die Versionsdatei überall gleich aussieht; die Einstufung braucht Urteil und ist nur beim Merge oder Release Thema |
 | Konflikte (kein Modul, immer aktiv) | – | Verfahren bei Konflikten, Übergabe an den Harness-Backlog | `harness_repo.py` (Harness-Repo finden oder vorschlagen) | Konflikte lassen sich nicht mechanisch erkennen; das Verfahren braucht es nur im Konfliktfall, dann aber für alle Module |
 | `init` | – | Einrichtungsablauf, nur vom Nutzer aufrufbar | – | Wird einmal pro Projekt gebraucht |
 
@@ -84,16 +86,20 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
      Backlog-Ordner ändern, zählen nicht, der Backlog dokumentiert sich selbst.
    - `check_techdocs.py`: erinnert einmal pro Projekt und Session, wenn
      Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden.
+   - `check_semver.py`: prüft pro Projekt Versionsdatei, Schritt seit dem
+     letzten Release-Tag und Spiegel-Dateien; derselbe Befund einmal pro
+     Session.
 
 ## Zustand und Ablage
 
 | Zustand | Ort | Lebensdauer |
 |---|---|---|
 | Projektkonfiguration | `.claude-harness/config.toml` | im Repo versioniert |
-| Merker pro Session (Backlog geändert, Hinweise gemeldet, Doku-Erinnerung, gelesene Architekturregeln) | `$CLAUDE_PLUGIN_DATA`, sonst `<tmp>/claude-harness/` | pro Session |
+| Merker pro Session (Backlog geändert, Hinweise gemeldet, Doku-Erinnerung, gelesene Architekturregeln, gemeldete SemVer-Befunde) | `$CLAUDE_PLUGIN_DATA`, sonst `<tmp>/claude-harness/` | pro Session |
 | Ausgangsbranch eines Worktrees | Git-Config `branch.<worktree-branch>.harnessBase` | bis der Branch gelöscht wird |
 | Bestätigter Stand des Tagesberichts | `.git/claude-harness/daily-ack`, für ein Projekt unterhalb des Git-Roots `daily-ack-<Ordner mit _ statt />` | pro Klon und Projektordner, nie committet |
-| Backlog, Tagesberichte, Systemdoku, Regeln der Suite `development` | unter `docs.root` (Standard `docs/`) bzw. `README.md` | im Repo versioniert |
+| Release-Tags | Tags `<Präfix><Version>` | im Repo, nur lokal, bis der Owner sie pusht |
+| Backlog, Tagesberichte, Systemdoku, Regeln der Suite `development`, Versionsdatei | unter `docs.root` (Standard `docs/`) bzw. `README.md` | im Repo versioniert |
 
 ## Wichtige Entscheidungen
 

@@ -16,6 +16,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `modules.daily` | Boolean | `false` | nein | Schaltet die Tagesberichte ein |
 | `modules.techdocs` | Boolean | `false` | nein | Schaltet die Systemdoku-Regeln ein |
 | `modules.development` | Boolean | `false` | nein | Schaltet die Suite `development` mit allen Teilbereichen ein |
+| `modules.semver` | Boolean | `false` | nein | Schaltet die Versionierung nach SemVer ein (Skill `claude-harness:semver`) |
 | `todo.path` | Pfad | `"todo"` | nein | Backlog-Ordner, relativ zu `docs.root` |
 | `daily.path` | Pfad | `"daily"` | nein | Ordner der Tagesberichte, relativ zu `docs.root` |
 | `techdocs.path` | Pfad | `"techdocs"` | nein | Ordner der Systemdoku, relativ zu `docs.root` |
@@ -24,12 +25,15 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `development.decomposition` | Boolean | `true` | nein | Teilbereich Zerlegung (Skill `claude-harness:decomposition`); nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `development.worktree` | Boolean | `true` | nein | Teilbereich Change-Workflow (Skill `claude-harness:worktree`): Changes mit freigegebenem Plan laufen in einem Worktree vom aktuellen Branch und werden von der AI zurückgemerged; nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `techdocs.documents` | Liste | `["architecture", "interfaces", "configuration"]` | nein | Geführte Dokumente; erlaubt sind `architecture`, `interfaces`, `configuration`, `operations`; Dateiname `<Art>.md`. `README.md` im Projekt-Root gehört immer dazu |
+| `semver.file` | Pfad | `"VERSION"` | nein | Versionsdatei, relativ zu `docs.root`; enthält nur die Version `MAJOR.MINOR.PATCH` |
+| `semver.sync` | Liste von Pfaden | `[]` | nein | Spiegel-Dateien, relativ zum Projekt, z. B. `["package.json"]`; jede muss die Version aus der Versionsdatei enthalten |
+| `semver.paths` | Liste von Pfaden | `["."]` | nein | Was zum ausgelieferten Produkt zählt, relativ zum Projekt; nur Commits unter diesen Pfaden gelten als unveröffentlicht. Beim Root-Projekt zählen Ordner von Teilprojekten nicht mit |
 | `projects.<Name>` | Pfad | – | nein | Trägt ein Teilprojekt ein: Name → Ordner relativ zum Projekt-Root. Nur in der Konfiguration des Root-Projekts erlaubt; siehe „Teilprojekte“ |
 | `harness.repo` | Liste von Pfaden | `[]` | nein | Mögliche Orte des Claude_Harness-Repos, einer pro Rechner; absolut oder mit `~` beginnend. Gilt der erste, der auf dem Rechner existiert und das Harness-Repo ist. Wird für die Übergabe von Harness-Wünschen an den Harness-Backlog gebraucht (Skill `claude-harness:conflicts`); ohne passenden Eintrag gibt die AI den Auftrag als Text aus |
 
 Nicht aufgeführte Module sind aus. Teilbereiche der Suite `development` sind
 an, solange die Suite an ist, außer sie stehen auf `false`. Die Vorlage
-schaltet `todo`, `techdocs` und `development` ein und `daily` aus.
+schaltet `todo`, `techdocs` und `development` ein und `daily` und `semver` aus.
 
 Validierung (Fehler werden beim Session-Start gemeldet, Hooks tun dann
 nichts):
@@ -39,6 +43,8 @@ nichts):
 - `docs.language` nicht aus genau zwei Kleinbuchstaben;
 - unbekannte oder doppelte Einträge in `techdocs.documents`;
 - Teilbereiche von `development`, die kein Boolean sind;
+- `semver.sync` oder `semver.paths`, die keine Liste relativer Pfade ohne
+  `..` sind; ein leeres `semver.paths`;
 - `harness.repo`, das keine Liste nicht leerer Strings ist oder relative
   Pfade enthält;
 - `[projects]`, das keine Tabelle ist; Projektnamen, die nicht mit einem

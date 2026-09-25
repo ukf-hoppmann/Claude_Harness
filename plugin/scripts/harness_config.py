@@ -12,13 +12,14 @@ README = PurePosixPath("README.md")
 # Where Claude Code creates worktrees (EnterWorktree), relative to the project root.
 WORKTREES_DIR = PurePosixPath(".claude/worktrees")
 CONFIG_VERSION = 1
-KNOWN_MODULES = ("todo", "daily", "techdocs", "development")
+KNOWN_MODULES = ("todo", "daily", "techdocs", "development", "semver")
 DEFAULT_DOCS_ROOT = PurePosixPath("docs")
 DEFAULT_LANGUAGE = "en"
 DEFAULT_TODO_PATH = PurePosixPath("todo")
 DEFAULT_DAILY_PATH = PurePosixPath("daily")
 DEFAULT_TECHDOCS_PATH = PurePosixPath("techdocs")
 DEFAULT_DEVELOPMENT_PATH = PurePosixPath("development")
+DEFAULT_VERSION_FILE = PurePosixPath("VERSION")
 # Parts of the development suite; each is on while the suite is on unless set to false.
 DEVELOPMENT_PARTS = ("architecture", "decomposition", "worktree")
 TECHDOC_KINDS = ("architecture", "interfaces", "configuration", "operations")
@@ -32,6 +33,7 @@ TABLE_KEYS = {
     "techdocs": {"path", "documents"},
     "development": {"path", *DEVELOPMENT_PARTS},
     "harness": {"repo"},
+    "semver": {"file", "sync", "paths"},
 }
 _TOP_LEVEL_KEYS = {"version", "modules", "projects", *TABLE_KEYS}
 # Tables only the root project may contain: the subproject registry and the harness repo.
@@ -61,6 +63,10 @@ class HarnessConfig:
     harness_repos: tuple[str, ...] = ()
     # Subprojects registered in the root project: (name, path relative to the project root).
     projects: tuple[tuple[str, PurePosixPath], ...] = ()
+    # Version file (relative to the project root), mirrored files, and product paths (both relative to the project).
+    semver_file: PurePosixPath = DEFAULT_DOCS_ROOT / DEFAULT_VERSION_FILE
+    semver_sync: tuple[PurePosixPath, ...] = ()
+    semver_paths: tuple[PurePosixPath, ...] = (PurePosixPath("."),)
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
@@ -71,6 +77,8 @@ class HarnessConfig:
     def is_harness_file(self, rel: PurePosixPath) -> bool:
         """True for README.md, Git and harness files, and every harness document folder."""
         if rel == README or (rel.parts and rel.parts[0] in (".git", CONFIG_RELATIVE_PATH.parts[0])):
+            return True
+        if rel == self.semver_file:
             return True
         folders = (self.todo_path, self.daily_path, self.techdocs_path, self.development_path)
         return any(rel.is_relative_to(folder) for folder in folders)
@@ -197,6 +205,12 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
 
     harness_repos = _harness_repos(_table(data, "harness", errors).get("repo", []), errors)
     projects = _projects(data.get("projects", {}), errors)
+    raw_semver = _table(data, "semver", errors)
+    semver_file = _path_value(raw_semver, "file", "semver", DEFAULT_VERSION_FILE, errors)
+    semver_sync = _path_list(raw_semver, "sync", "semver", (), errors)
+    semver_paths = _path_list(raw_semver, "paths", "semver", (PurePosixPath("."),), errors)
+    if not semver_paths:
+        errors.append("semver.paths must not be empty")
 
     if errors:
         raise ConfigError(
@@ -214,6 +228,9 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
         development_parts=development_parts,
         harness_repos=harness_repos,
         projects=projects,
+        semver_file=docs_root / semver_file,
+        semver_sync=semver_sync,
+        semver_paths=semver_paths,
     )
 
 
@@ -290,6 +307,24 @@ def _path_value(
     except ConfigError as exc:
         errors.append(f"{table_name}.{key} {exc}")
         return default
+
+
+def _path_list(
+    table: dict[str, Any], key: str, table_name: str, default: tuple[PurePosixPath, ...], errors: list[str]
+) -> tuple[PurePosixPath, ...]:
+    if key not in table:
+        return default
+    value = table[key]
+    if not isinstance(value, list):
+        errors.append(f"{table_name}.{key} must be a list of paths")
+        return default
+    paths = []
+    for entry in value:
+        try:
+            paths.append(_relative_path(entry))
+        except ConfigError as exc:
+            errors.append(f"{table_name}.{key} entry {entry!r} {exc}")
+    return tuple(paths)
 
 
 def _relative_path(value: Any) -> PurePosixPath:

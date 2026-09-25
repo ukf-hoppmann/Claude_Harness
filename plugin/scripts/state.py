@@ -64,3 +64,7 @@ def techdocs_marker(session_id: str, kind: str, project: str = ROOT_PROJECT) -> 
 
 def architecture_read_file(session_id: str) -> Path:
     return state_dir() / f"architecture-read-{_safe(session_id)}.json"
+
+
+def semver_reported_file(session_id: str) -> Path:
+    return state_dir() / f"semver-reported-{_safe(session_id)}.json"

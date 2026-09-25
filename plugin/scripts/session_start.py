@@ -17,6 +17,7 @@ from harness_config import (
     project_root,
 )
 from projects import Project, ProjectSet, load_projects
+from semver import status as semver_status
 from worktree import base_ref_setting, is_git_repo
 
 MAX_REPORTED = 5
@@ -39,6 +40,10 @@ DECOMPOSITION_LINE = (
 WORKTREE_LINE = (
     "Change workflow: rules in skill claude-harness:worktree (load it when a plan was "
     "approved or a worktree is to be merged back)."
+)
+SEMVER_HINT = (
+    "rules in skill claude-harness:semver (load it when a change is merged, the user asks for a release, "
+    "or the semver hook reminds you)."
 )
 BASE_REF_LINE = (
     'Worktree base: worktree.baseRef is not "head", so worktrees would branch from the '
@@ -113,6 +118,8 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
         lines.append(WORKTREE_LINE)
         if is_git_repo(root) and base_ref_setting(root, Path.home()) != "head":
             lines.append(BASE_REF_LINE)
+    if config.enabled("semver"):
+        lines.append(f"SemVer: {_semver_summary(projects, project, show)}; {SEMVER_HINT}")
     return lines
 
 
@@ -123,7 +130,7 @@ def _several_projects(projects: ProjectSet) -> list[str]:
         f"Claude_Harness: projects {registered}. The project a file belongs to decides "
         "which rules, documents, and language apply; write each project's documents in its language."
     ]
-    lines += [_project_line(p) for p in projects.projects]
+    lines += [_project_line(projects, p) for p in projects.projects]
     lines += [
         f"Project {name} ({paths[name]}): {message}; its files get no harness rules."
         for name, message in projects.errors
@@ -147,12 +154,14 @@ def _several_projects(projects: ProjectSet) -> list[str]:
         root = projects.session_root
         if is_git_repo(root) and base_ref_setting(root, Path.home()) != "head":
             lines.append(BASE_REF_LINE)
+    if any(c.enabled("semver") for c in configs):
+        lines.append(f"Release versions: {SEMVER_HINT}")
     for project in projects.projects:
         lines += [f"{project.name}: {problem}" for problem in _project_problems(projects, project)]
     return lines
 
 
-def _project_line(project: Project) -> str:
+def _project_line(projects: ProjectSet, project: Project) -> str:
     config = project.config
     show = _shown_in(project)
     modules = ", ".join(sorted(name for name, enabled in config.modules.items() if enabled)) or "none"
@@ -165,6 +174,8 @@ def _project_line(project: Project) -> str:
         parts.append(f"techdocs {show(README)}, {show(config.techdocs_path)}/")
     if config.part_enabled("architecture"):
         parts.append(f"architecture {show(rules_path(config))}")
+    if config.enabled("semver"):
+        parts.append(f"semver {_semver_summary(projects, project, show)}")
     return f"Project {project.name} ({project.path}): {'; '.join(parts)}."
 
 
@@ -185,6 +196,19 @@ def _project_problems(projects: ProjectSet, project: Project) -> list[str]:
             problems += _scope_problems(root, config)
             problems += _inherited_problems(projects, project)
     return problems
+
+
+def _semver_summary(projects: ProjectSet, project: Project, show: Show) -> str:
+    result = semver_status(projects, project)
+    if result.version_text is None:
+        state = "missing"
+    elif result.version is None:
+        state = "invalid"
+    elif result.last_tag is None:
+        state = f"{result.version_text}; no release tag yet"
+    else:
+        state = f"{result.version_text}; {len(result.unreleased or [])} unreleased commit(s) since {result.last_tag}"
+    return f"{show(result.version_file)} ({state})"
 
 
 def _shown_in(project: Project) -> Show:

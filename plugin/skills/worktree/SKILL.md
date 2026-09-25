@@ -73,11 +73,13 @@ checkout after the merge, as the `daily` skill says.
    `git merge --no-ff <worktree-branch> -m "<what the change does>"`.
    If git refuses because the owner's local changes would be overwritten,
    stop and report. Never stash, reset, or force anything there.
-5. Do not push.
-6. Remove what this change created: `git worktree remove <worktree-path>`,
+5. If module `semver` is on for the project, load skill
+   `claude-harness:semver` and release the merged change as it says.
+6. Do not push.
+7. Remove what this change created: `git worktree remove <worktree-path>`,
    then `git branch -d <worktree-branch>`. Both refuse unmerged or unsaved
    work; then stop and report, never add `--force` or `-D`.
-7. Report: base branch, merge commit, and how to undo it
+8. Report: base branch, merge commit, and how to undo it
    (`git revert -m 1 <merge-commit>`). If ignored files such as `.env` were
    changed in the worktree, say so: they do not travel with the merge and are
    gone with the worktree. Copy them back before removal only when the owner

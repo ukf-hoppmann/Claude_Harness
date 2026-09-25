@@ -10,6 +10,7 @@ todo = true
 daily = true
 techdocs = true
 development = true
+semver = true
 
 [todo]
 path = "todo"
@@ -23,6 +24,10 @@ documents = ["architecture", "interfaces", "configuration"]
 
 [development]
 path = "development"
+
+[semver]
+sync = ["plugin/.claude-plugin/plugin.json"]
+paths = ["plugin"]
 
 [harness]
 repo = ["/Users/hoppmann/Documents/GitHub/Claude_Harness"]
