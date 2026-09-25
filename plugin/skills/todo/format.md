@@ -102,9 +102,12 @@ new area is introduced only when no existing one fits.
   every required child is `Completed`.
 - A required child that is `Rejected` therefore blocks its parent. When a
   required child is to be rejected, the agent asks the owner in the same step
-  whether to set it to `Required for parent: No`, to adjust the parent's
-  `Goal` and `Completion criteria`, or to reject the parent, and records the
-  decision in the parent's notes. If a rejected required child remains
+  which of two options applies, and records the decision in the parent's
+  notes:
+  - the child becomes `Required for parent: No`; if the parent's `Goal` or
+    `Completion criteria` name the child's content, they are adjusted in the
+    same step. Adjusting the parent alone never lifts the block;
+  - the parent is rejected as well. If a rejected required child remains
   anyway (e.g. after a status change outside the agent), the backlog check
   reports it and the agent asks the same question.
 - A parent cannot be `Completed` or `Rejected` while any child — required or

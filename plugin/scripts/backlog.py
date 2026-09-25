@@ -15,8 +15,9 @@ CLOSED_STATUSES = {"Completed", "Rejected"}
 READY_CHILD_STATUSES = {"Awaiting confirmation", "Completed"}
 # A rejected required child is a gap in the parent's goal that only the owner can resolve.
 REJECTED_REQUIRED_HINT = (
-    "for a Rejected required child, ask the owner whether to set Required for parent: No, "
-    "adjust the parent's Goal and Completion criteria, or reject the parent"
+    "for a Rejected required child, ask the owner whether to set Required for parent: No "
+    "(and adjust the parent's Goal and Completion criteria if they name the child's content) "
+    "or to reject the parent as well"
 )
 PRIORITIES = {"Urgent", "Important", "Normal", "Prospective"}
 REQUIRED_FIELDS = {
