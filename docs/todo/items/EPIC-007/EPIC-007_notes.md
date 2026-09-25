@@ -70,3 +70,12 @@
   Hook; die Root-`CLAUDE.md` enthält nur Verweise. Das Epic wartet auf
   Bestätigung.
 
+## 2026-09-25 — Wiedereröffnet für STORY-030
+
+### Decided
+
+- Auf Wunsch des Owners wieder auf `In progress` gesetzt, weil `STORY-030`
+  (Harness-Konfiguration aktualisieren) inhaltlich genau hierher gehört
+  (Pendant zum `init`-Skill aus `STORY-021`) und ein neuer, eigenständiger
+  Epic dafür nicht gerechtfertigt wäre.
+
