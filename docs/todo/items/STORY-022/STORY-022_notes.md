@@ -71,3 +71,21 @@
   bisher nach dem Merge im Haupt-Checkout (Skill `daily`); die Spec war hier
   ungenau und ist korrigiert.
 - Dieses Repo setzt `worktree.baseRef = "head"` in `.claude/settings.json`.
+
+## 2026-09-25 — Befunde beim ersten Worktree-Change von STORY-027
+
+### Discussed
+
+- Abschluss laut Skill: `git -C <main> merge` aus der Worktree-Session. Claude
+  Code blockiert Git-Befehle, die aus einer isolierten Worktree-Session auf
+  den Haupt-Checkout zielen. Umweg bei `TASK-007`: `ExitWorktree` mit
+  `keep`, Merge im Haupt-Checkout, dann `git worktree remove` und
+  `git branch -d`.
+- Hook-Pfade: `CLAUDE_PROJECT_DIR` bleibt im Worktree der Haupt-Checkout.
+  Dateien liegen aber unter `.claude/worktrees/<Name>/`. Der techdocs-Hook
+  zählte deshalb Doku-Änderungen im Worktree nicht als Doku und meldete
+  fälschlich fehlende Doku.
+
+### Decided
+
+- Der Owner hat einen Eintrag für beide Befunde freigegeben: `TASK-013`.

@@ -56,25 +56,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Notes: `items/STORY-027/STORY-027_notes.md`.
   - Spec: `items/STORY-027/STORY-027_spec.md`.
 
-- `TASK-007` **Registry und Projektzuordnung**
-  - Type: Task.
-  - Parent: `STORY-027`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-25.
-  - Area: Konfiguration.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Die Root-Konfiguration kann Teilprojekte in `[projects]` eintragen.
-    Ein gemeinsamer Helfer lädt alle Projekte und ordnet jede Datei ihrem
-    Projekt zu. Der Session-Start listet die Projekte und meldet
-    Registry-Fehler.
-  - Completion criteria: Schema, Validierung, Doku in `configuration.md` und
-    Tests sind vorhanden. Der Session-Start zeigt in einem Test-Repo mit zwei
-    Teilprojekten alle Projekte und meldet ein ungültiges Teilprojekt, ohne
-    die anderen unwirksam zu machen. Ohne `[projects]` ist die Ausgabe
-    unverändert.
-
 - `TASK-008` **Architekturregeln pro Projekt**
   - Type: Task.
   - Parent: `STORY-027`.
@@ -189,6 +170,27 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Falls ja, wurde mindestens ein Abschnitt eines realen Features von einem
     Subagenten ohne Rückfrage korrekt umgesetzt und von der Hauptsession
     geprüft.
+
+- `TASK-013` **Worktree-Ablauf: Merge und Hook-Pfade korrigieren**
+  - Type: Task.
+  - Parent: `STORY-022`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-09-25.
+  - Area: Governance.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Der Worktree-Ablauf funktioniert in einer isolierten
+    Worktree-Session von Claude Code ohne Umweg, und die Hooks bewerten
+    Dateien im Worktree so, als lägen sie im Projekt. Der Merge in den
+    Haupt-Checkout läuft nach dem Verlassen des Worktrees, danach werden
+    Worktree und Branch entfernt. Dateipfade unter
+    `.claude/worktrees/<Name>/` werden relativ zu diesem Worktree bewertet.
+  - Completion criteria: Der Skill `worktree` beschreibt einen Abschluss,
+    den Claude Code nicht blockiert, und ein realer Change ist so
+    durchgelaufen. Tests zeigen: Eine Doku-Änderung im Worktree zählt für
+    den techdocs-Hook als Doku, und der Architektur-Hook verlangt für eine
+    Datei im Worktree dieselben Regeln wie im Haupt-Checkout.
 
 - `STORY-022` **Change-Workflow im Worktree**
   - Type: Story.

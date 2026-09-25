@@ -8,6 +8,26 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 ## Work items
 
+- `TASK-007` **Registry und Projektzuordnung**
+  - Type: Task.
+  - Parent: `STORY-027`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-09-25.
+  - Area: Konfiguration.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Die Root-Konfiguration kann Teilprojekte in `[projects]` eintragen.
+    Ein gemeinsamer Helfer lädt alle Projekte und ordnet jede Datei ihrem
+    Projekt zu. Der Session-Start listet die Projekte und meldet
+    Registry-Fehler.
+  - Completion criteria: Schema, Validierung, Doku in `configuration.md` und
+    Tests sind vorhanden. Der Session-Start zeigt in einem Test-Repo mit zwei
+    Teilprojekten alle Projekte und meldet ein ungültiges Teilprojekt, ohne
+    die anderen unwirksam zu machen. Ohne `[projects]` ist die Ausgabe
+    unverändert.
+  - Resolution: Confirmed by the project owner on 2026-09-25.
+
 - `STORY-018` **Plugin-Grundgerüst**
   - Type: Story.
   - Parent: `EPIC-007`.
