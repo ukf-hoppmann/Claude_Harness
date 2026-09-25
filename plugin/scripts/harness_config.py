@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import re
 import tomllib
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
@@ -45,6 +46,64 @@ ROOT_PROJECT = "root"
 
 class ConfigError(ValueError):
     """Raised when the project configuration violates the config schema."""
+
+
+class ConfigOutdated(ConfigError):
+    """Raised when a config's version is older than CONFIG_VERSION but a migration path to it exists."""
+
+    def __init__(self, current_version: int, target_version: int, steps: tuple[str, ...]):
+        self.current_version = current_version
+        self.target_version = target_version
+        self.steps = steps
+        super().__init__(
+            f"{CONFIG_RELATIVE_PATH} is version {current_version}, current is {target_version} "
+            f"({len(steps)} pending change(s))"
+        )
+
+
+@dataclass(frozen=True)
+class Migration:
+    """One schema step: from_version -> to_version, with a description and a data transform."""
+
+    from_version: int
+    to_version: int
+    description: str
+    upgrade: Callable[[dict[str, Any]], dict[str, Any]]
+
+
+# Schema migrations, applied in sequence by version; empty until the schema has a breaking change.
+MIGRATIONS: tuple[Migration, ...] = ()
+
+
+def _migration_chain(version: int) -> tuple[Migration, ...] | None:
+    """Migrations from version to CONFIG_VERSION, in order; None when no such path exists."""
+    if version >= CONFIG_VERSION:
+        return ()
+    by_from = {m.from_version: m for m in MIGRATIONS}
+    chain: list[Migration] = []
+    current = version
+    while current < CONFIG_VERSION:
+        migration = by_from.get(current)
+        if migration is None:
+            return None
+        chain.append(migration)
+        current = migration.to_version
+    return tuple(chain)
+
+
+def migrate_data(data: dict[str, Any]) -> dict[str, Any]:
+    """Apply the pending migrations to a raw config dict and return the result at CONFIG_VERSION."""
+    version = data.get("version")
+    if not isinstance(version, int):
+        raise ConfigError(f"version must be an integer, got {version!r}")
+    chain = _migration_chain(version)
+    if chain is None:
+        raise ConfigError(f"no migration path from version {version} to {CONFIG_VERSION}")
+    result = dict(data)
+    for migration in chain:
+        result = migration.upgrade(result)
+    result["version"] = CONFIG_VERSION
+    return result
 
 
 @dataclass(frozen=True)
@@ -164,6 +223,10 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
 
     version = data.get("version")
     if version != CONFIG_VERSION:
+        if isinstance(version, int) and version < CONFIG_VERSION:
+            chain = _migration_chain(version)
+            if chain is not None:
+                raise ConfigOutdated(version, CONFIG_VERSION, tuple(m.description for m in chain))
         errors.append(f"version must be {CONFIG_VERSION}, got {version!r}")
 
     modules: dict[str, bool] = {}

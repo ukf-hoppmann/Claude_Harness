@@ -5,7 +5,8 @@ from unittest import mock
 from pathlib import Path, PurePosixPath
 
 import helpers  # noqa: F401  (adds plugin/scripts to sys.path)
-from harness_config import ConfigError, load_config, parse_config, project_root
+import harness_config
+from harness_config import ConfigError, ConfigOutdated, Migration, load_config, migrate_data, parse_config, project_root
 
 
 class ParseConfigTest(unittest.TestCase):
@@ -180,6 +181,63 @@ class ParseConfigTest(unittest.TestCase):
         for data in cases:
             with self.subTest(data=data), self.assertRaises(ConfigError):
                 parse_config(data)
+
+
+class MigrationTest(unittest.TestCase):
+    def _add_widget_module(self, data):
+        return {**data, "modules": {**data.get("modules", {}), "todo": True}}
+
+    def test_outdated_config_raises_config_outdated(self):
+        migration = Migration(1, 2, "turn todo on by default", self._add_widget_module)
+        with mock.patch.object(harness_config, "MIGRATIONS", (migration,)), \
+                mock.patch.object(harness_config, "CONFIG_VERSION", 2):
+            with self.assertRaises(ConfigOutdated) as ctx:
+                parse_config({"version": 1})
+        self.assertEqual(ctx.exception.current_version, 1)
+        self.assertEqual(ctx.exception.target_version, 2)
+        self.assertEqual(ctx.exception.steps, ("turn todo on by default",))
+
+    def test_migrate_data_applies_chain_and_result_parses(self):
+        migration = Migration(1, 2, "turn todo on by default", self._add_widget_module)
+        with mock.patch.object(harness_config, "MIGRATIONS", (migration,)), \
+                mock.patch.object(harness_config, "CONFIG_VERSION", 2):
+            migrated = migrate_data({"version": 1})
+            self.assertEqual(migrated["version"], 2)
+            self.assertEqual(migrated["modules"], {"todo": True})
+            self.assertTrue(parse_config(migrated).enabled("todo"))
+
+    def test_multi_step_chain_is_applied_in_order(self):
+        step_one = Migration(1, 2, "step one", self._add_widget_module)
+        step_two = Migration(2, 3, "step two", lambda data: {**data, "docs": {"language": "de"}})
+        with mock.patch.object(harness_config, "MIGRATIONS", (step_one, step_two)), \
+                mock.patch.object(harness_config, "CONFIG_VERSION", 3):
+            with self.assertRaises(ConfigOutdated) as ctx:
+                parse_config({"version": 1})
+            self.assertEqual(ctx.exception.steps, ("step one", "step two"))
+            migrated = migrate_data({"version": 1})
+            self.assertEqual(migrated["version"], 3)
+            self.assertEqual(migrated["modules"], {"todo": True})
+            self.assertEqual(migrated["docs"], {"language": "de"})
+
+    def test_version_without_migration_path_stays_a_plain_config_error(self):
+        migration = Migration(2, 3, "unrelated step", lambda data: data)
+        with mock.patch.object(harness_config, "MIGRATIONS", (migration,)), \
+                mock.patch.object(harness_config, "CONFIG_VERSION", 3):
+            with self.assertRaises(ConfigError) as ctx:
+                parse_config({"version": 1})
+            self.assertNotIsInstance(ctx.exception, ConfigOutdated)
+            with self.assertRaises(ConfigError) as ctx:
+                migrate_data({"version": 1})
+            self.assertNotIsInstance(ctx.exception, ConfigOutdated)
+
+    def test_version_greater_than_current_is_still_invalid(self):
+        # Regression: unrelated to migrations, must not become ConfigOutdated.
+        migration = Migration(1, 2, "step", self._add_widget_module)
+        with mock.patch.object(harness_config, "MIGRATIONS", (migration,)), \
+                mock.patch.object(harness_config, "CONFIG_VERSION", 2):
+            with self.assertRaises(ConfigError) as ctx:
+                parse_config({"version": 7})
+            self.assertNotIsInstance(ctx.exception, ConfigOutdated)
 
 
 class ProjectRootTest(unittest.TestCase):
