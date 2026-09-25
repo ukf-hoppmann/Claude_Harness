@@ -133,7 +133,10 @@ def _several_projects(projects: ProjectSet) -> list[str]:
     if any(c.enabled("techdocs") for c in configs):
         lines.append(f"Technical docs: {TECHDOCS_HINT}")
     if any(c.part_enabled("architecture") for c in configs):
-        lines.append(f"Architecture rules of each project {ARCHITECTURE_HINT}")
+        lines.append(
+            "Architecture rules: binding per project; read a project's rules before planning, designing, "
+            "or changing its code; rules in skill claude-harness:architecture."
+        )
     if any(c.part_enabled("decomposition") for c in configs):
         lines.append(DECOMPOSITION_LINE)
     if any(c.part_enabled("worktree") for c in configs):

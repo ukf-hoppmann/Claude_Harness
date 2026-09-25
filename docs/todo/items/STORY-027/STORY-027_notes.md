@@ -168,3 +168,20 @@
   erscheinen einmal pro Modul, das in mindestens einem Projekt aktiv ist
   (wie ein Set, ohne Wiederholung). Jedes Projekt bekommt eine Zeile mit
   seinen Orten. Wortlaut siehe Spec. Umsetzung zusammen mit `TASK-007`.
+
+## 2026-09-25 — TASK-007 umgesetzt
+
+### Discussed
+
+- Umgesetzt:
+  - `[projects]` in der Root-Konfiguration samt Validierung.
+  - Die Sperre von `[projects]` und `[harness]` in Teilprojekten.
+  - Der Helfer `plugin/scripts/projects.py`.
+  - Die kompakte Session-Start-Ausgabe nach dem neuen Wortlaut von Regel 7.
+- Geprüft mit einem Test-Repo nach dem Vorbild von EZF-Backend: Core in `de`
+  sowie `Plugins/VariantFilter` in `en` und `Plugins/Other` ohne
+  Konfiguration. Das ergibt 11 Zeilen Session-Start. Ohne `[projects]` ist
+  die Ausgabe byte-gleich zu vorher.
+- Zwischenstand: Die übrigen Hooks (Architektur, Backlog, techdocs, Daily)
+  behandeln Dateien in Teilprojekten noch als Dateien des Root-Projekts.
+  Das ändern `TASK-008` bis `TASK-011`.
