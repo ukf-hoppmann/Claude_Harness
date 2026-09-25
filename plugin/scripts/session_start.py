@@ -13,6 +13,7 @@ from harness_config import (
     README,
     ROOT_PROJECT,
     ConfigError,
+    ConfigOutdated,
     HarnessConfig,
     project_root,
 )
@@ -53,6 +54,10 @@ BASE_REF_LINE = (
 Show = Callable[[PurePosixPath], str]
 
 
+def outdated_message(exc: ConfigOutdated) -> str:
+    return f"Claude_Harness: {exc}; run /claude-harness:update to bring it up to date."
+
+
 def main() -> int:
     try:
         hook_input = json.load(sys.stdin)
@@ -65,6 +70,9 @@ def main() -> int:
         reset_read(session_id)
     try:
         projects = load_projects(root)
+    except ConfigOutdated as exc:
+        print(outdated_message(exc))
+        return 0
     except ConfigError as exc:
         print(f"Claude_Harness: invalid configuration — {exc}. Tell the user; do not guess values.")
         return 0
