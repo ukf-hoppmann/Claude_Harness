@@ -80,6 +80,28 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.harness_repos, ("/abs/harness", "~/code/harness"))
         self.assertEqual(parse_config({"version": 1, "harness": {"repo": []}}).harness_repos, ())
 
+    def test_semver(self):
+        config = parse_config({"version": 1})
+        self.assertFalse(config.enabled("semver"))
+        self.assertEqual(config.semver_file, PurePosixPath("docs/VERSION"))
+        self.assertEqual(config.semver_sync, ())
+        self.assertEqual(config.semver_paths, (PurePosixPath("."),))
+        config = parse_config({
+            "version": 1,
+            "docs": {"root": "documentation"},
+            "modules": {"semver": True},
+            "semver": {"file": "release/VERSION.txt", "sync": ["package.json", "sub/Cargo.toml"], "paths": ["src", "lib/"]},
+        })
+        self.assertTrue(config.enabled("semver"))
+        self.assertEqual(config.semver_file, PurePosixPath("documentation/release/VERSION.txt"))
+        self.assertEqual(config.semver_sync, (PurePosixPath("package.json"), PurePosixPath("sub/Cargo.toml")))
+        self.assertEqual(config.semver_paths, (PurePosixPath("src"), PurePosixPath("lib")))
+
+    def test_version_file_is_a_harness_file(self):
+        config = parse_config({"version": 1, "semver": {"file": "VERSION"}})
+        self.assertTrue(config.is_harness_file(PurePosixPath("docs/VERSION")))
+        self.assertFalse(config.is_harness_file(PurePosixPath("package.json")))
+
     def test_projects(self):
         self.assertEqual(parse_config({"version": 1}).projects, ())
         config = parse_config({
@@ -145,6 +167,15 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "harness": {"repo": [1]}},
             {"version": 1, "harness": {"other": 1}},
             {"version": 1, "harness": "x"},
+            {"version": 1, "modules": {"semver": "on"}},
+            {"version": 1, "semver": {"file": "/abs"}},
+            {"version": 1, "semver": {"file": "../VERSION"}},
+            {"version": 1, "semver": {"sync": "package.json"}},
+            {"version": 1, "semver": {"sync": ["../package.json"]}},
+            {"version": 1, "semver": {"sync": [""]}},
+            {"version": 1, "semver": {"paths": []}},
+            {"version": 1, "semver": {"paths": ["/abs"]}},
+            {"version": 1, "semver": {"other": 1}},
         ]
         for data in cases:
             with self.subTest(data=data), self.assertRaises(ConfigError):
