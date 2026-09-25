@@ -170,5 +170,43 @@ class StatusCliTest(SemverRepoTest):
         self.assertIn("not enabled", result.stderr)
 
 
+class StopHookTest(SemverRepoTest):
+    def stop(self, session="s1", active=False):
+        return self.run_script("check_semver.py", payload={"session_id": session, "stop_hook_active": active})
+
+    def test_silent_when_consistent(self):
+        self.git("tag", "v0.1.0")
+        result = self.stop()
+        self.assertEqual((result.returncode, result.stderr), (0, ""))
+
+    def test_reports_finding_once_per_state(self):
+        self.git("tag", "v0.1.0")
+        self.write("docs/VERSION", "0.3.0\n")
+        first = self.stop()
+        self.assertEqual(first.returncode, 2)
+        self.assertIn("more than one step above", first.stderr)
+        self.assertIn("claude-harness:semver", first.stderr)
+        self.assertEqual(self.stop().returncode, 0)
+        self.assertEqual(self.stop(session="s2").returncode, 2)
+        self.write("docs/VERSION", "0.0.1\n")
+        self.assertEqual(self.stop().returncode, 2)
+
+    def test_silent_when_off_active_or_no_git(self):
+        self.write("docs/VERSION", "bad\n")
+        self.assertEqual(self.stop(active=True).returncode, 0)
+        (self.project / ".claude-harness/config.toml").write_text("version = 1\n")
+        self.assertEqual(self.stop().returncode, 0)
+        self.write_config()
+        subprocess.run(["rm", "-rf", str(self.project / ".git")], check=True)
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_names_the_subproject(self):
+        self.write_config(extra='[projects]\nA = "Plugins/A"\n')
+        self.write_config(root=self.project / "Plugins/A")
+        result = self.stop()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("A (Plugins/A): docs/VERSION does not exist", result.stderr)
+
+
 if __name__ == "__main__":
     unittest.main()

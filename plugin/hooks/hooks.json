@@ -68,6 +68,11 @@
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/check_techdocs.py\"",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/check_semver.py\"",
+            "timeout": 30
           }
         ]
       }
