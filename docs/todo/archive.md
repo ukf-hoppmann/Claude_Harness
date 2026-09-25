@@ -8,6 +8,36 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 ## Work items
 
+- `STORY-030` **Harness-Konfiguration aktualisieren**
+  - Type: Story.
+  - Parent: `EPIC-007`.
+  - Required for parent: No.
+  - Status: Completed.
+  - Created: 2026-09-25.
+  - Area: Architektur.
+  - Priority: Normal.
+  - Dependencies: `STORY-021`.
+  - Goal: Ein `update`-Schritt (Skill) als Pendant zum `init`-Skill: Ein
+    Projekt, das den Harness schon nutzt, kann prüfen, ob seine
+    `.claude-harness/config.toml` dem aktuellen Schema entspricht, und
+    fehlende Ergänzungen (i. d. R. neue Module oder Schema-Migrationen) nach
+    Freigabe eintragen, ohne Bestehendes zu überschreiben. Dazu gehört ein
+    Versionierungsmechanismus fürs Config-Schema: `CONFIG_VERSION` in
+    `harness_config.py` wird um eine Migrationsliste je Versionsschritt
+    erweitert, statt auf SemVer umzustellen.
+  - Completion criteria: Der Aufruf des Update-Schritts auf ein Projekt mit
+    veralteter Config wendet die fehlenden Migrationen an (mit Rückfragen nur
+    bei neuen, wirklich zu entscheidenden Werten) und schreibt die Config auf
+    die aktuelle Version; auf eine bereits aktuelle Config wird gemeldet, dass
+    nichts zu tun ist; das Ergebnis besteht die bestehende Config-Validierung.
+  - Summary: Der neue Befehl `/claude-harness:update` bringt die Harness-Config
+    eines Projekts automatisch auf den neuesten Stand, ähnlich wie der
+    Einrichtungs-Befehl das für neue Projekte tut. Er erkennt "bereits
+    aktuell" ohne etwas zu ändern und würde bei einer künftigen
+    Schema-Änderung die fehlenden Schritte nachtragen.
+  - Notes: `items/STORY-030/STORY-030_notes.md`.
+  - Resolution: Confirmed by the project owner on 2026-09-25.
+
 - `EPIC-001` **Konfigurierbarer Harness (Policy)**
   - Type: Epic.
   - Status: Completed.

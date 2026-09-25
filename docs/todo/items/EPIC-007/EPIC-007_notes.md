@@ -79,3 +79,12 @@
   (Pendant zum `init`-Skill aus `STORY-021`) und ein neuer, eigenständiger
   Epic dafür nicht gerechtfertigt wäre.
 
+## 2026-09-25 — Erneute Abschlussprüfung
+
+### Decided
+
+- `STORY-030` ist vom Owner bestätigt und archiviert; kein Kind ist mehr
+  aktiv. Die Completion criteria waren bereits am 2026-09-24 als erfüllt
+  geprüft (siehe oben); erneut bestätigt. Status auf `Awaiting confirmation`
+  gesetzt, Owner informiert.
+
