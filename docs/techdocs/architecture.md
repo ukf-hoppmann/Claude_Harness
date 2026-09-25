@@ -29,7 +29,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Suite `development`, Teil `decomposition` | Skill mit Kriterien zur Zerlegung in Backlog-Tasks und Plan-Abschnitte, Regeln, wann der Test zuerst entsteht (TDD), Dimensions-Checkliste | `plugin/skills/decomposition/` |
 | Suite `development`, Teil `worktree` | Skill für den Change-Workflow im Worktree, Skript für Ausgangsbranch, Spiegeln ignorierter Dateien und Vorprüfung vor dem Merge, Prüfung von `worktree.baseRef` beim Session-Start | `plugin/skills/worktree/`, `plugin/scripts/worktree.py` |
 | Konflikte | Skill für Konflikte mit Projektregeln und Harness-Vorgaben, Suche des Harness-Repos für die Übergabe von Harness-Wünschen | `plugin/skills/conflicts/`, `plugin/scripts/harness_repo.py` |
-| Befehl `init` | Richtet den Harness in einem Projekt ein | `plugin/skills/init/` |
+| Befehl `init` | Richtet den Harness in einem Projekt oder Teilprojekt ein | `plugin/skills/init/` |
 | Vorlagen | Config, Backlog, Tagesbericht, Systemdoku, Architekturregeln | `plugin/templates/` |
 | Sitzungszustand | Pfade für Merker pro Session | `plugin/scripts/state.py` |
 

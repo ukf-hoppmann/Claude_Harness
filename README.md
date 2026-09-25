@@ -52,6 +52,13 @@ Plugin unter `plugin/`. In einem Projekt einbinden, z. B. über
    Vorlagen an, ohne Bestehendes zu überschreiben.
 3. Beim nächsten Session-Start meldet der Harness die aktiven Module.
 
+Teilprojekte: In einem Repository mit mehreren Teilen, etwa einer Anwendung
+mit Plugins, bekommt jedes Teilprojekt eigene Config, Doku, Backlog und
+Architekturregeln in seinem Ordner. `/claude-harness:init` richtet ein
+Teilprojekt ein und trägt es in `[projects]` der Root-Config ein; die Session
+startet weiter im Repo-Root. Details:
+[Konfiguration, Abschnitt Teilprojekte](docs/techdocs/configuration.md#teilprojekte).
+
 ## Entwicklung
 
 - `plugin/` ist das ausgelieferte Produkt; alles andere dient der Entwicklung.

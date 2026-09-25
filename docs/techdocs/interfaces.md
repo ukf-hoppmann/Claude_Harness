@@ -5,13 +5,21 @@ Dateiformate.
 
 ## Befehl `/claude-harness:init`
 
-- Zweck: Harness in einem Projekt einrichten.
+- Zweck: Harness in einem Projekt oder einem Teilprojekt einrichten.
 - Aufruf: nur durch den Nutzer (`disable-model-invocation`).
-- Wirkung: fragt Sprache, Doku-Ordner, Module und deren Pfade sowie den Pfad
-  zum Harness-Repo (Vorschlag über `harness_repo.py --suggest`) ab; schreibt
-  `.claude-harness/config.toml` und auf Wunsch Backlog, Systemdoku und
-  Architekturregeln aus den Vorlagen, jeweils erst nach Freigabe.
-- Fehlerfall: Ist die Config schon vorhanden, zeigt er sie und ändert nichts.
+- Wirkung: fragt zuerst, ob das Projekt selbst oder ein Teilprojekt (Ordner
+  und Name) eingerichtet wird; alle Pfade gelten dann relativ zu diesem
+  Zielordner. Fragt Sprache, Doku-Ordner, Module und deren Pfade sowie, nur
+  im Root-Projekt, den Pfad zum Harness-Repo (Vorschlag über
+  `harness_repo.py --suggest`) ab; schreibt `.claude-harness/config.toml` und
+  auf Wunsch Backlog, Systemdoku und Architekturregeln aus den Vorlagen,
+  jeweils erst nach Freigabe. Ein Teilprojekt wird in `[projects]` der
+  Root-Config eingetragen (fehlt sie, auf Freigabe als reine Registry
+  angelegt); auf Wunsch übernimmt es Regeln des Root-Projekts unter
+  `## Inherited rules`. Fragt, ob `.claude-harness/` in die `.gitignore`
+  soll, und weist auf die Aktivierung über `.claude/settings.local.json` hin.
+- Fehlerfall: Ist die Config im Zielordner schon vorhanden, zeigt er sie und
+  ändert nichts.
 
 ## Skills
 

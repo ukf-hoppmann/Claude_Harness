@@ -247,3 +247,31 @@
   benannt (`daily-ack-<Ordner>`), nicht nach dem Projektnamen. So teilt ein
   Teilprojekt seinen Stand, egal ob die Session im Root oder im Teilprojekt
   startet. root behält `daily-ack`.
+
+## 2026-09-25 — TASK-012 umgesetzt, Abnahme der Story
+
+### Discussed
+
+- Die Skills `todo`, `daily`, `techdocs`, `architecture`, `decomposition`
+  und `worktree` beziehen sich auf die Konfiguration des Projekts, zu dem
+  die Arbeit gehört.
+  - `todo`: Neue Einträge kommen ins Backlog dieses Projekts.
+  - `decomposition`: Ein Plan über mehrere Projekte nennt alle betroffenen.
+- `init` richtet auf Wunsch ein Teilprojekt ein:
+  - Konfiguration im Ordner und Eintrag in `[projects]`, notfalls eine
+    reine Registry im Root.
+  - Frage nach geerbten Regeln.
+  - Frage nach `.gitignore`.
+  - Hinweis auf `settings.local.json`.
+- README mit Absatz zu Teilprojekten. Test für gespiegelte
+  Teilprojekt-Konfigurationen im Worktree.
+- Gesamtprüfung in einem Test-Repo nach dem Vorbild von EZF-Backend (Core,
+  `Plugins/VariantFilter` erbt den Core-Scope `plugin-api`, `Plugins/Other`
+  nur mit todo). Alle 11 Prüfungen zu den Abnahmekriterien 1–6 und 8
+  bestanden, geprüft mit echten Hook-Aufrufen. Kriterium 7 (ohne
+  `[projects]` unverändert) decken die unveränderten Bestandstests ab.
+- Befund dabei: Beim Start im Teilprojekt teilt dieses seinen Daily-Stand
+  mit dem Teilprojekt beim Start im Root. Ein dort noch offener Commit
+  erscheint also auch hier. Das ist so gewollt (Entscheidung zu TASK-011).
+- `init` ist nicht als echter Dialog durchgespielt. Das Test-Repo wurde nach
+  den Skill-Schritten von Hand angelegt.

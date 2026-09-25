@@ -7,9 +7,11 @@ description: Rules for working with the project's binding architecture rules (de
 
 ## Before you start
 
-1. Read `.claude-harness/config.toml` in the project root. The rules apply
-   only if `[modules].development` is `true` and
-   `[development].architecture` is not `false`; otherwise say so and stop.
+1. Read `.claude-harness/config.toml` of the project the work belongs to (with
+   subprojects, the session start lists each project and its folder; paths
+   below are relative to that folder). The rules apply only if
+   `[modules].development` is `true` and `[development].architecture` is not
+   `false`; otherwise say so and stop.
 2. The rules live in `<docs.root>/<development.path>/architecture.md`
    (default `docs/development/architecture.md`). Scopes listed in its
    `## Scopes` table live in `architecture/<Scope>.md` next to it.
