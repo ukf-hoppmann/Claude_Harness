@@ -128,13 +128,18 @@ dem Merge im Haupt-Checkout (Skill `daily`).
    `git merge <ausgangsbranch>` **im Worktree**; einfache Konflikte selbst
    lösen, Tests erneut; inhaltliche Konflikte → abbrechen und melden. So
    entstehen Konflikte nie im Checkout des Eigners.
-3. Im Haupt-Checkout: `git merge --no-ff <worktree-branch>` mit einer
+3. `ExitWorktree` mit `action: "keep"`: Die Session ist wieder im
+   Haupt-Checkout. Aus einer Worktree-Session heraus lässt Claude Code keine
+   Git-Befehle auf den Haupt-Checkout zu (geändert am 2026-09-25,
+   `TASK-013`).
+4. Im Haupt-Checkout: `git merge --no-ff <worktree-branch>` mit einer
    Nachricht, die den Change benennt. Verweigert git den Merge (lokale
    Änderungen des Eigners würden überschrieben), abbrechen und melden.
-4. Kein Push.
-5. `ExitWorktree` mit `action: "remove"`, ohne `discard_changes`. Verweigert
-   das Tool, abbrechen und melden.
-6. Abschlussmeldung: Ausgangsbranch, Merge-Commit und der Befehl zum
+5. Kein Push.
+6. `git worktree remove <pfad>` und `git branch -d <worktree-branch>`.
+   Verweigert git (ungesicherte oder nicht gemergte Arbeit), abbrechen und
+   melden; nie `--force` oder `-D`.
+7. Abschlussmeldung: Ausgangsbranch, Merge-Commit und der Befehl zum
    Zurücknehmen (`git revert -m 1 <merge-commit>`). Wurden im Worktree
    ignorierte Dateien geändert (z. B. `.env`), wird das genannt: Sie laufen
    nicht über den Merge zurück und wären mit dem Worktree weg. Die AI

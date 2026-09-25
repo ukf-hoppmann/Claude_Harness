@@ -64,14 +64,18 @@ checkout after the merge, as the `daily` skill says.
      Resolve simple conflicts yourself and rerun the tests. On conflicts about
      content, stop and report. Conflicts never reach the owner's checkout.
    - Exit code 1: stop and report the findings.
-3. In the main checkout (`main` from `check`):
-   `git -C <main> merge --no-ff <worktree-branch> -m "<what the change does>"`.
+3. Call `ExitWorktree` with `action: "keep"`. The session is back in the
+   main checkout (`main` from `check`); Claude Code does not let a worktree
+   session run git on the main checkout.
+4. In the main checkout:
+   `git merge --no-ff <worktree-branch> -m "<what the change does>"`.
    If git refuses because the owner's local changes would be overwritten,
    stop and report. Never stash, reset, or force anything there.
-4. Do not push.
-5. Call `ExitWorktree` with `action: "remove"`, without `discard_changes`. If
-   it refuses, stop and report.
-6. Report: base branch, merge commit, and how to undo it
+5. Do not push.
+6. Remove what this change created: `git worktree remove <worktree-path>`,
+   then `git branch -d <worktree-branch>`. Both refuse unmerged or unsaved
+   work; then stop and report, never add `--force` or `-D`.
+7. Report: base branch, merge commit, and how to undo it
    (`git revert -m 1 <merge-commit>`). If ignored files such as `.env` were
    changed in the worktree, say so: they do not travel with the merge and are
    gone with the worktree. Copy them back before removal only when the owner

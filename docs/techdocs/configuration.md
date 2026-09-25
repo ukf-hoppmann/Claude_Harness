@@ -125,6 +125,6 @@ Hooks behandeln Dateien in Teilprojekten noch als Dateien des Root-Projekts
 
 | Variable | Gesetzt von | Wirkung |
 |---|---|---|
-| `CLAUDE_PROJECT_DIR` | Claude Code | Projekt-Root für Hooks und Skripte; sonst `cwd` aus der Hook-Eingabe bzw. das aktuelle Verzeichnis |
+| `CLAUDE_PROJECT_DIR` | Claude Code | Projekt-Root für Hooks und Skripte; sonst `cwd` aus der Hook-Eingabe bzw. das aktuelle Verzeichnis. Liegen `cwd` oder die bearbeitete Datei in `<Projekt-Root>/.claude/worktrees/<Name>/`, gilt dieser Worktree als Projekt-Root |
 | `CLAUDE_PLUGIN_DATA` | Claude Code | Ordner für Merker pro Session; sonst `<tmp>/claude-harness/` |
 | `CLAUDE_PLUGIN_ROOT` | Claude Code | Pfad des Plugins in Hook-Befehlen und Skills |

@@ -175,7 +175,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Task.
   - Parent: `STORY-022`.
   - Required for parent: Yes.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-25.
   - Area: Governance.
   - Priority: Important.

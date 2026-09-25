@@ -27,7 +27,11 @@ Dateiformate.
 ## Hooks
 
 Alle Hooks lesen die Hook-Eingabe von Claude Code als JSON auf stdin und
-tun nichts, wenn ihr Modul aus oder die Config ungültig ist.
+tun nichts, wenn ihr Modul aus oder die Config ungültig ist. Arbeitet die
+Session in einem Worktree von Claude Code (`.claude/worktrees/<Name>/`),
+gilt dieser Worktree als Projekt-Root: erkannt am `cwd` der Hook-Eingabe
+oder am Pfad der bearbeiteten Datei. Config, Dokumente und Pfade werden
+dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
