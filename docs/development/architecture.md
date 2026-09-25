@@ -63,7 +63,17 @@ RFC 2119 meaning.
   owner unless an existing config already clearly covers it; the AI MUST
   point this out before writing the secret anywhere.
 
-### 8. Load tiers
+### 8. Paths and configuration values
+
+- Paths, URLs, and other references to configs, databases, or services that
+  can differ between environments MUST NOT be hardcoded in source code.
+- They MUST be read from a config (the same config mechanism used for
+  secrets, or another central, documented config).
+- A path or URL that is deliberately identical in every environment MAY stay
+  in code; such an exception MUST be recognizable as intentional (e.g. a
+  named constant with a short comment stating why it never varies).
+
+### 9. Load tiers
 
 Everything that is always in context costs tokens in every session. A new
 rule or piece of module behavior MUST be placed by answering these questions
