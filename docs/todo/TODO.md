@@ -32,7 +32,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 - `EPIC-008` **Backlog über die API des ToDo-Viewers**
   - Type: Epic.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-28.
   - Area: Konfiguration.
   - Priority: Important.
@@ -55,7 +55,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Task.
   - Parent: `EPIC-008`.
   - Required for parent: Yes.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-28.
   - Area: Entwicklung.
   - Priority: Normal.

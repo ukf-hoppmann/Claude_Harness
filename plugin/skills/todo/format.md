@@ -180,7 +180,7 @@ from the trash for good (entry and `items/<ID>/`).
 
 ## Overview index
 
-API mode: `backlog_api.py <backlog folder> index`. Files mode: for an overview
+API mode: `backlog_api.py [--project <name>] index`. Files mode: for an overview
 across `TODO.md` and `archive.md` without reading either file in full, run:
 
 ```

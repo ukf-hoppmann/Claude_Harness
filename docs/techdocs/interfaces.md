@@ -112,13 +112,17 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 - Zweck: Backlog über die HTTP-API des ToDo-Viewers pflegen
   (`todo.backend = "api"`), ohne JSON-Aufrufe von Hand zu bauen. Maßgeblich
   für die API selbst ist `docs/techdocs/interfaces.md` im ToDo-Viewer.
-- Aufruf: `python3 plugin/scripts/backlog_api.py <backlog-ordner> <befehl>
-  [argumente]`. Die URL kommt aus `todo.api_url` der nächsten Config
-  oberhalb des Ordners.
+- Aufruf: `python3 plugin/scripts/backlog_api.py [--project <Name>] <befehl>
+  [argumente]` im Projekt der Session (Session-Root wie bei den Hooks).
+  Ohne `--project` gilt das Root-Projekt, sonst das eingetragene
+  Teilprojekt. Backlog-Ordner (`todo.path`) und URL (`todo.api_url`) kommen
+  aus dessen Config; einen Pfad nimmt das Skript nicht entgegen.
 - Quelle: Das Skript sucht in `GET /sources` den Eintrag, dessen `path` der
   Backlog-Ordner ist, und legt ihn sonst mit `POST /sources` an (Meldung auf
-  stderr). Liegt der Ordner in einem Git-Worktree, gilt derselbe Ordner im
-  Haupt-Checkout: Der Server schreibt immer dort.
+  stderr); für ein Teilprojekt mit dessen Namen als `project`, für das
+  Root-Projekt ohne (der Server nimmt den Namen des Git-Repos). Liegt der
+  Ordner in einem Git-Worktree, gilt derselbe Ordner im Haupt-Checkout: Der
+  Server schreibt immer dort.
 - Befehle:
 
   | Befehl | Wirkung |
@@ -140,8 +144,10 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 - Exit-Code: 0 bei Erfolg; 1 bei einer Fehlerantwort des Servers (stderr:
   `HTTP <Status> <code>: <message>`, dazu `details`; bei `version_conflict`
   der Hinweis, neu zu lesen statt blind zu wiederholen); 2 bei falschem
-  Aufruf, ungültigem JSON auf stdin oder ungültiger Config; 3, wenn der
-  Server nicht erreichbar ist.
+  Aufruf, ungültigem JSON auf stdin, fehlender oder ungültiger Config,
+  unbekanntem Projekt, abgeschaltetem Modul `todo` oder fehlender `TODO.md`
+  (dann wird auch keine Quelle angelegt); 3, wenn der Server nicht
+  erreichbar ist.
 
 ## Skript `daily.py`
 

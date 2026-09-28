@@ -1,4 +1,5 @@
 import json
+import os
 import socket
 import subprocess
 import sys
@@ -53,7 +54,7 @@ class FakeViewer:
         if (method, path) == ("GET", f"{API}/sources"):
             return 200, self.sources
         if (method, path) == ("POST", f"{API}/sources"):
-            source = {"id": "new1", "project": "p", "path": body["path"]}
+            source = {"id": "new1", "project": body.get("project") or "p", "path": body["path"]}
             self.sources.append(source)
             return 200, source
         return self.routes.get((method, path), (404, {"code": "not_found", "message": "no route"}))
@@ -72,6 +73,7 @@ class BacklogApiTest(unittest.TestCase):
         self.project = Path(self._tmp.name).resolve() / "project"
         self.todo = self.project / "docs" / "todo"
         self.todo.mkdir(parents=True)
+        (self.todo / "TODO.md").write_text("x\n")
         self.viewer = FakeViewer()
         self.write_config(self.viewer.url)
         self.viewer.sources.append({"id": "src1", "project": "project", "path": str(self.todo)})
@@ -80,15 +82,24 @@ class BacklogApiTest(unittest.TestCase):
         self.viewer.close()
         self._tmp.cleanup()
 
-    def write_config(self, url):
-        config = self.project / ".claude-harness" / "config.toml"
-        config.parent.mkdir(exist_ok=True)
-        config.write_text(f'version = 1\n[modules]\ntodo = true\n[todo]\napi_url = "{url}"\n')
+    def write_config(self, url, root=None, todo="true", extra=""):
+        config = (root or self.project) / ".claude-harness" / "config.toml"
+        config.parent.mkdir(parents=True, exist_ok=True)
+        config.write_text(f'version = 1\n[modules]\ntodo = {todo}\n[todo]\napi_url = "{url}"\n{extra}')
 
-    def run_api(self, *args, stdin="", folder=None):
+    def write_subproject(self):
+        self.write_config(self.viewer.url, extra='[projects]\nVariantFilter = "Plugins/VariantFilter"\n')
+        sub = self.project / "Plugins" / "VariantFilter"
+        self.write_config(self.viewer.url, root=sub)
+        (sub / "docs" / "todo").mkdir(parents=True)
+        (sub / "docs" / "todo" / "TODO.md").write_text("x\n")
+        return sub / "docs" / "todo"
+
+    def run_api(self, *args, stdin="", cwd=None):
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project))
         return subprocess.run(
-            [sys.executable, str(SCRIPTS / "backlog_api.py"), str(folder or self.todo), *args],
-            input=stdin, capture_output=True, text=True, timeout=30,
+            [sys.executable, str(SCRIPTS / "backlog_api.py"), *args],
+            input=stdin, capture_output=True, text=True, timeout=30, cwd=cwd or self.project, env=env,
         )
 
     def test_health(self):
@@ -106,7 +117,7 @@ class BacklogApiTest(unittest.TestCase):
         self.assertEqual(result.returncode, 3)
         self.assertIn("not reachable", result.stderr)
 
-    def test_index_uses_the_source_of_the_backlog_folder(self):
+    def test_index_uses_the_source_of_the_configured_backlog(self):
         self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": [
             {"source_id": "src1", "id": "EPIC-001", "type": "Epic", "status": "Open", "title": "Ä", "parent": None,
              "area": "Kern"},
@@ -128,9 +139,55 @@ class BacklogApiTest(unittest.TestCase):
         self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
         result = self.run_api("index")
         self.assertEqual(result.returncode, 0, result.stderr)
+        # The root project keeps the server's default name (the Git repository).
         self.assertEqual(self.viewer.calls("POST")[0]["body"], {"path": str(self.todo)})
         self.assertIn("registered", result.stderr)
         self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["new1"]})
+
+    def test_subproject_backlog_by_project_name(self):
+        sub_todo = self.write_subproject()
+        self.viewer.sources.append({"id": "src2", "project": "VariantFilter", "path": str(sub_todo)})
+        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
+        result = self.run_api("--project", "VariantFilter", "index")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["src2"]})
+
+    def test_new_subproject_source_carries_the_project_name(self):
+        sub_todo = self.write_subproject()
+        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
+        result = self.run_api("--project", "VariantFilter", "index")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            self.viewer.calls("POST")[0]["body"], {"path": str(sub_todo), "project": "VariantFilter"}
+        )
+
+    def test_unknown_project(self):
+        self.write_subproject()
+        result = self.run_api("--project", "Nope", "index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("unknown project 'Nope' (known: root, VariantFilter)", result.stderr)
+        self.assertEqual(self.viewer.requests, [])
+
+    def test_todo_module_off(self):
+        self.write_config(self.viewer.url, todo="false")
+        result = self.run_api("index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("module todo is off", result.stderr)
+        self.assertEqual(self.viewer.requests, [])
+
+    def test_missing_todo_file_registers_nothing(self):
+        (self.todo / "TODO.md").unlink()
+        self.viewer.sources.clear()
+        result = self.run_api("index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("TODO.md", result.stderr)
+        self.assertEqual(self.viewer.calls("POST"), [])
+
+    def test_without_config(self):
+        (self.project / ".claude-harness" / "config.toml").unlink()
+        result = self.run_api("index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("no .claude-harness/config.toml", result.stderr)
 
     def test_show(self):
         self.viewer.routes[("GET", f"{API}/items/src1/STORY-001")] = (200, {"id": "STORY-001", "version": "v1"})
@@ -197,18 +254,17 @@ class BacklogApiTest(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertEqual(self.viewer.calls("DELETE"), [])
 
-    def test_worktree_folder_uses_the_main_checkout_source(self):
+    def test_worktree_uses_the_main_checkout_source(self):
         def git(*args, cwd=self.project):
             subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
 
         git("init", "-q", "-b", "main")
-        (self.todo / "TODO.md").write_text("x\n")
         git("add", "-A")
         git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
         worktree = self.project / ".claude" / "worktrees" / "w1"
         git("worktree", "add", "-q", "-b", "w1", str(worktree))
         self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
-        result = self.run_api("index", folder=worktree / "docs" / "todo")
+        result = self.run_api("index", cwd=worktree)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.viewer.calls("POST"), [])
         self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["src1"]})

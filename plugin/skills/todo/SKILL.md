@@ -16,7 +16,8 @@ description: Rules for the project backlog (TODO.md, archive.md, per-item notes 
    English.
 3. `[todo].backend` decides how you work on it (default `api`):
    - `api`: only through the ToDo-Viewer's HTTP API, using
-     `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" <backlog folder> <command>`.
+     `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" [--project <name>] <command>`
+     (`--project` for a subproject's backlog).
      Commands and inputs: [api.md](api.md); read it before the first call.
      Never edit `TODO.md`, `archive.md`, or `items/` directly in this mode.
    - `files`: edit the Markdown files directly as [format.md](format.md)
