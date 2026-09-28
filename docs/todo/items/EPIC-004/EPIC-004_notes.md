@@ -33,3 +33,14 @@ nicht mehr dazu.
   STORY-029 angewendet: Architekturregeln gelesen, Plan in Abschnitten mit
   Tests zuerst, Worktree-Ablauf, volle Testsuite. Danach folgt der erste
   Release-Tag `v0.1.0`.
+
+## 2026-09-28 — Wiedereröffnet für STORY-037
+
+### Discussed
+
+- STORY-037 (Testkonventionen) gehört fachlich zu diesem Epic; die Testebenen aus EPIC-004 wurden nie umgesetzt. Der ToDo-Viewer nimmt unter einem abgeschlossenen Parent kein aktives Kind an.
+
+### Decided
+
+- Auf Wunsch des Owners wieder auf In progress gesetzt und STORY-037 als optionales Kind (Required for parent: No) eingehängt.
+- Das Epic kann wieder abgeschlossen werden, sobald STORY-037 geschlossen ist.

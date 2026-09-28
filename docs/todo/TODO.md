@@ -51,7 +51,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 - `STORY-037` **Testkonventionen: Ablage, Gliederung, Test-Arten**
   - Type: Story.
-  - Parent: None.
+  - Parent: `EPIC-004`.
   - Status: Open.
   - Created: 2026-09-28.
   - Area: Entwicklung.
@@ -73,3 +73,24 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     gegliedert ist. Unterscheidet Tests, die der Agent für sich baut, von
     Tests, mit denen der Owner Funktionen selbst prüft.
   - Notes: `items/STORY-037/STORY-037_notes.md`.
+  - Required for parent: No.
+
+- `EPIC-004` **Entwicklungsprozess & Prinzipien**
+  - Type: Epic.
+  - Status: In progress.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Verbindlich festlegen, wie in einem Projekt entwickelt wird:
+    projektweite Architektur-Definitionen, Heuristik zur Task-Zerlegung,
+    Change-Ablauf (Workspace, Ablauf, Cleanup), TDD-Ritual und einheitliche
+    Testebenen (Unit/Integration/System), damit Qualität nicht vom Zufall
+    abhängt.
+  - Completion criteria: Architektur-Definitionen, Zerlegungs-Heuristik,
+    Change-Ablauf und Testkommando sind dokumentiert und werden bei
+    mindestens einem Change sichtbar angewendet.
+  - Summary: Legt fest, wie entwickelt wird: Architekturregeln, Zerlegung,
+    Change-Ablauf im Worktree, Tests und Versionierung. Ein eigenes
+    Prinzipien-Dokument gehört nicht mehr dazu.
+  - Notes: `items/EPIC-004/EPIC-004_notes.md`.

@@ -24,3 +24,9 @@
 - Wie werden Testordner und Kommandos je Projekt festgehalten: fest im Plugin, in der Harness-Config oder in einer Projektvorlage?
 - Umgang mit Frameworks, die eine eigene Ablage erwarten (z. B. __tests__ neben dem Code bei Jest).
 - EPIC-004 wiedereröffnen und die Story als optionales Kind einhängen?
+
+## 2026-09-28 — Unter EPIC-004 eingehängt
+
+### Decided
+
+- Auf Wunsch des Owners EPIC-004 wieder geöffnet und die Story als optionales Kind (Required for parent: No) eingehängt; die offene Frage dazu ist damit erledigt.
