@@ -29,7 +29,7 @@ EOF
 | Command | Use |
 |---|---|
 | `health` | Is the server reachable? |
-| `index` | Overview: `ID \| Type \| Status \| Title \| Parent` |
+| `index` | Overview: `ID \| Type \| Status \| Area \| Title \| Parent` (Area `-` if the server does not deliver it) |
 | `show <ID>` | One item as JSON with its `version`, archived items included |
 | `create` | New item. stdin: `type`, `title`, `area`, `goal`, `completion_criteria`, optional `parent`, `required_for_parent` (`"Yes"`/`"No"`), `priority`, `dependencies` (list of IDs), `summary`. Prints the item with its new ID |
 | `update <ID> <version>` | stdin: `{"fields": {...}}` with any of `title`, `status`, `parent`, `required_for_parent`, `priority`, `dependencies`, `area`, `goal`, `completion_criteria`, `summary`; add `"resolution": "..."` when setting `Completed` or `Rejected` |

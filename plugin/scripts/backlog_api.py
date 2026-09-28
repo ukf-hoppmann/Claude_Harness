@@ -22,7 +22,7 @@ from worktree import WorktreeError, in_main_checkout
 USAGE = """usage: backlog_api.py [--project <name>] <command> [arguments]
   --project <name>                        a registered subproject; default: the root project
   health                                  server reachable?
-  index                                   one line per item: ID | Type | Status | Title | Parent
+  index                                   one line per item: ID | Type | Status | Area | Title | Parent
   show <ID>                               item as JSON, with its version (archived items too)
   create                                  stdin: JSON fields (type, title, area, goal, completion_criteria, ...)
   update <ID> <version>                   stdin: JSON {"fields": {...}, "resolution": ...}
@@ -174,9 +174,11 @@ def run(project_name: str, command: str, args: list[str]) -> None:
 
     if command == "index":
         items = api.call("GET", "/index", query={"source_id": sid})["items"]
-        print("ID | Type | Status | Title | Parent")
+        print("ID | Type | Status | Area | Title | Parent")
         for item in items:
-            print(f"{item['id']} | {item['type']} | {item['status']} | {item['title']} | {item['parent'] or '-'}")
+            # The ToDo-Viewer index may not deliver the area yet; "-" keeps the columns aligned.
+            print(f"{item['id']} | {item['type']} | {item['status']} | {item.get('area') or '-'} "
+                  f"| {item['title']} | {item['parent'] or '-'}")
     elif command == "show":
         _print_json(api.call("GET", _item(sid, positional[0])))
     elif command == "create":
