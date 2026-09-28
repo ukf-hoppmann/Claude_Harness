@@ -9,16 +9,19 @@ not know which changes the project owner approved: the change authority in
 ## Calling the helper
 
 ```
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" <backlog folder> <command> [arguments]
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" [--project <name>] <command> [arguments]
 ```
 
-The helper finds the ToDo-Viewer source of the backlog folder (and registers
-it if missing) and reads the URL from `[todo].api_url`. Inside a worktree it
-uses the same folder in the main checkout. JSON input goes to stdin; use a
-quoted heredoc so the shell leaves the text alone:
+Run it in the session's project. It takes the backlog folder and the URL from
+the harness config: the root project by default, a subproject with
+`--project <name>` (the names the session start lists). Pick the project the
+work belongs to; there is no path argument. The helper finds the ToDo-Viewer
+source of that backlog and registers it if missing. Inside a worktree it uses
+the backlog of the main checkout. JSON input goes to stdin; use a quoted
+heredoc so the shell leaves the text alone:
 
 ```
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" docs/todo update STORY-017 3f9a... <<'EOF'
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" update STORY-017 3f9a... <<'EOF'
 {"fields": {"status": "In progress"}}
 EOF
 ```
