@@ -100,6 +100,42 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   `(deleted <Datum>)` hinter dem Status.
 - Exit-Code: 0 ohne Fehler, 1 bei Fehlern, 2 bei falschem Aufruf.
 
+## Skript `backlog_api.py`
+
+- Zweck: Backlog über die HTTP-API des ToDo-Viewers pflegen
+  (`todo.backend = "api"`), ohne JSON-Aufrufe von Hand zu bauen. Maßgeblich
+  für die API selbst ist `docs/techdocs/interfaces.md` im ToDo-Viewer.
+- Aufruf: `python3 plugin/scripts/backlog_api.py <backlog-ordner> <befehl>
+  [argumente]`. Die URL kommt aus `todo.api_url` der nächsten Config
+  oberhalb des Ordners.
+- Quelle: Das Skript sucht in `GET /sources` den Eintrag, dessen `path` der
+  Backlog-Ordner ist, und legt ihn sonst mit `POST /sources` an (Meldung auf
+  stderr). Liegt der Ordner in einem Git-Worktree, gilt derselbe Ordner im
+  Haupt-Checkout: Der Server schreibt immer dort.
+- Befehle:
+
+  | Befehl | Wirkung |
+  |---|---|
+  | `health` | Erreichbarkeit (`GET /health`) |
+  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Title \| Parent` |
+  | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte |
+  | `create` | Neuer Eintrag; stdin: JSON-Felder ohne `source_id`; die ID vergibt der Server |
+  | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` |
+  | `note <ID>` | Notes-Eintrag anhängen; stdin: `{topic, discussed, decided, open, summary?}` |
+  | `doc <ID> <name>` | Notes oder Spec ausgeben: `version: <v>`, Leerzeile, Inhalt |
+  | `put-doc <ID> <name> <version\|new> [--summary TEXT]` | Dokument mit dem Text von stdin ersetzen oder neu anlegen |
+  | `delete <ID> <version> [--cascade]` | In den Papierkorb, mit `--cascade` samt Nachfahren |
+  | `trash` | Einträge im Papierkorb als JSON |
+  | `restore <ID> <version>` | Aus dem Papierkorb zurückholen |
+
+  Endgültiges Löschen aus dem Papierkorb bietet das Skript bewusst nicht an;
+  das macht nur der Projektverantwortliche.
+- Exit-Code: 0 bei Erfolg; 1 bei einer Fehlerantwort des Servers (stderr:
+  `HTTP <Status> <code>: <message>`, dazu `details`; bei `version_conflict`
+  der Hinweis, neu zu lesen statt blind zu wiederholen); 2 bei falschem
+  Aufruf, ungültigem JSON auf stdin oder ungültiger Config; 3, wenn der
+  Server nicht erreichbar ist.
+
 ## Skript `daily.py`
 
 - Aufruf: `python3 plugin/scripts/daily.py pending|ack [--project <Name>]`

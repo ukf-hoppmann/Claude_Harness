@@ -22,7 +22,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Config-Lader | Liest und validiert `.claude-harness/config.toml` | `plugin/scripts/harness_config.py` |
 | Projekte | Lädt das Root-Projekt und die in `[projects]` eingetragenen Teilprojekte und ordnet jede Datei ihrem Projekt zu | `plugin/scripts/projects.py` |
 | Session-Start | Meldet aktive Module, Sprache, fehlende Dateien und Backlog-Fehler, bei Teilprojekten pro Projekt | `plugin/scripts/session_start.py` |
-| Modul `todo` | Skill mit Backlog-Regeln, Formatprüfung, Prüf-Hooks | `plugin/skills/todo/`, `plugin/scripts/backlog.py`, `mark_backlog_dirty.py`, `check_backlog.py` |
+| Modul `todo` | Skill mit Backlog-Regeln; Backend `api`: Helfer für die HTTP-API des ToDo-Viewers (der Server prüft Format und Regeln); Backend `files`: Formatprüfung und Prüf-Hooks | `plugin/skills/todo/`, `plugin/scripts/backlog_api.py`, `backlog.py`, `mark_backlog_dirty.py`, `check_backlog.py` |
 | Modul `daily` | Skill, Git-Auswertung, Erinnerungs-Hook | `plugin/skills/daily/`, `plugin/scripts/daily.py`, `check_daily.py` |
 | Modul `techdocs` | Skill, Dateiklassifikation, Erinnerungs-Hooks | `plugin/skills/techdocs/`, `plugin/scripts/techdocs.py`, `mark_techdocs.py`, `check_techdocs.py` |
 | Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, geerbte Regeln anderer Projekte, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py` |
@@ -43,7 +43,7 @@ Teilprojekten steht jeder Skill-Hinweis einmal, dazu eine Zeile pro Projekt.
 
 | Modul | Hook (prüft, kostet nichts, solange alles stimmt) | Skill (lädt beim Thema) | Skript | Warum so |
 |---|---|---|---|---|
-| `todo` | Formatprüfung am Ende eines Turns, nur nach Backlog-Änderungen | Backlog-Regeln; Formatdetails in `format.md`, nur beim Anlegen oder bei Fehlern | `backlog.py` (Prüfung, Übersicht) | Das Format lässt sich prüfen und darf nicht kaputtgehen; die Arbeitsregeln betreffen nur Backlog-Arbeit |
+| `todo` | Nur Backend `files`: Formatprüfung am Ende eines Turns, nur nach Backlog-Änderungen | Backlog-Regeln; API-Befehle in `api.md`, Formatdetails in `format.md`, jeweils nur bei Bedarf | `backlog_api.py` (API), `backlog.py` (Prüfung, Übersicht) | Im API-Modus prüft der Server jede Änderung; im Datei-Modus lässt sich das Format prüfen und darf nicht kaputtgehen; die Arbeitsregeln betreffen nur Backlog-Arbeit |
 | `daily` | Erinnerung bei neuen Commits auf dem Hauptzweig | Berichtsregeln | `daily.py` (offene Commits, Bestätigen) | Das Fehlen eines Berichts ist erkennbar; Schreiben ist nur nach Commits Thema; die Git-Auswertung ist stures Abarbeiten |
 | `techdocs` | Erinnerung, wenn Code, aber keine Doku geändert wurde | Doku-Regeln | – | Vergessene Doku ist erkennbar; die Regeln braucht es nur bei dokumentationsrelevanten Änderungen |
 | `development` / `architecture` | Blockiert Plan, Spec und Code-Änderungen, bis die Regeln gelesen sind | Umgang mit Architekturregeln | – | Die Regeln gelten für jede Code-Änderung und dürfen nicht übergangen werden; Bereichsregeln als Scopes nur für passende Pfade |

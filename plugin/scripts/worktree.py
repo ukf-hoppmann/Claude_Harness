@@ -78,6 +78,12 @@ def _main_checkout(cwd: Path) -> tuple[Path, str | None]:
     return path, branch
 
 
+def in_main_checkout(path: Path) -> Path:
+    """The same place as the directory path, but in the repository's main worktree; WorktreeError outside Git."""
+    top = Path(_git_out(path, "rev-parse", "--show-toplevel")).resolve()
+    return _main_checkout(path)[0].resolve() / path.resolve().relative_to(top)
+
+
 def _current_worktree_branch(cwd: Path) -> str:
     git_dir = Path(_git_out(cwd, "rev-parse", "--absolute-git-dir")).resolve()
     common_dir = (cwd / _git_out(cwd, "rev-parse", "--git-common-dir")).resolve()
