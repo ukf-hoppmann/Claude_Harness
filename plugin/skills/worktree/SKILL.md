@@ -53,9 +53,11 @@ merge commit can be undone with one `git revert -m 1`.
 
 ## Work
 
-Implement and commit in the worktree. Backlog and technical-doc changes of
-the change belong in the same branch. Daily reports are written in the main
-checkout after the merge, as the `daily` skill says.
+Implement and commit in the worktree. Technical-doc changes of the change
+belong in the same branch, and so do backlog changes when `[todo].backend` is
+`files`. With `api`, the server writes the backlog in the main checkout; the
+`todo` skill says when to commit it there. Daily reports are written in the
+main checkout after the merge, as the `daily` skill says.
 
 ## Finish (no questions)
 
@@ -69,7 +71,8 @@ checkout after the merge, as the `daily` skill says.
 3. Call `ExitWorktree` with `action: "keep"`. The session is back in the
    main checkout (`main` from `check`); Claude Code does not let a worktree
    session run git on the main checkout.
-4. In the main checkout:
+4. In the main checkout: if the backlog was changed through the API during
+   the change, first commit the backlog folder there (`Backlog: …`). Then
    `git merge --no-ff <worktree-branch> -m "<what the change does>"`.
    If git refuses because the owner's local changes would be overwritten,
    stop and report. Never stash, reset, or force anything there.
