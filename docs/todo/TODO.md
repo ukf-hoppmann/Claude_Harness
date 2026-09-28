@@ -12,7 +12,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 - `TASK-015` **Einzelitem-Abruf in backlog.py für archive.md**
   - Type: Task.
   - Parent: None.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-27.
   - Area: Dokumentation.
   - Priority: Normal.
@@ -29,3 +29,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     ID); `format.md` und `SKILL.md` verweisen auf den neuen Modus statt auf
     Volllesen von `archive.md`; `docs/techdocs/interfaces.md` beschreibt die
     neue Option.
+  - Notes: `items/TASK-015/TASK-015_notes.md`.
+  - Summary: Das Archiv soll nicht mehr als ganze Datei geladen werden. Erst
+    kommt eine kurze Liste aller Einträge, danach werden nur die Einträge
+    geöffnet, die gerade gebraucht werden.
