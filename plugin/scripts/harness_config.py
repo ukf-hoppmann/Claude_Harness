@@ -17,6 +17,11 @@ KNOWN_MODULES = ("todo", "daily", "techdocs", "development", "semver")
 DEFAULT_DOCS_ROOT = PurePosixPath("docs")
 DEFAULT_LANGUAGE = "en"
 DEFAULT_TODO_PATH = PurePosixPath("todo")
+# How the AI works on the backlog: through the ToDo-Viewer's HTTP API, or on the files directly.
+TODO_BACKENDS = ("api", "files")
+DEFAULT_TODO_BACKEND = "api"
+# Default address of the ToDo-Viewer container (bound to localhost only); todo.api_url overrides it.
+DEFAULT_TODO_API_URL = "http://localhost:5411/api/v2"
 DEFAULT_DAILY_PATH = PurePosixPath("daily")
 DEFAULT_TECHDOCS_PATH = PurePosixPath("techdocs")
 DEFAULT_DEVELOPMENT_PATH = PurePosixPath("development")
@@ -29,7 +34,7 @@ DEFAULT_TECHDOCS = ("architecture", "interfaces", "configuration")
 # Allowed keys per table; [modules] allows KNOWN_MODULES.
 TABLE_KEYS = {
     "docs": {"root", "language"},
-    "todo": {"path"},
+    "todo": {"path", "backend", "api_url"},
     "daily": {"path"},
     "techdocs": {"path", "documents"},
     "development": {"path", *DEVELOPMENT_PARTS},
@@ -40,6 +45,7 @@ _TOP_LEVEL_KEYS = {"version", "modules", "projects", *TABLE_KEYS}
 # Tables only the root project may contain: the subproject registry and the harness repo.
 _ROOT_ONLY_TABLES = ("projects", "harness")
 _LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
+_URL_PATTERN = re.compile(r"https?://\S+")
 PROJECT_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
 ROOT_PROJECT = "root"
 
@@ -126,6 +132,8 @@ class HarnessConfig:
     semver_file: PurePosixPath = DEFAULT_DOCS_ROOT / DEFAULT_VERSION_FILE
     semver_sync: tuple[PurePosixPath, ...] = ()
     semver_paths: tuple[PurePosixPath, ...] = (PurePosixPath("."),)
+    todo_backend: str = DEFAULT_TODO_BACKEND
+    todo_api_url: str = DEFAULT_TODO_API_URL
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
@@ -250,7 +258,15 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
     if not isinstance(language, str) or not _LANGUAGE_PATTERN.fullmatch(language):
         errors.append(f"docs.language must be a two-letter ISO 639-1 code, got {language!r}")
 
-    todo_path = _path_value(_table(data, "todo", errors), "path", "todo", DEFAULT_TODO_PATH, errors)
+    raw_todo = _table(data, "todo", errors)
+    todo_path = _path_value(raw_todo, "path", "todo", DEFAULT_TODO_PATH, errors)
+    todo_backend = raw_todo.get("backend", DEFAULT_TODO_BACKEND)
+    if todo_backend not in TODO_BACKENDS:
+        errors.append(f"todo.backend must be one of {', '.join(TODO_BACKENDS)}, got {todo_backend!r}")
+    todo_api_url = raw_todo.get("api_url", DEFAULT_TODO_API_URL)
+    if not isinstance(todo_api_url, str) or not _URL_PATTERN.fullmatch(todo_api_url):
+        errors.append(f"todo.api_url must be an http(s) URL, got {todo_api_url!r}")
+        todo_api_url = DEFAULT_TODO_API_URL
     daily_path = _path_value(_table(data, "daily", errors), "path", "daily", DEFAULT_DAILY_PATH, errors)
     raw_techdocs = _table(data, "techdocs", errors)
     techdocs_path = _path_value(raw_techdocs, "path", "techdocs", DEFAULT_TECHDOCS_PATH, errors)
@@ -294,6 +310,8 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
         semver_file=docs_root / semver_file,
         semver_sync=semver_sync,
         semver_paths=semver_paths,
+        todo_backend=todo_backend,
+        todo_api_url=todo_api_url.rstrip("/"),
     )
 
 
