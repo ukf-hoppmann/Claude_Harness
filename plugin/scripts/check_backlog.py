@@ -47,7 +47,7 @@ def main() -> int:
     blocks: list[str] = []
     for name in sorted(dirty):
         project = projects.get(name) if projects else None
-        if project is None or not project.config.enabled("todo"):
+        if project is None or not project.config.enabled("todo") or project.config.todo_backend != "files":
             continue
         report = validate_backlog(project.root / project.config.todo_path)
         new_notices = [n for n in report.notices if _notice_key(name, n) not in delivered]

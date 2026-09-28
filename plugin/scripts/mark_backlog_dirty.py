@@ -23,7 +23,8 @@ def main() -> int:
     except ConfigError:
         return 0
     project = projects.for_file(file_path) if projects else None
-    if project is None or not project.config.enabled("todo"):
+    # With the API backend the server checks every change; only direct file edits are checked here.
+    if project is None or not project.config.enabled("todo") or project.config.todo_backend != "files":
         return 0
     if project.relative(file_path).is_relative_to(project.config.todo_path):
         # The marker lists the projects whose backlog changed in this session.

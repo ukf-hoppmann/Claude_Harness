@@ -65,12 +65,12 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
-| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand, Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt, jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
+| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: bei `todo.backend = "api"` Ordner und API-URL ohne Formatprüfung und ohne Erreichbarkeitsprüfung, bei `files` Pfad von `TODO.md` samt Prüfergebnis), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt, jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
-| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört | keine |
+| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur bei `todo.backend = "files"`: Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
 | PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
-| Stop | `check_backlog.py` | Prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
+| Stop | `check_backlog.py` | Nur bei `todo.backend = "files"`: prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
 | Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Hauptzweig (nur Haupt-Checkout; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
 | Stop | `check_techdocs.py` | Erinnert einmal pro Projekt und Session, wenn Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden; mit Teilprojekten nennt die Meldung jedes betroffene Projekt mit seinen Doku-Pfaden | Exit 2 + stderr |
 | Stop | `check_semver.py` | Nur in einem Git-Repo. Meldet pro Projekt mit Modul `semver`: Versionsdatei fehlt oder enthält keine gültige Version; Version liegt unter dem letzten Release oder mehr als einen Schritt darüber; eine Spiegel-Datei fehlt oder enthält die Version nicht. Derselbe Befund wird einmal pro Projekt und Session gemeldet; mit Teilprojekten nennt die Meldung jedes Projekt samt Aufruf `semver.py status --project <Name>` | Exit 2 + stderr |
@@ -96,8 +96,45 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 - Aufruf: `python3 plugin/scripts/backlog.py <backlog-ordner> [--index]`
 - Ohne `--index`: listet Fehler und Hinweise und eine Zusammenfassung.
 - Mit `--index`: eine Zeile pro Eintrag über `TODO.md` und `archive.md`
-  (`ID | Type | Status | Title | Parent`).
+  (`ID | Type | Status | Title | Parent`); Einträge im Papierkorb tragen
+  `(deleted <Datum>)` hinter dem Status.
 - Exit-Code: 0 ohne Fehler, 1 bei Fehlern, 2 bei falschem Aufruf.
+
+## Skript `backlog_api.py`
+
+- Zweck: Backlog über die HTTP-API des ToDo-Viewers pflegen
+  (`todo.backend = "api"`), ohne JSON-Aufrufe von Hand zu bauen. Maßgeblich
+  für die API selbst ist `docs/techdocs/interfaces.md` im ToDo-Viewer.
+- Aufruf: `python3 plugin/scripts/backlog_api.py <backlog-ordner> <befehl>
+  [argumente]`. Die URL kommt aus `todo.api_url` der nächsten Config
+  oberhalb des Ordners.
+- Quelle: Das Skript sucht in `GET /sources` den Eintrag, dessen `path` der
+  Backlog-Ordner ist, und legt ihn sonst mit `POST /sources` an (Meldung auf
+  stderr). Liegt der Ordner in einem Git-Worktree, gilt derselbe Ordner im
+  Haupt-Checkout: Der Server schreibt immer dort.
+- Befehle:
+
+  | Befehl | Wirkung |
+  |---|---|
+  | `health` | Erreichbarkeit (`GET /health`) |
+  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Title \| Parent` |
+  | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte |
+  | `create` | Neuer Eintrag; stdin: JSON-Felder ohne `source_id`; die ID vergibt der Server |
+  | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` |
+  | `note <ID>` | Notes-Eintrag anhängen; stdin: `{topic, discussed, decided, open, summary?}` |
+  | `doc <ID> <name>` | Notes oder Spec ausgeben: `version: <v>`, Leerzeile, Inhalt |
+  | `put-doc <ID> <name> <version\|new> [--summary TEXT]` | Dokument mit dem Text von stdin ersetzen oder neu anlegen |
+  | `delete <ID> <version> [--cascade]` | In den Papierkorb, mit `--cascade` samt Nachfahren |
+  | `trash` | Einträge im Papierkorb als JSON |
+  | `restore <ID> <version>` | Aus dem Papierkorb zurückholen |
+
+  Endgültiges Löschen aus dem Papierkorb bietet das Skript bewusst nicht an;
+  das macht nur der Projektverantwortliche.
+- Exit-Code: 0 bei Erfolg; 1 bei einer Fehlerantwort des Servers (stderr:
+  `HTTP <Status> <code>: <message>`, dazu `details`; bei `version_conflict`
+  der Hinweis, neu zu lesen statt blind zu wiederholen); 2 bei falschem
+  Aufruf, ungültigem JSON auf stdin oder ungültiger Config; 3, wenn der
+  Server nicht erreichbar ist.
 
 ## Skript `daily.py`
 

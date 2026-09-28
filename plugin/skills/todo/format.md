@@ -1,17 +1,20 @@
 # Claude_Harness backlog format, version 1
 
 The backlog lives in the folder configured as `[todo].path` below `[docs].root` in
-`.claude-harness/config.toml` (default `docs/todo`):
+`.claude-harness/config.toml` (default `docs/todo`). With `[todo].backend =
+"api"` the ToDo-Viewer server writes this format and enforces its rules
+(see [api.md](api.md)); with `"files"` the AI writes it directly.
 
 ```
 <todo path>/
  ├─ TODO.md          active items (Open, In progress, Awaiting confirmation)
- ├─ archive.md       Completed and Rejected items
+ ├─ archive.md       Completed and Rejected items, and the trash
  └─ items/<ID>/      optional notes and spec per item
 ```
 
 Both files contain exactly one `## Work items` section. An empty section
-contains the line `No entries.`. `TODO.md` and `archive.md` form one backlog:
+contains the line `No entries.` (always in English, like the format line near
+the top of `TODO.md`). `TODO.md` and `archive.md` form one backlog:
 identifiers are unique across both, and references may cross between them.
 Position and ordering do not determine status or hierarchy.
 
@@ -96,7 +99,8 @@ new area is introduced only when no existing one fits.
 
 ## Parent lifecycle
 
-- An epic needs at least one required child before it leaves `Open`.
+- An epic needs at least one required child before it leaves `Open`, except
+  to `Rejected`: an epic without children may be rejected.
 - A parent cannot be `Awaiting confirmation` until every required child is
   `Awaiting confirmation` or `Completed`, and cannot be `Completed` until
   every required child is `Completed`.
@@ -127,6 +131,9 @@ new area is introduced only when no existing one fits.
 - `Notes`: Path to the item's notes file, relative to the backlog folder.
 - `Spec`: Path to the item's spec file, relative to the backlog folder.
 
+- `Deleted`: Date (`YYYY-MM-DD`) the item was moved to the trash; see
+  [Trash](#trash).
+
 `Notes` and `Spec` appear only when the file exists. For now they contain
 exactly one path; multiple comma-separated paths are allowed.
 
@@ -155,22 +162,33 @@ Daily development reports do not belong in the backlog folder.
 Once an item is `Completed` or `Rejected` and has its `Resolution`, it moves
 unchanged from `TODO.md` to `archive.md`. Its item folder stays in `items/`.
 References to archived IDs remain valid. `archive.md` never contains active
-items.
+items, except deleted ones in the [trash](#trash).
 
 Reopening an archived item moves it back to `TODO.md` with status `Open` or
 `In progress` and without `Resolution`. The reason is recorded in the item's
 notes (create them, with `Summary`, if the item has none).
 
+## Trash
+
+Deleting an item does not remove it: it gets `Deleted: <YYYY-MM-DD>.` and
+moves to `archive.md` unchanged otherwise, whatever its status (an item with
+children is deleted together with them). Deleted items keep their ID and
+files, and references to them stay valid, but the parent rules and the
+placement rule for `archive.md` ignore them. Restoring removes `Deleted` and
+moves an active item back to `TODO.md`. Only the project owner removes an item
+from the trash for good (entry and `items/<ID>/`).
+
 ## Overview index
 
-For an overview across `TODO.md` and `archive.md` without reading either file
-in full, run:
+API mode: `backlog_api.py <backlog folder> index`. Files mode: for an overview
+across `TODO.md` and `archive.md` without reading either file in full, run:
 
 ```
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --index
 ```
 
-It prints one line per item: `ID | Type | Status | Title | Parent`.
+It prints one line per item: `ID | Type | Status | Title | Parent`; deleted
+items show `(deleted <date>)` after their status.
 
 ## Change authority
 
@@ -185,7 +203,9 @@ The agent may change without asking:
 
 The agent proposes and waits for project-owner approval before:
 
-- creating or deleting items;
+- creating items, or deleting them unless the request clearly asks for it
+  (deleting moves an item to the [trash](#trash); only the project owner
+  removes it for good);
 - changing the meaning of `Goal` or `Completion criteria`, or changing
   `Parent`, `Required for parent`, `Dependencies`, or `Priority`;
 - setting `Completed` or `Rejected`, or reopening a closed item.

@@ -38,3 +38,35 @@
 - Agent_Harness aus LLM_Tests und my_story_game entfernen und deren Backlogs
   migrieren; danach prüft der Viewer fest auf die Claude_Harness-Kennung.
   Läuft in einer eigenen Session.
+
+## 2026-09-28 — Umsetzung
+
+### Discussed
+
+- Zwei Punkte der Übergabe stimmten nicht: `backlog.py` prüfte unbekannte
+  Verweise schon und erlaubte das Ablehnen eines leeren Epics schon; nur
+  `format.md` sagte es beim Epic noch anders.
+
+### Decided
+
+- `backlog_api.py` kapselt die API; JSON kommt über stdin, Dokumente als
+  Rohtext. Endgültiges Löschen bietet das Skript bewusst nicht an. Exit 3
+  heißt „Server nicht erreichbar“.
+- Liegt der Backlog-Ordner in einem Worktree, nutzt das Skript denselben
+  Ordner im Haupt-Checkout als Quelle (`worktree.in_main_checkout`); so
+  entsteht keine zweite Quelle je Worktree.
+- API-Befehle stehen in `plugin/skills/todo/api.md` und werden nur bei Bedarf
+  gelesen; der Sitzungsstart prüft die Erreichbarkeit nicht (Hooks ohne
+  Netzwerk).
+- Der Index von `backlog.py` markiert gelöschte Einträge mit
+  `(deleted <Datum>)`, statt sie auszublenden.
+- Nachweis: 216 Tests grün; zusätzlich ein Durchlauf gegen den laufenden
+  Viewer auf einem temporären Backlog (Anlegen, Ändern, Versionskonflikt,
+  Regelverstoß, Notes anhängen und ersetzen, Spec, Löschen mit Kindern,
+  Papierkorb, Wiederherstellen); `backlog.py` akzeptierte die vom Viewer
+  geschriebenen Dateien in jedem Zustand. Quelle und Ordner wurden danach
+  entfernt.
+
+### Open
+
+- Dieses Repo arbeitet nach dem Merge mit dem Standard `backend = "api"`.

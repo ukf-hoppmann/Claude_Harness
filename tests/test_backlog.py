@@ -215,6 +215,68 @@ class BacklogTest(unittest.TestCase):
     def test_unknown_field(self):
         self.assertError(self.check([item("STORY-001", Owner="me")]), "unknown fields: Owner")
 
+    def test_only_english_empty_marker(self):
+        self.dir.mkdir(parents=True)
+        (self.dir / "TODO.md").write_text("# Backlog\n\n## Work items\n\nKeine Einträge.\n")
+        self.assertError(validate_backlog(self.dir), "invalid backlog content: Keine Einträge.")
+
+    def test_deleted_item_in_archive_keeps_active_status(self):
+        report = self.check([], [item("STORY-001", Status="In progress", Deleted="2026-09-28.")])
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.items[0].deleted.isoformat(), "2026-09-28")
+
+    def test_deleted_item_belongs_in_archive(self):
+        self.assertError(
+            self.check([item("STORY-001", Deleted="2026-09-28.")], []),
+            "STORY-001 is Deleted and belongs in archive.md",
+        )
+
+    def test_deleted_requires_date(self):
+        self.assertError(
+            self.check([], [item("STORY-001", Deleted="gestern")]), "STORY-001 Deleted must use YYYY-MM-DD"
+        )
+
+    def test_deleted_children_do_not_count_for_parent_rules(self):
+        report = self.check(
+            [item("EPIC-001", Type="Epic", Status="In progress")],
+            [item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes", Deleted="2026-09-28.")],
+        )
+        self.assertError(report, "EPIC-001 Epic with Status In progress requires at least one required child")
+        report = self.check(
+            [],
+            [
+                item("EPIC-001", Type="Epic", Status="Completed", Resolution="Confirmed."),
+                item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes",
+                     Status="Completed", Resolution="Confirmed."),
+                item("STORY-002", Parent="`EPIC-001`", Required_for_parent="No", Deleted="2026-09-28."),
+            ],
+        )
+        self.assertEqual(report.errors, [])
+
+    def test_deleted_parent_is_not_checked(self):
+        report = self.check([], [
+            item("EPIC-001", Type="Epic", Status="In progress", Deleted="2026-09-28."),
+            item("STORY-001", Parent="`EPIC-001`", Required_for_parent="Yes", Deleted="2026-09-28."),
+        ])
+        self.assertEqual(report.errors, [])
+
+    def test_index_marks_deleted_items(self):
+        from backlog import format_index
+        report = self.check([], [item("STORY-001", "Weg", Deleted="2026-09-28.")])
+        self.assertEqual(format_index(report).splitlines()[1:], [
+            "STORY-001 | Story | Open (deleted 2026-09-28) | Weg | -",
+        ])
+
+    def test_unknown_parent(self):
+        self.assertError(
+            self.check([item("STORY-001", Parent="`EPIC-099`", Required_for_parent="Yes")]),
+            "references missing parent: EPIC-099",
+        )
+
+    def test_empty_epic_may_be_rejected(self):
+        report = self.check([], [item("EPIC-001", Type="Epic", Status="Rejected", Resolution="Abgelehnt.")])
+        self.assertEqual(report.errors, [])
+
     def test_repository_backlog_is_valid(self):
         report = validate_backlog(REPO_ROOT / "docs" / "todo")
         self.assertEqual(report.errors, [])

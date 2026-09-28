@@ -104,6 +104,9 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
     if config.enabled("todo"):
         if not (root / config.todo_path / TODO_FILE).is_file():
             lines.append(_backlog_missing(config, show))
+        elif config.todo_backend == "api":
+            # No reachability check here: hooks do not use the network.
+            lines.append(f"Backlog: {config.todo_path} via ToDo-Viewer API ({config.todo_api_url}); {TODO_HINT}")
         else:
             lines.append(f"Backlog: {config.todo_path}/{TODO_FILE}; {TODO_HINT}")
             lines += _backlog_problems(root, config)
@@ -174,7 +177,9 @@ def _project_line(projects: ProjectSet, project: Project) -> str:
     show = _shown_in(project)
     modules = ", ".join(sorted(name for name, enabled in config.modules.items() if enabled)) or "none"
     parts = [f"language {config.language}", f"modules {modules}"]
-    if config.enabled("todo"):
+    if config.enabled("todo") and config.todo_backend == "api":
+        parts.append(f"backlog {show(config.todo_path)} via API ({config.todo_api_url})")
+    elif config.enabled("todo"):
         parts.append(f"backlog {show(config.todo_path)}/{TODO_FILE}")
     if config.enabled("daily"):
         parts.append(f"daily {show(config.daily_path)}/")
@@ -193,7 +198,7 @@ def _project_problems(projects: ProjectSet, project: Project) -> list[str]:
     if config.enabled("todo"):
         if not (root / config.todo_path / TODO_FILE).is_file():
             problems.append(_backlog_missing(config, show))
-        else:
+        elif config.todo_backend == "files":
             problems += _backlog_problems(root, config)
     if config.enabled("techdocs"):
         problems += _techdocs_missing(root, config, show)

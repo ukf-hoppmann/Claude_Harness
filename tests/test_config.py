@@ -36,6 +36,16 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.techdocs_path, PurePosixPath("docs/techdocs"))
         self.assertEqual(config.techdocs, ("architecture", "interfaces", "configuration"))
 
+    def test_todo_backend(self):
+        config = parse_config({"version": 1})
+        self.assertEqual(config.todo_backend, "api")
+        self.assertEqual(config.todo_api_url, "http://localhost:5411/api/v2")
+        config = parse_config({
+            "version": 1, "todo": {"backend": "files", "api_url": "http://todo.localhost:6000/api/v2/"},
+        })
+        self.assertEqual(config.todo_backend, "files")
+        self.assertEqual(config.todo_api_url, "http://todo.localhost:6000/api/v2")
+
     def test_techdocs_documents(self):
         config = parse_config({"version": 1, "techdocs": {"path": "tech", "documents": ["operations"]}})
         self.assertEqual(config.techdocs_path, PurePosixPath("docs/tech"))
@@ -147,6 +157,10 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "todo": {"path": "/abs"}},
             {"version": 1, "todo": {"path": "../outside"}},
             {"version": 1, "todo": {"path": "docs", "other": 1}},
+            {"version": 1, "todo": {"backend": "http"}},
+            {"version": 1, "todo": {"backend": True}},
+            {"version": 1, "todo": {"api_url": "localhost:5411"}},
+            {"version": 1, "todo": {"api_url": ""}},
             {"version": 1, "docs": {"root": "/abs"}},
             {"version": 1, "docs": {"language": "deu"}},
             {"version": 1, "docs": {"language": "DE"}},

@@ -37,6 +37,8 @@ KNOWN_FIELDS = REQUIRED_FIELDS | {
     "Summary",
     "Notes",
     "Spec",
+    # Set by the ToDo-Viewer for items in its trash; they stay in archive.md with any status.
+    "Deleted",
 }
 
 _ID = r"[A-Z][A-Z0-9_-]*-[0-9]{3,}"
@@ -44,7 +46,7 @@ _ITEM_HEADER = re.compile(rf"^- `(?P<identifier>{_ID})` \*\*(?P<title>[^*\r\n].*
 _FIELD = re.compile(r"^  - (?P<name>[^:\r\n]+):(?P<value>.*)$")
 _REFERENCE = re.compile(rf"`({_ID})`")
 _PATH_REFERENCE = re.compile(r"`([^`]+)`")
-_EMPTY_MARKERS = {"No entries.", "Keine Einträge."}
+_EMPTY_MARKER = "No entries."
 
 
 @dataclass(frozen=True)
@@ -63,6 +65,7 @@ class BacklogItem:
     resolution: str | None
     notes: tuple[str, ...]
     specs: tuple[str, ...]
+    deleted: date | None = None
 
 
 @dataclass
@@ -131,7 +134,7 @@ def _parse_file(path: Path, report: BacklogReport) -> list[tuple[str, str, dict[
             continue
         if not line.strip():
             continue
-        if current is None and line.strip() in _EMPTY_MARKERS:
+        if current is None and line.strip() == _EMPTY_MARKER:
             continue
         match = _FIELD.fullmatch(line)
         if match:
@@ -191,6 +194,13 @@ def _build_item(
     except ValueError:
         errors.append(f"{identifier} Created must use YYYY-MM-DD")
 
+    deleted: date | None = None
+    if "Deleted" in fields:
+        try:
+            deleted = date.fromisoformat(_scalar(fields["Deleted"]))
+        except ValueError:
+            errors.append(f"{identifier} Deleted must use YYYY-MM-DD")
+
     dependencies = _references(identifier, "Dependencies", fields["Dependencies"], errors)
 
     parent: str | None = None
@@ -247,11 +257,16 @@ def _build_item(
         resolution=resolution,
         notes=notes,
         specs=specs,
+        deleted=deleted,
     )
 
 
 def _validate_placement(report: BacklogReport) -> None:
     for item in report.items:
+        if item.deleted is not None:
+            if item.source != ARCHIVE_FILE:
+                report.errors.append(f"{item.identifier} is Deleted and belongs in {ARCHIVE_FILE}")
+            continue
         if item.source == ARCHIVE_FILE and item.status not in CLOSED_STATUSES:
             report.errors.append(
                 f"{item.identifier} in {ARCHIVE_FILE} must be Completed or Rejected, is {item.status}"
@@ -297,12 +312,14 @@ def _validate_relationships(report: BacklogReport, known_ids: set[str]) -> None:
 
 
 def _validate_lifecycle(report: BacklogReport) -> None:
-    children: dict[str, list[BacklogItem]] = {item.identifier: [] for item in report.items}
-    for item in report.items:
+    # Deleted items are in the trash; like the ToDo-Viewer, the parent rules ignore them.
+    live = [item for item in report.items if item.deleted is None]
+    children: dict[str, list[BacklogItem]] = {item.identifier: [] for item in live}
+    for item in live:
         if item.parent in children:
             children[item.parent].append(item)
 
-    for item in report.items:
+    for item in live:
         kids = children[item.identifier]
         required = [child for child in kids if child.required_for_parent]
         if item.item_type == "Epic" and item.status not in {"Open", "Rejected"} and not required:
@@ -455,8 +472,9 @@ def format_report(report: BacklogReport) -> str:
 def format_index(report: BacklogReport) -> str:
     lines = ["ID | Type | Status | Title | Parent"]
     for item in sorted(report.items, key=lambda i: i.identifier):
+        status = item.status if item.deleted is None else f"{item.status} (deleted {item.deleted.isoformat()})"
         lines.append(
-            f"{item.identifier} | {item.item_type} | {item.status} | {item.title} | {item.parent or '-'}"
+            f"{item.identifier} | {item.item_type} | {status} | {item.title} | {item.parent or '-'}"
         )
     return "\n".join(lines)
 

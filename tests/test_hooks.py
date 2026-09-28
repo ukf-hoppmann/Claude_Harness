@@ -21,13 +21,13 @@ class HookTest(unittest.TestCase):
     def tearDown(self):
         self._tmp.cleanup()
 
-    def write_config(self, todo=True, path="todo", daily=False):
+    def write_config(self, todo=True, path="todo", daily=False, backend="files"):
         config = self.project / ".claude-harness" / "config.toml"
         config.parent.mkdir(exist_ok=True)
         config.write_text(
             'version = 1\n[docs]\nroot = "docs"\n'
             f'[modules]\ntodo = {"true" if todo else "false"}\ndaily = {"true" if daily else "false"}\n'
-            f'[todo]\npath = "{path}"\n'
+            f'[todo]\npath = "{path}"\nbackend = "{backend}"\n'
         )
 
     def run_hook(self, script, payload):
@@ -78,15 +78,18 @@ class HookTest(unittest.TestCase):
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
         self.assertIn("1 errors", self.run_hook("session_start.py", {}).stdout)
 
-    def write_subprojects(self, broken=False):
+    def write_subprojects(self, broken=False, backend_a="files"):
         (self.project / ".claude-harness" / "config.toml").write_text(
-            'version = 1\n[docs]\nlanguage = "de"\n[modules]\ntodo = true\n'
+            'version = 1\n[docs]\nlanguage = "de"\n[modules]\ntodo = true\n[todo]\nbackend = "files"\n'
             '[projects]\nA = "Plugins/A"\nB = "Plugins/B"\n'
         )
         write_backlog(self.todo_dir, [])
         a = self.project / "Plugins" / "A" / ".claude-harness" / "config.toml"
         a.parent.mkdir(parents=True)
-        a.write_text('version = 1\n[docs]\nlanguage = "en"\n[modules]\ntodo = true\ntechdocs = true\n')
+        a.write_text(
+            'version = 1\n[docs]\nlanguage = "en"\n[modules]\ntodo = true\ntechdocs = true\n'
+            f'[todo]\nbackend = "{backend_a}"\n'
+        )
         if not broken:
             b = self.project / "Plugins" / "B" / ".claude-harness" / "config.toml"
             b.parent.mkdir(parents=True)
@@ -106,6 +109,26 @@ class HookTest(unittest.TestCase):
         self.assertIn("A: Backlog: Plugins/A/docs/todo/TODO.md does not exist", out)
         self.assertIn("A: Missing technical docs: Plugins/A/README.md", out)
         self.assertNotIn("daily", out)
+
+    def test_session_start_api_backend_names_api_and_skips_check(self):
+        self.write_config(backend="api")
+        write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
+        out = self.run_hook("session_start.py", {}).stdout
+        self.assertIn("Backlog: docs/todo via ToDo-Viewer API (http://localhost:5411/api/v2);", out)
+        self.assertNotIn("errors", out)
+
+    def test_session_start_api_backend_still_reports_missing_backlog(self):
+        self.write_config(backend="api")
+        self.assertIn("does not exist", self.run_hook("session_start.py", {}).stdout)
+
+    def test_session_start_subproject_with_api_backend(self):
+        self.write_config()
+        self.write_subprojects(backend_a="api")
+        write_backlog(self.project / "Plugins/A/docs/todo", [item("STORY-001", Priority="Wrong")])
+        out = self.run_hook("session_start.py", {}).stdout
+        self.assertIn("backlog Plugins/A/docs/todo via API", out)
+        self.assertIn("backlog docs/todo/TODO.md", out)
+        self.assertNotIn("A: Backlog check", out)
 
     def test_session_start_reports_broken_subproject(self):
         self.write_config()
@@ -204,6 +227,14 @@ class HookTest(unittest.TestCase):
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
         self.edit(self.todo_dir / "TODO.md")
         self.assertEqual(self.stop().returncode, 0)
+
+    def test_api_backend_skips_backlog_check(self):
+        self.write_config(backend="api")
+        write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
+        self.edit(self.todo_dir / "TODO.md")
+        result = self.stop()
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stderr, "")
 
     def test_custom_todo_path(self):
         self.write_config(path="planning")
