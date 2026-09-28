@@ -73,7 +73,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     gegliedert ist. Unterscheidet Tests, die der Agent für sich baut, von
     Tests, mit denen der Owner Funktionen selbst prüft.
   - Notes: `items/STORY-037/STORY-037_notes.md`.
-  - Required for parent: No.
+  - Required for parent: Yes.
 
 - `EPIC-004` **Entwicklungsprozess & Prinzipien**
   - Type: Epic.
