@@ -1028,3 +1028,46 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     widerspruchsfrei; ein Merge des Worktrees kollidiert nicht mit
     Backlog-Änderungen im Haupt-Checkout.
   - Resolution: Vom Projektverantwortlichen am 2026-09-28 bestätigt.
+
+- `TASK-016` **Backlog-Ziel aus der Config statt aus einem Pfadparameter**
+  - Type: Task.
+  - Parent: `EPIC-008`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-09-28.
+  - Area: Entwicklung.
+  - Priority: Normal.
+  - Dependencies: None.
+  - Goal: `backlog_api.py` ermittelt den Backlog-Ordner selbst aus der
+    Harness-Config (Root-Projekt oder `--project <Name>` für Teilprojekte)
+    statt aus einem frei angegebenen Pfad; beim Anlegen einer Quelle im
+    ToDo-Viewer wird der Projektname mitgegeben.
+  - Completion criteria: Der Helfer nimmt keinen Ordner mehr entgegen;
+    unbekannte Projekte, abgeschaltetes Modul `todo` und fehlende `TODO.md`
+    enden mit Fehler, ohne eine Quelle anzulegen; neue Quellen tragen den
+    Projektnamen (Teilprojekt) bzw. den Repo-Namen (Root); Tests decken
+    Root, Teilprojekt, Worktree und die Fehlerfälle ab; `api.md` und
+    `docs/techdocs/interfaces.md` beschreiben den neuen Aufruf.
+  - Resolution: Vom Projektverantwortlichen am 2026-09-28 bestätigt.
+
+- `EPIC-008` **Backlog über die API des ToDo-Viewers**
+  - Type: Epic.
+  - Status: Completed.
+  - Created: 2026-09-28.
+  - Area: Konfiguration.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Agenten pflegen Backlogs standardmäßig über die HTTP-API des
+    ToDo-Viewers statt die Markdown-Dateien direkt zu schreiben; der direkte
+    Dateizugriff bleibt als wählbarer Modus und als Rückfall erhalten. Das
+    Backlog-Format in `format.md` ist verbindlich, der Viewer setzt es um.
+  - Completion criteria: Alle Pflicht-Stories sind abgeschlossen; ein Projekt
+    mit Standard-Config arbeitet über die API, ein Projekt mit
+    `backend = "files"` wie bisher; ist der Server nicht erreichbar, weist der
+    Agent darauf hin und fragt, wie er vorgehen soll.
+  - Summary: Der Backlog wird künftig über den ToDo-Viewer gepflegt. Der
+    Server prüft Format und Regeln und vergibt IDs; direkter Dateizugriff
+    bleibt als Rückfall.
+  - Notes: `items/EPIC-008/EPIC-008_notes.md`.
+  - Spec: `items/EPIC-008/EPIC-008_spec.md`.
+  - Resolution: Vom Projektverantwortlichen am 2026-09-28 bestätigt.
