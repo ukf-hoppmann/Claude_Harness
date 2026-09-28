@@ -1,12 +1,14 @@
 # Claude_Harness backlog format, version 1
 
 The backlog lives in the folder configured as `[todo].path` below `[docs].root` in
-`.claude-harness/config.toml` (default `docs/todo`):
+`.claude-harness/config.toml` (default `docs/todo`). With `[todo].backend =
+"api"` the ToDo-Viewer server writes this format and enforces its rules
+(see [api.md](api.md)); with `"files"` the AI writes it directly.
 
 ```
 <todo path>/
  ├─ TODO.md          active items (Open, In progress, Awaiting confirmation)
- ├─ archive.md       Completed and Rejected items
+ ├─ archive.md       Completed and Rejected items, and the trash
  └─ items/<ID>/      optional notes and spec per item
 ```
 
@@ -160,7 +162,7 @@ Daily development reports do not belong in the backlog folder.
 Once an item is `Completed` or `Rejected` and has its `Resolution`, it moves
 unchanged from `TODO.md` to `archive.md`. Its item folder stays in `items/`.
 References to archived IDs remain valid. `archive.md` never contains active
-items.
+items, except deleted ones in the [trash](#trash).
 
 Reopening an archived item moves it back to `TODO.md` with status `Open` or
 `In progress` and without `Resolution`. The reason is recorded in the item's
@@ -178,8 +180,8 @@ from the trash for good (entry and `items/<ID>/`).
 
 ## Overview index
 
-For an overview across `TODO.md` and `archive.md` without reading either file
-in full, run:
+API mode: `backlog_api.py <backlog folder> index`. Files mode: for an overview
+across `TODO.md` and `archive.md` without reading either file in full, run:
 
 ```
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --index
@@ -201,7 +203,9 @@ The agent may change without asking:
 
 The agent proposes and waits for project-owner approval before:
 
-- creating or deleting items;
+- creating items, or deleting them unless the request clearly asks for it
+  (deleting moves an item to the [trash](#trash); only the project owner
+  removes it for good);
 - changing the meaning of `Goal` or `Completion criteria`, or changing
   `Parent`, `Required for parent`, `Dependencies`, or `Priority`;
 - setting `Completed` or `Rejected`, or reopening a closed item.

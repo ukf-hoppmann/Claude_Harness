@@ -24,7 +24,10 @@ are relative to it.
    - which folder holds all harness documents (`docs.root`, default `docs`);
    - which modules to enable (currently: `todo`, `daily`, `techdocs`,
      `development`, `semver`; `semver` is off unless the user wants it);
-   - for `todo`: the backlog folder relative to `docs.root` (default `todo`);
+   - for `todo`: the backlog folder relative to `docs.root` (default `todo`),
+     and whether the AI works through the ToDo-Viewer API (`backend = "api"`,
+     default; `api_url` defaults to `http://localhost:5411/api/v2`) or on
+     the files directly (`backend = "files"`);
    - for `daily`: the report folder relative to `docs.root` (default
      `daily`);
    - for `techdocs`: the folder relative to `docs.root` (default `techdocs`)
@@ -52,8 +55,9 @@ are relative to it.
 7. If `todo` is enabled and `TODO.md` does not exist in the chosen folder, ask
    separately whether to create `TODO.md` and `archive.md` from
    `${CLAUDE_PLUGIN_ROOT}/templates/todo/`. Translate the prose into
-   `docs.language`, but keep the `## Work items` heading and all field names
-   in English; the backlog check needs them. Never convert or overwrite an
+   `docs.language`, but keep the `## Work items` heading, the format line
+   (`Claude_Harness backlog format version 1`), `No entries.`, and all field
+   names in English; the backlog check and the ToDo-Viewer need them. Never convert or overwrite an
    existing backlog without explicit approval.
 8. If `techdocs` is enabled, look for existing documentation (README,
    architecture or API docs) and mention it. Ask separately whether to create
