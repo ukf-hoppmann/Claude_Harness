@@ -108,16 +108,17 @@ class BacklogApiTest(unittest.TestCase):
 
     def test_index_uses_the_source_of_the_backlog_folder(self):
         self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": [
-            {"source_id": "src1", "id": "EPIC-001", "type": "Epic", "status": "Open", "title": "Ä", "parent": None},
+            {"source_id": "src1", "id": "EPIC-001", "type": "Epic", "status": "Open", "title": "Ä", "parent": None,
+             "area": "Kern"},
             {"source_id": "src1", "id": "STORY-001", "type": "Story", "status": "Open", "title": "B",
              "parent": "EPIC-001"},
         ]})
         result = self.run_api("index")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout.splitlines(), [
-            "ID | Type | Status | Title | Parent",
-            "EPIC-001 | Epic | Open | Ä | -",
-            "STORY-001 | Story | Open | B | EPIC-001",
+            "ID | Type | Status | Area | Title | Parent",
+            "EPIC-001 | Epic | Open | Kern | Ä | -",
+            "STORY-001 | Story | Open | - | B | EPIC-001",
         ])
         self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["src1"]})
         self.assertEqual(self.viewer.calls("POST"), [])

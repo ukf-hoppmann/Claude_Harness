@@ -37,12 +37,12 @@ Read only what the task needs:
 - Discussing or deciding something about an item: also its `Notes`.
 - Planning its implementation or asked about its spec: also its `Spec`.
   The spec is the input for a plan; do not write step-by-step plans into it.
+- Overview across `TODO.md` and `archive.md` (e.g. to place new work or to
+  look for earlier work): API: `index`; files: run
+  `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --index`.
 - A single item, archived ones included — API: `show <ID>`; files: the
-  item in `TODO.md`, or `archive.md` only when that archived item is needed
-  in full.
-- Files mode, overview across `TODO.md` and `archive.md` (e.g. to place new
-  work): run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --index`
-  instead of reading the files.
+  item in `TODO.md`, or `backlog.py <backlog folder> --show <ID> [<ID> ...]`.
+  Pick the IDs from the overview. Never read `archive.md` in full.
 
 ## Working rules
 

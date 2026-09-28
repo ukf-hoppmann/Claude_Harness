@@ -470,22 +470,72 @@ def format_report(report: BacklogReport) -> str:
 
 
 def format_index(report: BacklogReport) -> str:
-    lines = ["ID | Type | Status | Title | Parent"]
+    lines = ["ID | Type | Status | Area | Title | Parent"]
     for item in sorted(report.items, key=lambda i: i.identifier):
         status = item.status if item.deleted is None else f"{item.status} (deleted {item.deleted.isoformat()})"
         lines.append(
-            f"{item.identifier} | {item.item_type} | {status} | {item.title} | {item.parent or '-'}"
+            f"{item.identifier} | {item.item_type} | {status} | {item.area} | {item.title} "
+            f"| {item.parent or '-'}"
         )
     return "\n".join(lines)
 
 
+def show_items(todo_dir: Path, identifiers: list[str]) -> tuple[str, list[str]]:
+    """Return the raw entries of the given items from TODO.md and archive.md, and the missing IDs."""
+    blocks: dict[str, str] = {}
+    for name in (TODO_FILE, ARCHIVE_FILE):
+        path = todo_dir / name
+        if path.is_file():
+            for identifier, block in _raw_entries(path):
+                if identifier in identifiers and identifier not in blocks:
+                    blocks[identifier] = f"Source: {name}\n{block}"
+    shown = [blocks[i] for i in identifiers if i in blocks]
+    return "\n\n".join(shown), [i for i in identifiers if i not in blocks]
+
+
+def _raw_entries(path: Path) -> list[tuple[str, str]]:
+    # Entries as written, without validation, so broken items can be shown too.
+    entries: list[tuple[str, list[str]]] = []
+    in_section = False
+    for line in path.read_text(encoding="utf-8").splitlines():
+        if line.startswith("## "):
+            in_section = line == "## Work items"
+            continue
+        if not in_section:
+            continue
+        header = _ITEM_HEADER.fullmatch(line)
+        if header:
+            entries.append((header.group("identifier"), [line]))
+        elif entries and (line.startswith("  ") or not line.strip()):
+            entries[-1][1].append(line)
+    return [(identifier, "\n".join(lines).rstrip()) for identifier, lines in entries]
+
+
+USAGE = "usage: backlog.py <backlog-folder> [--index | --show <ID> [<ID> ...]]"
+
+
 def main(argv: list[str]) -> int:
     args = argv[1:]
+    identifiers: list[str] | None = None
+    if "--show" in args:
+        at = args.index("--show")
+        args, identifiers = args[:at], args[at + 1:]
+        if not identifiers or not all(re.fullmatch(_ID, i) for i in identifiers):
+            print(USAGE, file=sys.stderr)
+            return 2
     index = "--index" in args
     args = [a for a in args if a != "--index"]
-    if len(args) != 1:
-        print("usage: backlog.py <backlog-folder> [--index]", file=sys.stderr)
+    if len(args) != 1 or (index and identifiers is not None):
+        print(USAGE, file=sys.stderr)
         return 2
+    if identifiers is not None:
+        output, missing = show_items(Path(args[0]), identifiers)
+        if output:
+            print(output)
+        if missing:
+            print(f"not found in {TODO_FILE} or {ARCHIVE_FILE}: {', '.join(missing)}", file=sys.stderr)
+            return 1
+        return 0
     report = validate_backlog(Path(args[0]))
     if index:
         print(format_index(report))

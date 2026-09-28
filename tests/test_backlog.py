@@ -203,9 +203,9 @@ class BacklogTest(unittest.TestCase):
         )
         self.assertEqual(report.errors, [])
         self.assertEqual(format_index(report).splitlines()[1:], [
-            "EPIC-001 | Epic | Completed | Alt | -",
-            "STORY-001 | Story | Completed | Kind | EPIC-001",
-            "STORY-002 | Story | Open | Neu | -",
+            "EPIC-001 | Epic | Completed | Test | Alt | -",
+            "STORY-001 | Story | Completed | Test | Kind | EPIC-001",
+            "STORY-002 | Story | Open | Test | Neu | -",
         ])
 
     def test_resolution_only_when_closed(self):
@@ -264,7 +264,7 @@ class BacklogTest(unittest.TestCase):
         from backlog import format_index
         report = self.check([], [item("STORY-001", "Weg", Deleted="2026-09-28.")])
         self.assertEqual(format_index(report).splitlines()[1:], [
-            "STORY-001 | Story | Open (deleted 2026-09-28) | Weg | -",
+            "STORY-001 | Story | Open (deleted 2026-09-28) | Test | Weg | -",
         ])
 
     def test_unknown_parent(self):
@@ -276,6 +276,58 @@ class BacklogTest(unittest.TestCase):
     def test_empty_epic_may_be_rejected(self):
         report = self.check([], [item("EPIC-001", Type="Epic", Status="Rejected", Resolution="Abgelehnt.")])
         self.assertEqual(report.errors, [])
+
+    def test_show_item_from_todo(self):
+        from backlog import show_items
+        write_backlog(self.dir, [item("STORY-001", "Eins"), item("STORY-002", "Zwei")])
+        output, missing = show_items(self.dir, ["STORY-001"])
+        self.assertEqual(missing, [])
+        self.assertEqual(output.splitlines()[:3], [
+            "Source: TODO.md",
+            "- `STORY-001` **Eins**",
+            "  - Type: Story",
+        ])
+        self.assertNotIn("STORY-002", output)
+
+    def test_show_archived_item_with_continuation_lines(self):
+        from backlog import show_items
+        archived = item(
+            "STORY-003", "Alt", Status="Completed",
+            Goal="Erste Zeile\n    zweite Zeile.", Resolution="Confirmed.",
+        )
+        write_backlog(self.dir, [item("STORY-001")], [archived, item("STORY-004", Status="Rejected",
+                                                                     Resolution="Abgelehnt.")])
+        output, missing = show_items(self.dir, ["STORY-003"])
+        self.assertEqual(missing, [])
+        self.assertEqual(output.splitlines(), [
+            "Source: archive.md",
+            *archived.rstrip("\n").splitlines(),
+        ])
+
+    def test_show_several_items_in_requested_order(self):
+        from backlog import show_items
+        write_backlog(self.dir, [item("STORY-001", "Eins")],
+                      [item("STORY-002", "Zwei", Status="Completed", Resolution="Confirmed.")])
+        output, missing = show_items(self.dir, ["STORY-002", "STORY-001"])
+        self.assertEqual(missing, [])
+        blocks = output.split("\n\n")
+        self.assertEqual([b.splitlines()[:2] for b in blocks], [
+            ["Source: archive.md", "- `STORY-002` **Zwei**"],
+            ["Source: TODO.md", "- `STORY-001` **Eins**"],
+        ])
+
+    def test_show_missing_item(self):
+        from backlog import main
+        write_backlog(self.dir, [item("STORY-001")], [])
+        self.assertEqual(main(["backlog.py", str(self.dir), "--show", "STORY-001"]), 0)
+        self.assertEqual(main(["backlog.py", str(self.dir), "--show", "STORY-001", "STORY-099"]), 1)
+
+    def test_show_usage_errors(self):
+        from backlog import main
+        write_backlog(self.dir, [item("STORY-001")])
+        self.assertEqual(main(["backlog.py", str(self.dir), "--show"]), 2)
+        self.assertEqual(main(["backlog.py", str(self.dir), "--show", "kein-id"]), 2)
+        self.assertEqual(main(["backlog.py", str(self.dir), "--index", "--show", "STORY-001"]), 2)
 
     def test_repository_backlog_is_valid(self):
         report = validate_backlog(REPO_ROOT / "docs" / "todo")

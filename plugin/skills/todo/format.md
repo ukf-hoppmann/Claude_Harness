@@ -187,8 +187,18 @@ across `TODO.md` and `archive.md` without reading either file in full, run:
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --index
 ```
 
-It prints one line per item: `ID | Type | Status | Title | Parent`; deleted
-items show `(deleted <date>)` after their status.
+It prints one line per item: `ID | Type | Status | Area | Title | Parent`;
+deleted items show `(deleted <date>)` after their status.
+
+Then load only the items that matter. API mode: `show <ID>`. Files mode:
+
+```
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --show <ID> [<ID> ...]
+```
+
+It prints each entry exactly as written, after a line `Source: TODO.md` or
+`Source: archive.md`, and exits with 1 if an ID is not found. Never read
+`archive.md` in full.
 
 ## Change authority
 
@@ -225,7 +235,8 @@ Before proposing, use the overview index to check both files:
 - Place new stories and tasks under an existing epic or story that fits, even
   an archived one. Prefer proposing to reopen a closed parent over creating a
   new epic or story; create a new parent only when nothing plausibly fits.
-- Read an archived item in full only when the index suggests it fits.
+- Load an archived item (`show`/`--show`) only when the index suggests it
+  fits.
 
 Never copy credentials, personal data, or unnecessary conversation quotes into
 the backlog.

@@ -93,12 +93,19 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 
 ## Skript `backlog.py`
 
-- Aufruf: `python3 plugin/scripts/backlog.py <backlog-ordner> [--index]`
-- Ohne `--index`: listet Fehler und Hinweise und eine Zusammenfassung.
+- Aufruf: `python3 plugin/scripts/backlog.py <backlog-ordner> [--index | --show <ID> [<ID> ...]]`
+- Ohne Option: listet Fehler und Hinweise und eine Zusammenfassung.
 - Mit `--index`: eine Zeile pro Eintrag über `TODO.md` und `archive.md`
-  (`ID | Type | Status | Title | Parent`); Einträge im Papierkorb tragen
+  (`ID | Type | Status | Area | Title | Parent`); Einträge im Papierkorb tragen
   `(deleted <Datum>)` hinter dem Status.
-- Exit-Code: 0 ohne Fehler, 1 bei Fehlern, 2 bei falschem Aufruf.
+- Mit `--show`: gibt nur die genannten Einträge aus, jeweils unverändert aus
+  `TODO.md` oder `archive.md` mit einer vorangestellten Zeile
+  `Source: <Datei>`, in der angefragten Reihenfolge und durch eine Leerzeile
+  getrennt. Die Einträge werden dabei nicht geprüft. Nicht gefundene IDs
+  meldet das Skript auf stderr.
+- Exit-Code: 0 ohne Fehler, 1 bei Fehlern (bei `--show`: eine ID nicht
+  gefunden), 2 bei falschem Aufruf (bei `--show` auch: keine oder ungültige
+  ID, zusammen mit `--index`).
 
 ## Skript `backlog_api.py`
 
@@ -117,7 +124,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   | Befehl | Wirkung |
   |---|---|
   | `health` | Erreichbarkeit (`GET /health`) |
-  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Title \| Parent` |
+  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent`; `Area` ist `-`, solange der ToDo-Viewer sie im Index nicht liefert |
   | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte |
   | `create` | Neuer Eintrag; stdin: JSON-Felder ohne `source_id`; die ID vergibt der Server |
   | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` |
