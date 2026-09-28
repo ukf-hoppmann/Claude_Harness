@@ -30,9 +30,3 @@
 ### Decided
 
 - Auf Wunsch des Owners EPIC-004 wieder geöffnet und die Story als optionales Kind (Required for parent: No) eingehängt; die offene Frage dazu ist damit erledigt.
-
-## 2026-09-28 — Parent
-
-### Decided
-
-- Owner: EPIC-004 wird nicht wiedereröffnet; die Story bleibt ohne Parent.
