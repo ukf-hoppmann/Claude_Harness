@@ -128,7 +128,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   | Befehl | Wirkung |
   |---|---|
   | `health` | Erreichbarkeit (`GET /health`) |
-  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent`; `Area` ist `-`, solange der ToDo-Viewer sie im Index nicht liefert |
+  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` |
   | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte |
   | `create` | Neuer Eintrag; stdin: JSON-Felder ohne `source_id`; die ID vergibt der Server |
   | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` |

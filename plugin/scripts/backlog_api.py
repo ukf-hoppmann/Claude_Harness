@@ -176,8 +176,7 @@ def run(project_name: str, command: str, args: list[str]) -> None:
         items = api.call("GET", "/index", query={"source_id": sid})["items"]
         print("ID | Type | Status | Area | Title | Parent")
         for item in items:
-            # The ToDo-Viewer index may not deliver the area yet; "-" keeps the columns aligned.
-            print(f"{item['id']} | {item['type']} | {item['status']} | {item.get('area') or '-'} "
+            print(f"{item['id']} | {item['type']} | {item['status']} | {item['area']} "
                   f"| {item['title']} | {item['parent'] or '-'}")
     elif command == "show":
         _print_json(api.call("GET", _item(sid, positional[0])))
