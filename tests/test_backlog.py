@@ -267,6 +267,12 @@ class BacklogTest(unittest.TestCase):
             "STORY-001 | Story | Open (deleted 2026-09-28) | Weg | -",
         ])
 
+    def test_unknown_parent(self):
+        self.assertError(
+            self.check([item("STORY-001", Parent="`EPIC-099`", Required_for_parent="Yes")]),
+            "references missing parent: EPIC-099",
+        )
+
     def test_empty_epic_may_be_rejected(self):
         report = self.check([], [item("EPIC-001", Type="Epic", Status="Rejected", Resolution="Abgelehnt.")])
         self.assertEqual(report.errors, [])
