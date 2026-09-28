@@ -9,7 +9,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 ## Work items
 
-- `TASK-017` **update-Skill: Backlog-Backend (api/files) umstellen**
+- `TASK-017` **update-Skill: Projekt-Config mit dem aktuellen Harness-Stand abgleichen**
   - Type: Task.
   - Parent: None.
   - Status: Open.
@@ -17,23 +17,34 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Area: Konfiguration.
   - Priority: Normal.
   - Dependencies: None.
-  - Goal: `/claude-harness:update` kann in einem bestehenden Projekt das
-    Backlog-Backend umstellen: Ist das `todo`-Modul aktiv, zeigt der Skill
-    das aktuelle `[todo].backend` (fehlt es, gilt die Voreinstellung `api`)
-    und `api_url`, fragt, ob das Projekt über die ToDo-Viewer-API (`api`)
-    oder direkt auf den Dateien (`files`) arbeiten soll, und trägt die Wahl
-    nach Freigabe ein. Das geschieht auch dann, wenn die Config-Version
-    schon aktuell ist; heute hört der Skill in diesem Fall ohne Änderung
-    auf.
-  - Completion criteria: Bei aktueller Config-Version und aktivem
-    `todo`-Modul bietet `update` den Wechsel des Backends an und schreibt
-    nach Freigabe nur `backend` (und bei `api` gegebenenfalls `api_url`) in
-    `[todo]`; Kommentare, Reihenfolge und alle anderen Werte bleiben
-    unverändert. Wer nichts ändern will, bekommt eine unveränderte Datei.
-    Beim Wechsel auf `api` prüft der Skill mit `backlog_api.py health`, ob
-    der Server erreichbar ist, und meldet das Ergebnis. Das Ergebnis besteht
-    die Config-Validierung. README/techdocs beschreiben das neue Verhalten.
-  - Summary: Mit `/claude-harness:update` soll man in einem Projekt, das den
-    Harness schon nutzt, einfach zwischen den beiden Backlog-Varianten
-    wechseln können: über die ToDo-Viewer-API oder direkt auf den Dateien.
-    Bisher prüft `update` nur die Config-Version und ändert sonst nichts.
+  - Goal: `/claude-harness:update` gleicht die `.claude-harness/config.toml`
+    des Projekts mit dem aktuellen Stand des Harness ab, also mit der
+    Config-Vorlage (`plugin/templates/config.toml`) und den bekannten
+    Schlüsseln in `harness_config.py`. Er trägt fehlende Abschnitte,
+    Optionen, Module und die erklärenden Kommentare der Vorlage nach, damit
+    die Config dem aktuellen Stand entspricht. Das gilt auch, wenn die
+    Config-Version schon aktuell ist; der Abgleich hängt nicht mehr allein
+    an `version` und `MIGRATIONS`. Neue Werte mit festem Standard setzt der
+    Skill ohne Rückfrage. Nach Werten, die wirklich zu entscheiden sind,
+    fragt er wie `init`, z. B. nach neuen Modulen oder danach, ob der
+    Backlog über die API (`api`) oder direkt auf den Dateien (`files`)
+    läuft.
+  - Completion criteria: Auf ein Projekt, dessen Config Abschnitte,
+    Optionen, Module oder Kommentare der aktuellen Vorlage nicht enthält,
+    zeigt `update` die konkreten Ergänzungen und schreibt sie erst nach
+    Freigabe. Bestehende Werte, eigene Kommentare und die Reihenfolge
+    bleiben erhalten. Rückfragen gibt es nur für zu entscheidende Werte,
+    darunter das Backlog-Backend, wenn `todo` aktiv ist. Beim Backend `api`
+    prüft der Skill mit `backlog_api.py health`, ob der Server erreichbar
+    ist, und meldet das Ergebnis. Auf eine vollständige Config meldet
+    `update`, dass nichts zu tun ist, und ändert die Datei nicht. Das
+    Ergebnis besteht die Config-Validierung. Die Config dieses Repos ist
+    damit auf den aktuellen Stand gebracht. README/techdocs beschreiben das
+    neue Verhalten.
+  - Summary: `/claude-harness:update` soll die Einstellungen eines Projekts
+    mit dem aktuellen Stand des Harness vergleichen und alles nachtragen,
+    was fehlt: neue Optionen, Module und Erklärungen. Nur wo es wirklich
+    etwas zu entscheiden gibt, zum Beispiel ob der Backlog über die
+    ToDo-Viewer-API läuft, fragt es nach. Bisher prüft `update` nur die
+    Versionsnummer der Config und ändert sonst nichts.
+  - Notes: `items/TASK-017/TASK-017_notes.md`.
