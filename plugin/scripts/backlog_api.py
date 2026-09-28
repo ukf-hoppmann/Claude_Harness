@@ -1,10 +1,12 @@
 """Work on a backlog through the ToDo-Viewer's HTTP API (todo.backend = "api").
 
-Usage: backlog_api.py <backlog-folder> <command> [arguments]; see USAGE.
+Usage: backlog_api.py [--project <name>] <command> [arguments]; see USAGE.
+The backlog comes from the harness config of the session's project, never from a path argument.
 """
 from __future__ import annotations
 
 import json
+import os
 import sys
 import urllib.error
 import urllib.request
@@ -12,10 +14,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from harness_config import CONFIG_RELATIVE_PATH, DEFAULT_TODO_API_URL, ConfigError, load_config
+from backlog import TODO_FILE
+from harness_config import CONFIG_RELATIVE_PATH, ROOT_PROJECT, ConfigError, project_root
+from projects import Project, load_projects
 from worktree import WorktreeError, in_main_checkout
 
-USAGE = """usage: backlog_api.py <backlog-folder> <command> [arguments]
+USAGE = """usage: backlog_api.py [--project <name>] <command> [arguments]
+  --project <name>                        a registered subproject; default: the root project
   health                                  server reachable?
   index                                   one line per item: ID | Type | Status | Title | Parent
   show <ID>                               item as JSON, with its version (archived items too)
@@ -78,34 +83,48 @@ def _http_error(exc: urllib.error.HTTPError) -> str:
     return message
 
 
-def api_url_for(folder: Path) -> str:
-    """todo.api_url of the nearest project config above the backlog folder, else the default."""
-    for directory in (folder, *folder.parents):
-        if (directory / CONFIG_RELATIVE_PATH).is_file():
-            try:
-                config = load_config(directory)
-            except ConfigError as exc:
-                raise ApiError(str(exc), EXIT_USAGE) from exc
-            return config.todo_api_url if config else DEFAULT_TODO_API_URL
-    return DEFAULT_TODO_API_URL
+def find_project(name: str) -> Project:
+    """The session's project with that name; its config decides the backlog and the API URL."""
+    root = project_root({"cwd": os.getcwd()})
+    try:
+        projects = load_projects(root)
+    except ConfigError as exc:
+        raise ApiError(str(exc), EXIT_USAGE) from exc
+    if projects is None:
+        raise ApiError(f"no {CONFIG_RELATIVE_PATH} in {root}; the harness is not set up here", EXIT_USAGE)
+    project = projects.get(name)
+    if project is None:
+        known = ", ".join(p.name for p in projects.projects)
+        raise ApiError(f"unknown project {name!r} (known: {known})", EXIT_USAGE)
+    if not project.config.enabled("todo"):
+        raise ApiError(f"module todo is off in project {project.name}", EXIT_USAGE)
+    return project
 
 
-def source_folder(folder: Path) -> Path:
-    """The backlog folder in the main checkout: the server writes there, never into a worktree."""
-    if not folder.is_dir():
-        raise ApiError(f"backlog folder not found: {folder}", EXIT_USAGE)
+def source_folder(project: Project) -> Path:
+    """The project's backlog folder in the main checkout: the server writes there, never into a worktree."""
+    folder = project.root / project.config.todo_path
+    if not (folder / TODO_FILE).is_file():
+        raise ApiError(
+            f"{folder / TODO_FILE} does not exist; the backlog must be created first (skill claude-harness:todo)",
+            EXIT_USAGE,
+        )
     try:
         return in_main_checkout(folder)
     except (WorktreeError, OSError):
         # Not in a Git repository: the folder is its own source.
-        return folder
+        return folder.resolve()
 
 
-def source_id(api: Api, folder: Path) -> str:
+def source_id(api: Api, folder: Path, project: Project) -> str:
     for source in api.call("GET", "/sources"):
         if Path(source["path"]).resolve() == folder:
             return source["id"]
-    source = api.call("POST", "/sources", {"path": str(folder)})
+    body = {"path": str(folder)}
+    if project.name != ROOT_PROJECT:
+        # Without a name the server uses the Git repository's, which subprojects share with the root.
+        body["project"] = project.name
+    source = api.call("POST", "/sources", body)
     print(f"registered backlog {folder} as ToDo-Viewer source {source['id']}", file=sys.stderr)
     return source["id"]
 
@@ -128,13 +147,8 @@ def _item(sid: str, identifier: str, suffix: str = "") -> str:
     return f"/items/{quote(sid)}/{quote(identifier)}{suffix}"
 
 
-def run(folder: Path, command: str, args: list[str]) -> None:
-    api = Api(api_url_for(folder))
-    if command == "health" and not args:
-        _print_json(api.call("GET", "/health"))
-        return
-    folder = source_folder(folder)
-    arity = {"index": 0, "show": 1, "create": 0, "update": 2, "note": 1, "doc": 2,
+def run(project_name: str, command: str, args: list[str]) -> None:
+    arity = {"health": 0, "index": 0, "show": 1, "create": 0, "update": 2, "note": 1, "doc": 2,
              "put-doc": 3, "delete": 2, "trash": 0, "restore": 2}
     options = {"put-doc": "--summary", "delete": "--cascade"}
     flag = options.get(command)
@@ -151,7 +165,12 @@ def run(folder: Path, command: str, args: list[str]) -> None:
         del positional[at:at + 2]
     if command not in arity or len(positional) != arity[command]:
         raise ApiError(USAGE, EXIT_USAGE)
-    sid = source_id(api, folder)
+    project = find_project(project_name)
+    api = Api(project.config.todo_api_url)
+    if command == "health":
+        _print_json(api.call("GET", "/health"))
+        return
+    sid = source_id(api, source_folder(project), project)
 
     if command == "index":
         items = api.call("GET", "/index", query={"source_id": sid})["items"]
@@ -191,11 +210,15 @@ def run(folder: Path, command: str, args: list[str]) -> None:
 
 
 def main(argv: list[str]) -> int:
-    if len(argv) < 3:
+    args = argv[1:]
+    project_name = ROOT_PROJECT
+    if args[:1] == ["--project"] and len(args) >= 2:
+        project_name, args = args[1], args[2:]
+    if not args:
         print(USAGE, file=sys.stderr)
         return EXIT_USAGE
     try:
-        run(Path(argv[1]).resolve(), argv[2], argv[3:])
+        run(project_name, args[0], args[1:])
     except ApiError as exc:
         print(exc if exc.exit_code == EXIT_USAGE and str(exc) == USAGE else f"error: {exc}", file=sys.stderr)
         return exc.exit_code
