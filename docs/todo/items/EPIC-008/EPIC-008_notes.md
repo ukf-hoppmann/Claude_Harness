@@ -70,3 +70,15 @@
 ### Open
 
 - Dieses Repo arbeitet nach dem Merge mit dem Standard `backend = "api"`.
+
+## 2026-09-28 — Wiedereröffnet für TASK-016
+
+### Discussed
+
+- Der Helfer nahm den Backlog-Ordner als freien Parameter. Ein falscher, aber gültiger Backlog (z. B. Core statt Plugin in EZF-Backend) wäre ohne Fehler beschrieben worden. Falsche Pfade selbst sind harmlos: der Viewer legt keine `TODO.md` an, die Quelle bekommt nur einen Fehlerzustand.
+- Eine Viewer-`source_id` in der Config wäre rechnerabhängig (pfadbasiert), die Config ist eingecheckt.
+
+### Decided
+
+- Vom Projektverantwortlichen freigegeben: EPIC-008 wieder öffnen, `TASK-016` darunter.
+- Der Helfer liest den Backlog-Ordner aus der Config (Root oder `--project <Name>`), wie `daily.py`; beim Anlegen einer Quelle wird der Projektname mitgegeben.
