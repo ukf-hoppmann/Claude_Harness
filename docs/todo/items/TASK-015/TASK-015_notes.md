@@ -16,3 +16,9 @@
 ### Open
 
 - Die ToDo-Viewer-API liefert Area im Index noch nicht; backlog_api.py zeigt sie, sobald die API sie mitliefert.
+
+## 2026-09-28 — Area im API-Index geklärt
+
+### Decided
+
+- Der ToDo-Viewer liefert area jetzt im Index (dort TASK-001); backlog_api.py index zeigt die Spalte ohne weitere Änderung. Der offene Punkt vom 2026-09-28 ist damit erledigt.
