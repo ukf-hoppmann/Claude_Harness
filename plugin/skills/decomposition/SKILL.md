@@ -92,15 +92,7 @@ result.
 
 ## Running tests
 
-Run the tests that the change can affect, not always the whole suite. A
-change to shared code, persistence, or interfaces affects more than its own
-file; look for its callers.
-
-- Run the affected tests again after the last change, however small, before
-  reporting the work as done.
-- Name what you did not test and why (e.g. a suite that needs a database).
-- Call a failing test unrelated or pre-existing only after checking it, e.g.
-  by running it without your change.
+Which tests to run and where they live: skill `claude-harness:testing`.
 
 ## Dimension checklist
 
