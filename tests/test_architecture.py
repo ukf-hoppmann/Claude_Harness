@@ -307,6 +307,17 @@ class ArchitectureHookTest(unittest.TestCase):
         self.write_config(suite=False)
         self.assertNotIn("claude-harness:decomposition", self.run_hook("session_start.py", start).stdout)
 
+    def test_session_start_mentions_testing(self):
+        start = {"session_id": "s1", "source": "startup"}
+        self.assertIn("Tests: tests/; rules in skill claude-harness:testing", self.run_hook("session_start.py", start).stdout)
+        config = self.project / ".claude-harness" / "config.toml"
+        config.write_text('version = 1\n[modules]\ndevelopment = true\n[development]\ntests = "backend/tests"\n')
+        self.assertIn("Tests: backend/tests/;", self.run_hook("session_start.py", start).stdout)
+        config.write_text('version = 1\n[modules]\ndevelopment = true\n[development]\ntesting = false\n')
+        self.assertNotIn("claude-harness:testing", self.run_hook("session_start.py", start).stdout)
+        self.write_config(suite=False)
+        self.assertNotIn("claude-harness:testing", self.run_hook("session_start.py", start).stdout)
+
     def test_session_start_missing_rules(self):
         self.rules.unlink()
         out = self.run_hook("session_start.py", {"session_id": "s1", "source": "startup"}).stdout
@@ -354,6 +365,13 @@ class SubprojectArchitectureTest(unittest.TestCase):
         if not result.stdout.strip():
             return None
         return json.loads(result.stdout)["hookSpecificOutput"]["permissionDecisionReason"]
+
+    def test_session_start_names_test_folder_per_project(self):
+        out = self.run_hook("session_start.py", {"session_id": "s1", "source": "startup"}).stdout
+        self.assertEqual(out.count("skill claude-harness:testing"), 1)
+        self.assertIn("Tests: rules in skill claude-harness:testing", out)
+        self.assertRegex(out, r"Project root \(\.\):[^\n]*; tests tests/")
+        self.assertRegex(out, r"Project A \(Plugins/A\):[^\n]*; tests Plugins/A/tests/")
 
     def edit(self, rel_path):
         return self.deny_reason("Edit", {"file_path": str(self.project / rel_path)})

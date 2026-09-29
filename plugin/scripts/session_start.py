@@ -38,6 +38,9 @@ DECOMPOSITION_LINE = (
     "Decomposition: rules in skill claude-harness:decomposition (load it when planning or "
     "starting an implementation, or splitting backlog items)."
 )
+TESTING_HINT = (
+    "rules in skill claude-harness:testing (load it when writing, placing, or running tests)."
+)
 WORKTREE_LINE = (
     "Change workflow: rules in skill claude-harness:worktree (load it when a plan was "
     "approved or a worktree is to be merged back)."
@@ -125,6 +128,8 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
             lines += _inherited_problems(projects, project)
     if config.part_enabled("decomposition"):
         lines.append(DECOMPOSITION_LINE)
+    if config.part_enabled("testing"):
+        lines.append(f"Tests: {config.tests_path}/; {TESTING_HINT}")
     if config.part_enabled("worktree"):
         lines.append(WORKTREE_LINE)
         if is_git_repo(root) and base_ref_setting(root, Path.home()) != "head":
@@ -160,6 +165,8 @@ def _several_projects(projects: ProjectSet) -> list[str]:
         )
     if any(c.part_enabled("decomposition") for c in configs):
         lines.append(DECOMPOSITION_LINE)
+    if any(c.part_enabled("testing") for c in configs):
+        lines.append(f"Tests: {TESTING_HINT}")
     if any(c.part_enabled("worktree") for c in configs):
         lines.append(WORKTREE_LINE)
         root = projects.session_root
@@ -187,6 +194,8 @@ def _project_line(projects: ProjectSet, project: Project) -> str:
         parts.append(f"techdocs {show(README)}, {show(config.techdocs_path)}/")
     if config.part_enabled("architecture"):
         parts.append(f"architecture {show(rules_path(config))}")
+    if config.part_enabled("testing"):
+        parts.append(f"tests {show(config.tests_path)}/")
     if config.enabled("semver"):
         parts.append(f"semver {_semver_summary(projects, project, show)}")
     return f"Project {project.name} ({project.path}): {'; '.join(parts)}."
