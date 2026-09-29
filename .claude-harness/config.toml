@@ -37,12 +37,16 @@ documents = ["architecture", "interfaces", "configuration"]
 # docs.root. Parts are active while the suite is active unless set to false.
 # Known parts: architecture (rules in <path>/architecture.md), decomposition
 # (splitting work into small, separately testable steps), worktree (changes
-# with an approved plan run in a worktree and are merged back by the AI).
+# with an approved plan run in a worktree and are merged back by the AI),
+# testing (where tests live and how the test folder is structured). tests: the
+# test folder relative to the project root, next to the source folder.
 [development]
 path = "development"
 architecture = true
 decomposition = true
 worktree = true
+testing = true
+tests = "tests"
 
 # Release versions (SemVer). file: version file relative to docs.root, holding
 # only MAJOR.MINOR.PATCH. sync: files relative to the project root that must

@@ -16,7 +16,7 @@ RFC 2119 meaning.
 
 - Hook and helper scripts MUST use only the Python standard library and run on
   Python 3.11 or later. Target projects need no installation step.
-  Enforced by: `tests/test_architecture_rules.py` (standard library only).
+  Enforced by: `tests/implementation/unit/test_architecture_rules.py` (standard library only).
 - Hooks MUST NOT use the network and MUST finish within their configured
   timeout.
 
@@ -32,8 +32,8 @@ RFC 2119 meaning.
 - Every configuration key MUST be validated in
   `plugin/scripts/harness_config.py`; unknown keys are errors.
 - Every configuration key MUST be documented in `docs/techdocs/configuration.md`
-  and covered by a test in `tests/test_config.py`.
-  Enforced by: `tests/test_architecture_rules.py` (documentation only).
+  and covered by a test in `tests/implementation/unit/test_config.py`.
+  Enforced by: `tests/implementation/unit/test_architecture_rules.py` (documentation only).
 
 ### 5. State and files
 

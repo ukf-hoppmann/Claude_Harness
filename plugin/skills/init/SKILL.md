@@ -34,8 +34,10 @@ are relative to it.
      and which documents the project keeps (`architecture`, `interfaces`,
      `configuration`, `operations`);
    - for `development`: the folder relative to `docs.root` (default
-     `development`) and which parts to switch off (all parts are on by
-     default; currently `architecture`, `decomposition`, and `worktree`);
+     `development`), which parts to switch off (all parts are on by
+     default; currently `architecture`, `decomposition`, `worktree`, and
+     `testing`), and the test folder relative to the project root (`tests`,
+     default `tests` next to the source folder);
    - only for the project root: the path of the Claude_Harness repository on
      this machine (`harness.repo`, optional; used to hand harness wishes over
      to its backlog). Propose the output of

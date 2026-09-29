@@ -13,7 +13,7 @@ sind und wo die Dokumente liegen, steht pro Projekt in
 | `todo` | Typisierter Projekt-Backlog (`TODO.md`, `archive.md`, Notizen und Specs pro Eintrag) mit automatischer Formatprüfung |
 | `daily` | Ein Tagesbericht pro Arbeitstag über relevante Änderungen, die auf dem Hauptzweig angekommen sind |
 | `techdocs` | Technische Systemdoku (README, Architektur, Schnittstellen, Konfiguration, Betrieb) mit Erinnerung, sie im selben Change mitzupflegen |
-| `development` | Suite verbindlicher Entwicklungsregeln für die AI (englisch). Teilbereich `architecture`: Architekturregeln mit Scopes, die vor der ersten Code-Änderung einer Session gelesen werden müssen. Teilbereich `decomposition`: Aufgaben werden in kleine, einzeln testbare Schritte zerlegt; für Bugfixes und neues Verhalten entsteht der Test zuerst. Teilbereich `worktree`: Changes mit freigegebenem Plan laufen in einem eigenen Worktree vom aktuell ausgecheckten Branch; die AI merged sie danach selbst dorthin zurück und löscht den Worktree |
+| `development` | Suite verbindlicher Entwicklungsregeln für die AI (englisch). Teilbereich `architecture`: Architekturregeln mit Scopes, die vor der ersten Code-Änderung einer Session gelesen werden müssen. Teilbereich `decomposition`: Aufgaben werden in kleine, einzeln testbare Schritte zerlegt; für Bugfixes und neues Verhalten entsteht der Test zuerst. Teilbereich `worktree`: Changes mit freigegebenem Plan laufen in einem eigenen Worktree vom aktuell ausgecheckten Branch; die AI merged sie danach selbst dorthin zurück und löscht den Worktree. Teilbereich `testing`: alle Tests liegen in einem Testordner neben dem Quellcode (`development.tests`, Standard `tests`), getrennt in Implementierungstests der AI und Funktionalitätstests für den Owner, die nur auf Aufruf laufen und ihre Szenarien über Parameter setzen |
 | `semver` | Versionsnummer nach SemVer: eine einheitliche Versionsdatei (Standard `docs/VERSION`), gespiegelt in die projekteigenen Dateien. Jede gemergte Änderung ergibt höchstens einen Versionsschritt mit Release-Tag; ein Hook prüft Schritt und Spiegel. Standardmäßig aus |
 
 Unabhängig von den Modulen gilt: Widerspricht eine Anforderung oder ein Wunsch
@@ -68,7 +68,7 @@ startet weiter im Repo-Root. Details:
 
 - `plugin/` ist das ausgelieferte Produkt; alles andere dient der Entwicklung.
 - Dieses Repo nutzt das Plugin selbst (`.claude/settings.json`).
-- Tests: `python3 -m unittest discover tests`
+- Tests: `python3 -m unittest discover -s tests/implementation -t tests`; Aufbau und Funktionalitätstests: `tests/README.md`
 - Backlog: `docs/todo/`, Tagesberichte: `docs/daily/`, Architekturregeln: `docs/development/architecture.md`
 
 ## Dokumentation

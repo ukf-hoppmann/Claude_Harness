@@ -26,6 +26,8 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `development.architecture` | Boolean | `true` | nein | Teilbereich Architektur; nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `development.decomposition` | Boolean | `true` | nein | Teilbereich Zerlegung (Skill `claude-harness:decomposition`); nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `development.worktree` | Boolean | `true` | nein | Teilbereich Change-Workflow (Skill `claude-harness:worktree`): Changes mit freigegebenem Plan laufen in einem Worktree vom aktuellen Branch und werden von der AI zurückgemerged; nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
+| `development.testing` | Boolean | `true` | nein | Teilbereich Tests (Skill `claude-harness:testing`): Ablage und Gliederung des Testordners, Implementierungs- und Funktionalitätstests; nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
+| `development.tests` | Pfad | `"tests"` | nein | Testordner, relativ zum Projekt-Root (nicht zu `docs.root`); in der Regel neben dem Quellordner |
 | `techdocs.documents` | Liste | `["architecture", "interfaces", "configuration"]` | nein | Geführte Dokumente; erlaubt sind `architecture`, `interfaces`, `configuration`, `operations`; Dateiname `<Art>.md`. `README.md` im Projekt-Root gehört immer dazu |
 | `semver.file` | Pfad | `"VERSION"` | nein | Versionsdatei, relativ zu `docs.root`; enthält nur die Version `MAJOR.MINOR.PATCH` |
 | `semver.sync` | Liste von Pfaden | `[]` | nein | Spiegel-Dateien, relativ zum Projekt, z. B. `["package.json"]`; jede muss die Version aus der Versionsdatei enthalten |

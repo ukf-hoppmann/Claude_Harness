@@ -85,6 +85,25 @@ class ParseConfigTest(unittest.TestCase):
         })
         self.assertFalse(no_worktree.part_enabled("worktree"))
         self.assertTrue(no_worktree.part_enabled("decomposition"))
+        self.assertTrue(on.part_enabled("testing"))
+        self.assertFalse(off.part_enabled("testing"))
+        no_testing = parse_config({
+            "version": 1,
+            "modules": {"development": True},
+            "development": {"testing": False},
+        })
+        self.assertFalse(no_testing.part_enabled("testing"))
+        self.assertTrue(no_testing.part_enabled("worktree"))
+
+    def test_tests_path(self):
+        self.assertEqual(parse_config({"version": 1}).tests_path, PurePosixPath("tests"))
+        config = parse_config({
+            "version": 1,
+            "docs": {"root": "documentation"},
+            "development": {"tests": "backend/tests/"},
+        })
+        # Relative to the project root, not to docs.root.
+        self.assertEqual(config.tests_path, PurePosixPath("backend/tests"))
 
     def test_harness_repo(self):
         self.assertEqual(parse_config({"version": 1}).harness_repos, ())
@@ -177,6 +196,10 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "development": {"worktree": "on"}},
             {"version": 1, "development": {"unknown": True}},
             {"version": 1, "development": {"path": "../x"}},
+            {"version": 1, "development": {"testing": "x"}},
+            {"version": 1, "development": {"tests": "/abs"}},
+            {"version": 1, "development": {"tests": "../tests"}},
+            {"version": 1, "development": {"tests": 1}},
             {"version": 1, "harness": {"repo": "/abs/harness"}},
             {"version": 1, "harness": {"repo": ["relative/harness"]}},
             {"version": 1, "harness": {"repo": [""]}},
