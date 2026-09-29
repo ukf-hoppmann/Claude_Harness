@@ -1,12 +1,13 @@
 import os
 import tempfile
+import tomllib
 import unittest
 from unittest import mock
 from pathlib import Path, PurePosixPath
 
 import helpers  # noqa: F401  (adds plugin/scripts to sys.path)
 import harness_config
-from harness_config import ConfigError, ConfigOutdated, Migration, load_config, migrate_data, parse_config, project_root
+from harness_config import KNOWN_MODULES, TABLE_KEYS, ConfigError, ConfigOutdated, Migration, load_config, migrate_data, parse_config, project_root
 
 
 class ParseConfigTest(unittest.TestCase):
@@ -299,6 +300,14 @@ class LoadConfigTest(unittest.TestCase):
             path.parent.mkdir()
             path.write_text((helpers.REPO_ROOT / "plugin/templates/config.toml").read_text())
             self.assertTrue(load_config(Path(tmp)).enabled("todo"))
+
+    def test_template_lists_every_key(self):
+        # /claude-harness:update completes configs from the template, so it must know every key.
+        data = tomllib.loads((helpers.REPO_ROOT / "plugin/templates/config.toml").read_text())
+        self.assertEqual(set(data["modules"]), set(KNOWN_MODULES))
+        for table, keys in TABLE_KEYS.items():
+            with self.subTest(table=table):
+                self.assertEqual(set(data.get(table, {})), keys)
 
 
 if __name__ == "__main__":
