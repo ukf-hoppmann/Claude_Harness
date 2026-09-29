@@ -43,10 +43,19 @@ of the project decides:
 
 - **major:** an incompatible change of a public contract (API, CLI, file
   format, configuration key, documented behavior);
-- **minor:** a new compatible capability or setting;
-- **patch:** a compatible fix or improvement of existing behavior;
+- **minor:** a notable new feature that users would name on its own, e.g. a
+  new module or area, a new command, skill, or standalone tool;
+- **patch:** a compatible fix or improvement of existing behavior, including
+  small new features inside an existing one: an extra option or setting,
+  a sub-function, a new or sharper rule in an existing skill, an optional
+  convention;
 - **none:** only internal changes, tests, or documentation. Then there is no
   release; say so.
+
+When in doubt between minor and patch, choose patch. Examples: a new module
+with its own switch and settings is minor; an optional extra rule, filter
+option, or export format for an existing feature is patch; a corrected rule
+or behavior is patch.
 
 While MAJOR is `0`, an incompatible change counts as minor. Pick the version
 only from the allowed versions `status` prints. A major step at or above
