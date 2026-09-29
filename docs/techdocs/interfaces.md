@@ -56,7 +56,7 @@ Dateiformate.
 | `claude-harness:architecture` | Code geplant oder geändert wird, Architekturregeln geändert werden, eine Anforderung den Regeln widerspricht oder der Architektur-Hook eine Änderung ablehnt |
 | `claude-harness:decomposition` | eine Umsetzung geplant oder begonnen, ein Umsetzungsplan vorgelegt oder überlegt wird, ob ein Backlog-Item Kind-Tasks bekommt |
 | `claude-harness:testing` | Tests geschrieben, abgelegt oder ausgeführt werden oder der Projektverantwortliche einen Funktionalitätstest wünscht |
-| `claude-harness:semver` | eine Änderung in den Hauptzweig gemergt wird, ein Release gewünscht ist, der SemVer-Hook erinnert oder das Modul eingerichtet wird |
+| `claude-harness:semver` | eine Änderung in ihren Ausgangsbranch zurückgemergt wird, ein Release gewünscht ist, der SemVer-Hook erinnert oder das Modul eingerichtet wird |
 | `claude-harness:conflicts` | eine Anforderung oder ein Wunsch des Projektverantwortlichen den Projektregeln oder einer Harness-Vorgabe widerspricht oder der Harness selbst ein Problem verursacht; gilt unabhängig von den Modul-Schaltern |
 
 ## Hooks
@@ -76,7 +76,7 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
 | PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
 | Stop | `check_backlog.py` | Nur bei `todo.backend = "files"`: prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
-| Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Hauptzweig (nur Haupt-Checkout; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
+| Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Branch, in den gemerged wird (Orte wie bei `daily.py`; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
 | Stop | `check_techdocs.py` | Erinnert einmal pro Projekt und Session, wenn Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden; mit Teilprojekten nennt die Meldung jedes betroffene Projekt mit seinen Doku-Pfaden | Exit 2 + stderr |
 | Stop | `check_semver.py` | Nur in einem Git-Repo. Meldet pro Projekt mit Modul `semver`: Versionsdatei fehlt oder enthält keine gültige Version; Version liegt unter dem letzten Release oder mehr als einen Schritt darüber; eine Spiegel-Datei fehlt oder enthält die Version nicht. Derselbe Befund wird einmal pro Projekt und Session gemeldet; mit Teilprojekten nennt die Meldung jedes Projekt samt Aufruf `semver.py status --project <Name>` | Exit 2 + stderr |
 
@@ -165,12 +165,19 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Projekts außerhalb seines Daily- und Backlog-Ordners ändert; für das
   Root-Projekt zählen Dateien in eingetragenen Teilprojekten nicht. Das gilt
   auch, wenn das Projekt unterhalb des Git-Roots liegt.
-- `ack`: setzt den bestätigten Stand des Projekts auf HEAD.
+  Offen ist ein Commit, den kein bestätigter Stand irgendeines Branches
+  enthält; ein Merge, dessen eingemergte Seite schon bestätigt ist, zählt
+  nicht. Ohne verwertbaren bestätigten Stand wird HEAD still zum Startpunkt.
+- `ack`: setzt den bestätigten Stand des Projekts für den ausgecheckten
+  Branch auf HEAD. Eine alte Ack-Datei mit nur einem Commit gilt weiter.
+- Erlaubte Orte: der Haupt-Checkout auf einem beliebigen Branch, oder ein
+  Worktree, der gerade den Ausgangsbranch eines Changes ausgecheckt hat
+  (Merge im Worktree, siehe `worktree.py check`). Nicht erlaubt: detached
+  HEAD, der Branch eines laufenden Changes (hat `harnessBase`) und andere
+  Worktrees, z. B. von der App angelegte.
 - Exit-Code 1, wenn das Modul im gewählten Projekt aus ist (die Meldung
   nennt die Projekte mit Daily), das Projekt unbekannt oder unwirksam ist
-  oder nicht im Haupt-Checkout auf dem Hauptzweig aufgerufen wird; 2 bei
-  falschem Aufruf.
-- Hauptzweig: Ziel von `origin/HEAD`, sonst `main`, sonst `master`.
+  oder der Ort nicht erlaubt ist; 2 bei falschem Aufruf.
 
 ## Skript `harness_repo.py`
 
@@ -239,10 +246,13 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   `clean` (keine nicht committeten oder unversionierten, nicht ignorierten
   Dateien im Worktree), `base_moved` (Ausgangsbranch hat Commits, die im
   Worktree fehlen), `main_on_base` (Haupt-Checkout steht noch auf dem
-  Ausgangsbranch).
+  Ausgangsbranch), `merge_in` (`main`: Merge im Haupt-Checkout; `worktree`:
+  der Haupt-Checkout hat gewechselt und der Ausgangsbranch ist nirgends
+  ausgecheckt, der Worktree checkt ihn selbst aus und merged dort; `none`:
+  der Ausgangsbranch ist in einem anderen Worktree ausgecheckt).
 - Exit-Code: 0; 1 bei Fehlern (nicht in einem Worktree, Haupt-Checkout
   detached, kein Ausgangsbranch gespeichert) und bei `check`, wenn `clean`
-  oder `main_on_base` `no` ist; 2 bei falschem Aufruf.
+  `no` oder `merge_in` `none` ist; 2 bei falschem Aufruf.
 
 ## Skript `semver.py`
 

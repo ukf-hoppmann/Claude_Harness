@@ -1,6 +1,6 @@
 ---
 name: daily
-description: Rules for daily development reports (one report per day about material changes that reached the main branch). Use when the daily hook reminds you, or when asked to write, update, or look up what happened on a day.
+description: Rules for daily development reports (one report per day about material changes, written on the branch they were merged into). Use when the daily hook reminds you, or when asked to write, update, or look up what happened on a day.
 ---
 
 # Daily development reports
@@ -14,11 +14,13 @@ description: Rules for daily development reports (one report per day about mater
 2. Reports live in `<docs.root>/<daily.path>/<YYYY-MM-DD>_daily.md`, written
    in `docs.language`.
 3. Run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" pending`. It prints
-   today's report path and the unrecorded commits on the main branch. With
-   subprojects every project has its own reports: add `--project <name>`
+   today's report path and the unrecorded commits on the checked-out branch.
+   With subprojects every project has its own reports: add `--project <name>`
    (the reminder names the projects) and handle each project separately. If it
-   says reports are unavailable here (worktree, other branch), stop: reports
-   are written only in the main checkout after the change is merged.
+   says reports are unavailable here, stop: a report is written only after a
+   change is merged, on the branch it was merged into — the branch checked out
+   in the main checkout, or the base branch a change's worktree merged back
+   into (skill `claude-harness:worktree`).
 
 ## Workflow
 
@@ -31,7 +33,8 @@ description: Rules for daily development reports (one report per day about mater
 4. Finally run `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/daily.py" ack` (with
    the same `--project`), also when nothing was material. Commits that only change the report or backlog
    folders are ignored, so committing the report does not trigger a new
-   reminder.
+   reminder. Commits acknowledged on one branch are not reported again after
+   a merge into another.
 
 ## Materiality
 
