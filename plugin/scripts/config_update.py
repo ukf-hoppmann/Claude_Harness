@@ -53,6 +53,7 @@ class Decision:
 class Result:
     text: str
     decisions: tuple[Decision, ...]
+    changes: int = 0
 
 
 @dataclass
@@ -287,7 +288,7 @@ class _Planner:
             parse_config(tomllib.loads(text), subproject=self.subproject)
         except tomllib.TOMLDecodeError as exc:
             raise ConfigError(f"completed config is not valid TOML: {exc}") from exc
-        return Result(text, tuple(self.decisions))
+        return Result(text, tuple(self.decisions), len(self.edits))
 
     def _apply(self) -> str:
         if not self.edits:
@@ -306,3 +307,65 @@ def complete(project: str, template: str, *, subproject: bool = False,
     if result.text.rstrip("\n") == project.rstrip("\n"):
         return Result(project, result.decisions)
     return result
+
+
+def _report(result: Result, before: str) -> None:
+    for decision in result.decisions:
+        state = "pending" if decision.pending else "set"
+        print(f"decision: {decision.key} = {decision.value} ({state}; {decision.choices})")
+        for label in ("project", "template"):
+            for line in getattr(decision, label).splitlines():
+                print(f"  {label}: {line}")
+    print(f"changes: {result.changes}")
+    path = str(CONFIG_RELATIVE_PATH)
+    diff = difflib.unified_diff(before.splitlines(), result.text.splitlines(), f"a/{path}", f"b/{path}", lineterm="")
+    for line in diff:
+        print(line)
+
+
+def main(argv: list[str]) -> int:
+    folder, subproject, write, choices = None, False, False, {}
+    args = iter(argv)
+    for arg in args:
+        if arg == "--subproject":
+            subproject = True
+        elif arg == "--write":
+            write = True
+        elif arg == "--set":
+            key, sep, value = next(args, "").partition("=")
+            if not sep or not key:
+                print(__doc__.strip(), file=sys.stderr)
+                return 2
+            choices[key] = value
+        elif folder is None and not arg.startswith("-"):
+            folder = Path(arg)
+        else:
+            print(__doc__.strip(), file=sys.stderr)
+            return 2
+    if folder is None:
+        print(__doc__.strip(), file=sys.stderr)
+        return 2
+    path = folder / CONFIG_RELATIVE_PATH
+    if not path.is_file():
+        print(f"error: no {CONFIG_RELATIVE_PATH} in {folder}", file=sys.stderr)
+        return 1
+    before = path.read_text(encoding="utf-8")
+    try:
+        result = complete(before, TEMPLATE.read_text(encoding="utf-8"), subproject=subproject, choices=choices)
+    except ConfigError as exc:
+        print(f"error: {exc}", file=sys.stderr)
+        return 1
+    _report(result, before)
+    if not write or not result.changes:
+        return 0
+    pending = [d.key for d in result.decisions if d.pending]
+    if pending:
+        print(f"error: decisions not set: {', '.join(pending)}", file=sys.stderr)
+        return 1
+    path.write_text(result.text, encoding="utf-8")
+    print(f"written: {CONFIG_RELATIVE_PATH}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
