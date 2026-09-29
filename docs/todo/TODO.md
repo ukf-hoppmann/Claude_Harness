@@ -12,7 +12,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 - `TASK-017` **update-Skill: Projekt-Config mit dem aktuellen Harness-Stand abgleichen**
   - Type: Task.
   - Parent: None.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-28.
   - Area: Konfiguration.
   - Priority: Normal.

@@ -24,3 +24,14 @@
 
 - Fehlende Module: `update` fragt wie `init`, welche aktiviert werden sollen.
 - Weicht ein vorhandener Kommentar an einer Stelle vom Vorlagentext ab, meldet `update` das und fragt, ob er bleibt oder durch den Vorlagentext ersetzt wird.
+
+## 2026-09-29 — Umsetzung abgeschlossen
+
+### Discussed
+
+- Neues Skript `plugin/scripts/config_update.py` (Vorschau, `--set`, `--write`) mit Tests in `tests/test_config_update.py`; Test, dass die Vorlage jede Einstellung enthält; `update`-Skill und techdocs/README angepasst.
+- Integration: Config dieses Repos mit dem Ablauf aktualisiert (16 Ergänzungen, `todo.backend = "api"` wie bisher wirksam); zweiter Lauf meldet `changes: 0`; ToDo-Viewer erreichbar; alle 255 Tests grün.
+
+### Decided
+
+- Ein vorhandener, abweichender Kommentar gilt als Entscheidung `comment:<Stelle>` mit Standard `keep`; die bestehende Migrationsprüfung bleibt vor dem Abgleich.
