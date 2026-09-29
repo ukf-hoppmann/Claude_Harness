@@ -1149,3 +1149,24 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     testing, Einstellungen development.testing/development.tests,
     Sessionstart-Zeile und neue Testgliederung dieses Repos umgesetzt
     (v0.7.0).
+
+- `EPIC-004` **Entwicklungsprozess & Prinzipien**
+  - Type: Epic.
+  - Status: Completed.
+  - Created: 2026-09-23.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Verbindlich festlegen, wie in einem Projekt entwickelt wird:
+    projektweite Architektur-Definitionen, Heuristik zur Task-Zerlegung,
+    Change-Ablauf (Workspace, Ablauf, Cleanup), TDD-Ritual und einheitliche
+    Testebenen (Unit/Integration/System), damit Qualität nicht vom Zufall
+    abhängt.
+  - Completion criteria: Architektur-Definitionen, Zerlegungs-Heuristik,
+    Change-Ablauf und Testkommando sind dokumentiert und werden bei
+    mindestens einem Change sichtbar angewendet.
+  - Summary: Legt fest, wie entwickelt wird: Architekturregeln, Zerlegung,
+    Change-Ablauf im Worktree, Tests und Versionierung. Ein eigenes
+    Prinzipien-Dokument gehört nicht mehr dazu.
+  - Notes: `items/EPIC-004/EPIC-004_notes.md`.
+  - Resolution: Confirmed by the project owner on 2026-09-29.
