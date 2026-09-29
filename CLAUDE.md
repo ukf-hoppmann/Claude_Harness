@@ -10,4 +10,5 @@ source of ideas, not a binding reference.
   `.claude-harness/config.toml`).
 - Backlog: `docs/todo/`. Its rules live in the `todo` skill; load it only when
   working with the backlog.
-- Tests: `python3 -m unittest discover tests` (Python 3.11+, stdlib only).
+- Tests: `python3 -m unittest discover -s tests/implementation -t tests`
+  (Python 3.11+, stdlib only); layout and functional tests: `tests/README.md`.

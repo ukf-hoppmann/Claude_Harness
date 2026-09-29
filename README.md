@@ -68,7 +68,7 @@ startet weiter im Repo-Root. Details:
 
 - `plugin/` ist das ausgelieferte Produkt; alles andere dient der Entwicklung.
 - Dieses Repo nutzt das Plugin selbst (`.claude/settings.json`).
-- Tests: `python3 -m unittest discover tests`
+- Tests: `python3 -m unittest discover -s tests/implementation -t tests`; Aufbau und Funktionalitätstests: `tests/README.md`
 - Backlog: `docs/todo/`, Tagesberichte: `docs/daily/`, Architekturregeln: `docs/development/architecture.md`
 
 ## Dokumentation
