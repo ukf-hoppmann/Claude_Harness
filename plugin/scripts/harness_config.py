@@ -26,8 +26,10 @@ DEFAULT_DAILY_PATH = PurePosixPath("daily")
 DEFAULT_TECHDOCS_PATH = PurePosixPath("techdocs")
 DEFAULT_DEVELOPMENT_PATH = PurePosixPath("development")
 DEFAULT_VERSION_FILE = PurePosixPath("VERSION")
+# Test folder relative to the project root, next to the source folder.
+DEFAULT_TESTS_PATH = PurePosixPath("tests")
 # Parts of the development suite; each is on while the suite is on unless set to false.
-DEVELOPMENT_PARTS = ("architecture", "decomposition", "worktree")
+DEVELOPMENT_PARTS = ("architecture", "decomposition", "worktree", "testing")
 TECHDOC_KINDS = ("architecture", "interfaces", "configuration", "operations")
 DEFAULT_TECHDOCS = ("architecture", "interfaces", "configuration")
 
@@ -37,7 +39,7 @@ TABLE_KEYS = {
     "todo": {"path", "backend", "api_url"},
     "daily": {"path"},
     "techdocs": {"path", "documents"},
-    "development": {"path", *DEVELOPMENT_PARTS},
+    "development": {"path", "tests", *DEVELOPMENT_PARTS},
     "harness": {"repo"},
     "semver": {"file", "sync", "paths"},
 }
@@ -124,6 +126,8 @@ class HarnessConfig:
     techdocs: tuple[str, ...]
     development_path: PurePosixPath
     development_parts: dict[str, bool]
+    # Test folder, relative to the project root (not to docs_root).
+    tests_path: PurePosixPath = DEFAULT_TESTS_PATH
     # Candidate paths of the Claude_Harness repository, one per machine; absolute or starting with '~'.
     harness_repos: tuple[str, ...] = ()
     # Subprojects registered in the root project: (name, path relative to the project root).
@@ -273,6 +277,7 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
     techdocs = _techdoc_kinds(raw_techdocs.get("documents", list(DEFAULT_TECHDOCS)), errors)
     raw_development = _table(data, "development", errors)
     development_path = _path_value(raw_development, "path", "development", DEFAULT_DEVELOPMENT_PATH, errors)
+    tests_path = _path_value(raw_development, "tests", "development", DEFAULT_TESTS_PATH, errors)
     development_parts: dict[str, bool] = {}
     for part in DEVELOPMENT_PARTS:
         if part not in raw_development:
@@ -305,6 +310,7 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
         techdocs=techdocs,
         development_path=docs_root / development_path,
         development_parts=development_parts,
+        tests_path=tests_path,
         harness_repos=harness_repos,
         projects=projects,
         semver_file=docs_root / semver_file,
