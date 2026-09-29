@@ -51,3 +51,12 @@
 ### Decided
 
 - Mit Zustimmung des Owners ergänzt: Funktionalitätstests laufen nicht im Gesamtlauf mit, ihre Szenarien lassen sich über Parameter setzen, und sie zeigen den Output.
+
+## 2026-09-29 — Umgesetzt
+
+### Decided
+
+- Config: Teilbereich development.testing (Standard an) und Testordner development.tests (Standard tests, relativ zur Projektwurzel).
+- Neuer Skill claude-harness:testing mit Ablage, Gliederung, Implementierungs- und Funktionalitätstests, Kommandos in <tests>/README.md und dem Abschnitt zum Ausführen von Tests (aus decomposition verschoben).
+- Sessionstart nennt Testordner und Skill; bei mehreren Projekten steht der Ordner in der Projektzeile.
+- Tests dieses Repos liegen jetzt unter tests/implementation/unit und tests/implementation/integration, Helfer unter tests/helpers; Kommando: python3 -m unittest discover -s tests/implementation -t tests (258 Tests grün). Funktionalitätstests gibt es hier noch keine; sie entstehen auf Wunsch.

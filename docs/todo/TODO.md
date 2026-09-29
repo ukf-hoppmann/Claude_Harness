@@ -12,7 +12,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 - `STORY-037` **Testkonventionen: Ablage, Gliederung, Test-Arten**
   - Type: Story.
   - Parent: `EPIC-004`.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-09-28.
   - Area: Entwicklung.
   - Priority: Important.
