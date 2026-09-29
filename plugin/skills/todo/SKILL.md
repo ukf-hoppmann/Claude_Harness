@@ -79,6 +79,9 @@ Read only what the task needs:
 - New work goes under an existing epic or story whenever one fits — including
   archived ones. Prefer proposing to reopen a closed parent (owner approval,
   reason recorded in its notes) over creating a new epic or story.
+- If the fitting parent is closed, ask whether to reopen it in the same
+  question that proposes the new item, before creating anything. Without a
+  yes, do not create the item without a parent; ask how to proceed.
 - With subprojects, each project has its own backlog. New items go into the
   backlog of the project the work belongs to; if that is unclear, ask.
 - Reuse existing areas before inventing new ones. Files: new IDs take the

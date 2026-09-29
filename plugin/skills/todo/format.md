@@ -121,8 +121,12 @@ new area is introduced only when no existing one fits.
   own completion criteria. If they are met, it sets the parent to
   `Awaiting confirmation` and tells the project owner; otherwise it reports
   what is missing. The owner confirms `Completed`.
-- A completed parent receives no new required child unless the project owner
-  reopens it first.
+- No active item stands under a closed (`Completed`/`Rejected`) parent,
+  required or optional. This blocks creating an item under it, moving an
+  item there, reopening a child of it, and restoring a child of it from the
+  [trash](#trash). To place work there, reopen every closed ancestor first,
+  from the top down, with the project owner's approval. Never fall back to
+  creating the item without a parent.
 
 ## Optional fields
 

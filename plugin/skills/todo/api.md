@@ -44,6 +44,11 @@ The date of a notes entry is set by the server. To revise notes or a spec,
 read it with `doc`, change the text, and write it back with `put-doc` and the
 version you read.
 
+To reopen a closed item (only after the owner approved it), use `update`
+with a status that is not final, e.g. `{"fields": {"status": "In progress"}}`.
+This works for archived items too: the server moves them back to `TODO.md`
+and drops `Resolution`. Then record the reason with `note`.
+
 ## Errors
 
 - Exit 1: the server refused; stderr shows `HTTP <status> <code>: <message>`
@@ -51,8 +56,15 @@ version you read.
   - `version_conflict`: someone changed the item or document since you read
     it. Read it again, check whether your change still fits, then decide —
     never repeat the call blindly.
-  - A rule violation names the blocking items in `details.items`. Resolve it
-    as [format.md](format.md) describes, or ask the owner.
+  - `parent_closed`: the item would stand under a closed parent.
+    `details.items` lists the closed ancestors to reopen, from the top down.
+    Ask the owner once whether to reopen all of them; if yes, reopen them in
+    that order and repeat the call. Never create the item without a parent
+    instead.
+  - `children_still_active`: a parent cannot be closed while children are
+    active; close or reparent them first.
+  - Other rule violations name the blocking items in `details.items`. Resolve
+    them as [format.md](format.md) describes, or ask the owner.
 - Exit 2: wrong call or invalid JSON on stdin.
 - Exit 3: server not reachable; see step 4 in [SKILL.md](SKILL.md). The
   server usually runs permanently in a container; after changes to the
