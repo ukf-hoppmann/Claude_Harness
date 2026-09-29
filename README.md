@@ -53,6 +53,10 @@ Plugin unter `plugin/`. In einem Projekt einbinden, z. B. über
    Vorlagen an, ohne Bestehendes zu überschreiben.
 3. Beim nächsten Session-Start meldet der Harness die aktiven Module.
 
+Nach einem Plugin-Update bringt `/claude-harness:update` die Config auf den
+aktuellen Stand: Er ergänzt fehlende Einstellungen, Module und Erklärungen
+aus der Vorlage und fragt nur, wo etwas zu entscheiden ist.
+
 Teilprojekte: In einem Repository mit mehreren Teilen, etwa einer Anwendung
 mit Plugins, bekommt jedes Teilprojekt eigene Config, Doku, Backlog und
 Architekturregeln in seinem Ordner. `/claude-harness:init` richtet ein
