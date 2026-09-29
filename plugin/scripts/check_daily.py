@@ -58,7 +58,7 @@ def main() -> int:
     _save_reminded(session_id, reminded)
     if not projects.has_subprojects():
         print(
-            f"Claude_Harness daily: {due[0][1]} commit(s) on the main branch are not yet "
+            f"Claude_Harness daily: {due[0][1]} commit(s) on this branch are not yet "
             "recorded in the daily report. Load skill claude-harness:daily and follow it "
             f'(start with: python3 "{DAILY_SCRIPT}" pending).',
             file=sys.stderr,
@@ -67,7 +67,7 @@ def main() -> int:
     listed = "; ".join(f"{p.name} ({count}, {p.path / p.config.daily_path}/)" for p, count in due)
     commands = "; ".join(f'python3 "{DAILY_SCRIPT}" pending --project {p.name}' for p, _ in due)
     print(
-        "Claude_Harness daily: commits on the main branch are not yet recorded in the daily "
+        "Claude_Harness daily: commits on this branch are not yet recorded in the daily "
         f"report of: {listed}. Load skill claude-harness:daily and follow it for each project "
         f"(start with: {commands}).",
         file=sys.stderr,

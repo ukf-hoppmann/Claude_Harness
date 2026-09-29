@@ -2,8 +2,8 @@
 
 Usage: daily.py pending | ack [--project <name>]
 
-`pending` prints today's report path and the commits on the main branch that
-are not yet acknowledged; `ack` acknowledges everything up to HEAD. With
+`pending` prints today's report path and the commits on the checked-out branch
+that no branch has acknowledged yet; `ack` acknowledges everything up to HEAD. With
 subprojects, --project selects the project (default: root).
 """
 
@@ -17,6 +17,7 @@ from pathlib import Path, PurePosixPath
 
 from harness_config import ROOT_PROJECT, ConfigError, HarnessConfig, project_root
 from projects import Project, ProjectSet, load_projects
+from worktree import BASE_KEY
 
 
 @dataclass(frozen=True)
@@ -37,14 +38,8 @@ def _git(root: Path, *args: str) -> str | None:
     return result.stdout.strip() if result.returncode == 0 else None
 
 
-def main_branch(root: Path) -> str | None:
-    remote_head = _git(root, "symbolic-ref", "--quiet", "--short", "refs/remotes/origin/HEAD")
-    if remote_head:
-        return remote_head.removeprefix("origin/")
-    for name in ("main", "master"):
-        if _git(root, "rev-parse", "--verify", "--quiet", f"refs/heads/{name}") is not None:
-            return name
-    return None
+def current_branch(root: Path) -> str | None:
+    return _git(root, "branch", "--show-current") or None
 
 
 def is_main_checkout(root: Path) -> bool:
@@ -54,15 +49,27 @@ def is_main_checkout(root: Path) -> bool:
     return git_dir is not None and git_dir == common_dir
 
 
+def _change_bases(root: Path) -> set[str]:
+    """Branches that a change in a worktree merges back into (recorded by worktree.py start)."""
+    # Git reports config keys with the last part in lower case.
+    out = _git(root, "config", "--get-regexp", rf"^branch\..*\.{BASE_KEY.lower()}$")
+    return {line.split(" ", 1)[1] for line in (out or "").splitlines() if " " in line}
+
+
 def unavailable_reason(root: Path) -> str | None:
-    """Why reports cannot be written here, or None when this is the right place."""
-    if not is_main_checkout(root):
-        return "not the main checkout (reports are written only there, after merging)"
-    branch = main_branch(root)
+    """Why reports cannot be written here, or None when this is the right place.
+
+    Reports go to the branch the changes are merged into: the branch checked out
+    in the main checkout, or the base branch a change's worktree merges back into
+    itself. Never on a change's own branch, and never in other linked worktrees.
+    """
+    branch = current_branch(root)
     if branch is None:
-        return "no main branch found"
-    if _git(root, "branch", "--show-current") != branch:
-        return f"the main branch '{branch}' is not checked out"
+        return "no branch is checked out"
+    if _git(root, "config", f"branch.{branch}.{BASE_KEY}"):
+        return f"'{branch}' is the branch of a change in progress (reports are written after merging it)"
+    if not is_main_checkout(root) and branch not in _change_bases(root):
+        return "a linked worktree that is not merging a change back (reports are written where changes are merged)"
     return None
 
 
@@ -86,22 +93,47 @@ def _ack_file(project: Project) -> Path | None:
     return Path(common_dir) / "claude-harness" / name
 
 
-def load_ack(project: Project) -> str | None:
+def load_ack(project: Project) -> dict[str, str]:
+    """Acknowledged commit per branch; a file from before branches were tracked has one bare SHA."""
     path = _ack_file(project)
     if path is None:
-        return None
+        return {}
     try:
-        return path.read_text().strip() or None
+        lines = path.read_text().splitlines()
     except OSError:
-        return None
+        return {}
+    acks = {}
+    for line in lines:
+        sha, _, branch = line.strip().partition(" ")
+        if sha:
+            acks[branch] = sha
+    return acks
 
 
-def save_ack(project: Project, sha: str) -> None:
+def save_ack(project: Project, branch: str, sha: str) -> None:
     path = _ack_file(project)
     if path is None:
         return
+    acks = load_ack(project)
+    acks[branch] = sha
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(sha)
+    path.write_text("".join(f"{s} {b}".rstrip() + "\n" for b, s in sorted(acks.items())))
+
+
+def _acknowledged(root: Path, acks: dict[str, str], current: str) -> list[str]:
+    """Acknowledged commits that still exist and share history with current."""
+    return [
+        sha for sha in dict.fromkeys(acks.values())
+        if _git(root, "merge-base", current, sha) is not None
+    ]
+
+
+def _merges_acknowledged(root: Path, parents: list[str], acknowledged: list[str]) -> bool:
+    """A merge whose merged-in side was already acknowledged on another branch."""
+    return len(parents) > 1 and all(
+        any(_git(root, "merge-base", "--is-ancestor", p, a) is not None for a in acknowledged)
+        for p in parents[1:]
+    )
 
 
 def _changed_files(root: Path, sha: str) -> list[str]:
@@ -126,30 +158,33 @@ def _project_files(files: list[str], prefix: str, excluded: tuple[PurePosixPath,
 
 
 def pending_commits(projects: ProjectSet, project: Project) -> list[Commit]:
-    """Unacknowledged commits on HEAD that change files of project, oldest first.
+    """Commits on HEAD that change files of project and no branch acknowledged yet, oldest first.
 
     Without a usable acknowledged state, HEAD becomes the silent starting point
     so that old history never triggers a report.
     """
     root = project.root
     current = head(root)
+    branch = current_branch(root)
     prefix = _prefix(project)
-    if current is None or prefix is None:
+    if current is None or branch is None or prefix is None:
         return []
-    base = load_ack(project)
-    if base is None or _git(root, "merge-base", "--is-ancestor", base, current) is None:
-        save_ack(project, current)
+    acknowledged = _acknowledged(root, load_ack(project), current)
+    if not acknowledged:
+        save_ack(project, branch, current)
         return []
     log = _git(
         root, "log", "--reverse", "--date=format:%Y-%m-%d %H:%M",
-        "--format=%H%x1f%h%x1f%ad%x1f%s", f"{base}..{current}",
+        "--format=%H%x1f%h%x1f%ad%x1f%s%x1f%P", current, "--not", *acknowledged,
     )
     # The root project does not report changes that belong to a subproject.
     excluded = tuple(path for _, path in projects.registry) if project.name == ROOT_PROJECT else ()
     config = project.config
     commits = []
     for line in (log or "").splitlines():
-        sha, short, when, subject = line.split("\x1f", 3)
+        sha, short, when, subject, parents = line.split("\x1f", 4)
+        if _merges_acknowledged(root, parents.split(), acknowledged):
+            continue
         files = _project_files(_changed_files(root, sha), prefix, excluded)
         # The backlog documents itself, so backlog-only commits never need a report.
         if _counts(files, (config.daily_path, config.todo_path)):
@@ -187,7 +222,7 @@ def main(argv: list[str]) -> int:
         if current is None:
             print("No commit to acknowledge.", file=sys.stderr)
             return 1
-        save_ack(project, current)
+        save_ack(project, current_branch(root) or "", current)
         print(f"Acknowledged up to {current[:7]}.")
         return 0
 

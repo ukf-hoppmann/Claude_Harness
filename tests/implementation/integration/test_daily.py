@@ -110,10 +110,67 @@ class DailyHookTest(unittest.TestCase):
         self.baseline()
         self.git("checkout", "-q", "-b", "feature")
         self.commit("src/other.py", "on branch")
-        self.assertEqual(self.stop().returncode, 0)
         self.git("checkout", "-q", "main")
         self.git("merge", "-q", "--no-ff", "-m", "merge feature", "feature")
         self.assertEqual(self.stop().returncode, 2)
+
+    def test_any_checked_out_branch_triggers(self):
+        # No main or master and no remote origin: the checked-out branch is where reports go.
+        self.git("branch", "-m", "modularRefactor")
+        self.git("remote", "add", "ezf-ui", "https://example.com/repo.git")
+        self.baseline()
+        self.commit("src/app.py", "feature")
+        self.assertEqual(self.stop().returncode, 2)
+        self.assertIn("feature", self.run_script("daily.py", "pending").stdout)
+
+    def test_detached_head_is_silent(self):
+        self.baseline()
+        self.git("checkout", "-q", "--detach")
+        self.commit("src/app.py", "detached")
+        self.assertEqual(self.stop().returncode, 0)
+        self.assertEqual(self.run_script("daily.py", "pending").returncode, 1)
+
+    def test_branch_of_a_change_is_silent(self):
+        self.baseline()
+        self.git("checkout", "-q", "-b", "change")
+        self.git("config", "branch.change.harnessBase", "main")
+        self.commit("src/app.py", "change work")
+        self.assertEqual(self.stop().returncode, 0)
+        self.assertEqual(self.run_script("daily.py", "pending").returncode, 1)
+
+    def test_acknowledged_branch_is_not_reported_again_after_merge(self):
+        self.baseline()
+        self.git("checkout", "-q", "-b", "feature")
+        self.commit("src/other.py", "on branch")
+        self.assertEqual(self.run_script("daily.py", "ack").returncode, 0)
+        self.git("checkout", "-q", "main")
+        self.git("merge", "-q", "--no-ff", "-m", "merge feature", "feature")
+        self.assertEqual(self.stop().returncode, 0)
+        self.assertIn("No pending commits", self.run_script("daily.py", "pending").stdout)
+
+    def test_switching_branches_keeps_pending_commits(self):
+        self.baseline()
+        self.git("checkout", "-q", "-b", "feature")
+        self.commit("src/other.py", "on branch")
+        self.assertEqual(self.run_script("daily.py", "ack").returncode, 0)
+        self.git("checkout", "-q", "main")
+        self.commit("src/app.py", "on main")
+        pending = self.run_script("daily.py", "pending").stdout
+        self.assertIn("on main", pending)
+        self.assertNotIn("on branch", pending)
+
+    def test_single_sha_ack_file_still_counts(self):
+        self.commit("src/app.py", "acknowledged before")
+        head = subprocess.run(
+            ["git", "-C", str(self.project), "rev-parse", "HEAD"], capture_output=True, text=True, check=True
+        ).stdout.strip()
+        ack = self.project / ".git/claude-harness/daily-ack"
+        ack.parent.mkdir(parents=True)
+        ack.write_text(head)
+        self.commit("src/app.py", "added after")
+        pending = self.run_script("daily.py", "pending").stdout
+        self.assertIn("added after", pending)
+        self.assertNotIn("acknowledged before", pending)
 
     def test_linked_worktree_is_silent(self):
         self.baseline()
@@ -122,6 +179,22 @@ class DailyHookTest(unittest.TestCase):
         self.commit("src/wt.py", "in worktree", cwd=worktree)
         self.assertEqual(self.stop(cwd=worktree).returncode, 0)
         self.assertNotEqual(self.run_script("daily.py", "pending", cwd=worktree).returncode, 0)
+
+    def test_worktree_merging_back_into_its_base_reports_there(self):
+        # The owner switched the main checkout away; the change is merged in its worktree.
+        self.baseline()
+        worktree = self.project.parent / "wt"
+        self.git("worktree", "add", "-q", "-b", "wt-branch", str(worktree))
+        self.git("config", "branch.wt-branch.harnessBase", "main")
+        self.git("checkout", "-q", "-b", "other")
+        self.commit("src/wt.py", "in worktree", cwd=worktree)
+        self.assertEqual(self.stop(cwd=worktree).returncode, 0)
+        self.git("checkout", "-q", "main", cwd=worktree)
+        self.git("merge", "-q", "--no-ff", "-m", "merge change", "wt-branch", cwd=worktree)
+        self.assertEqual(self.stop(cwd=worktree).returncode, 2)
+        pending = self.run_script("daily.py", "pending", cwd=worktree)
+        self.assertEqual(pending.returncode, 0, pending.stderr)
+        self.assertIn("in worktree", pending.stdout)
 
     def write_subproject(self, root_daily=True):
         (self.project / ".claude-harness/config.toml").write_text(

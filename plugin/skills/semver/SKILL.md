@@ -1,6 +1,6 @@
 ---
 name: semver
-description: Rules for release versions (SemVer) with a version file, mirrored files, and release tags. Use when a change is merged into the main branch, when the user asks for a release, when the semver hook reminds you, or when setting up the module.
+description: Rules for release versions (SemVer) with a version file, mirrored files, and release tags. Use when a change is merged back into its base branch, when the user asks for a release, when the semver hook reminds you, or when setting up the module.
 ---
 
 # Release versions
@@ -25,13 +25,12 @@ has one format everywhere, so a script can check it; the project's own files
 
 ## When to release
 
-- **After merging a worktree** into the main branch (skill
+- **After merging a worktree** into its base branch (skill
   `claude-harness:worktree`): release the merged change. All sections of one
   plan give one release; a discarded worktree gives none.
 - **Without the `worktree` part:** when the owner confirms a change as
   finished.
-- **When the owner asks** for a release, e.g. for direct commits on the main
-  branch. Direct commits never trigger a release on their own; the next
+- **When the owner asks** for a release, e.g. for direct commits. Direct commits never trigger a release on their own; the next
   release covers them.
 - Never change the version file in commits that belong to a change.
 
@@ -64,7 +63,8 @@ without questions.
 
 ## Release
 
-1. On the main branch in the main checkout, write the new version into the
+1. On the branch the change was merged into, where the merge happened (the
+   main checkout, or the change's worktree), write the new version into the
    version file (only `MAJOR.MINOR.PATCH` and a newline) and into every file
    in `semver.sync`, in that file's own format.
 2. Rerun `status`: it must report no findings.
@@ -76,7 +76,7 @@ without questions.
 6. Report the version, the step, and the reason. The release can be undone
    with `git tag -d <tag>` and `git revert <release commit>`.
 
-The daily report lists the release like any other change on the main branch;
+The daily report lists the release like any other merged change;
 there is no changelog.
 
 ## Setup

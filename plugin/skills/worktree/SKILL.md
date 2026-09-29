@@ -56,8 +56,8 @@ merge commit can be undone with one `git revert -m 1`.
 Implement and commit in the worktree. Technical-doc changes of the change
 belong in the same branch, and so do backlog changes when `[todo].backend` is
 `files`. With `api`, the server writes the backlog in the main checkout; the
-`todo` skill says when to commit it there. Daily reports are written in the
-main checkout after the merge, as the `daily` skill says.
+`todo` skill says when to commit it there. Daily reports are written after
+the merge, on the base branch, as the `daily` skill says.
 
 ## Finish (no questions)
 
@@ -68,6 +68,12 @@ main checkout after the merge, as the `daily` skill says.
      Resolve simple conflicts yourself and rerun the tests. On conflicts about
      content, stop and report. Conflicts never reach the owner's checkout.
    - Exit code 1: stop and report the findings.
+   - `merge_in` decides where the merge happens: `main` or `worktree` below.
+     The change always goes back into its base branch, never into the branch
+     the owner switched to.
+
+### `merge_in: main` (the main checkout is still on the base branch)
+
 3. Call `ExitWorktree` with `action: "keep"`. The session is back in the
    main checkout (`main` from `check`); Claude Code does not let a worktree
    session run git on the main checkout.
@@ -76,17 +82,38 @@ main checkout after the merge, as the `daily` skill says.
    `git merge --no-ff <worktree-branch> -m "<what the change does>"`.
    If git refuses because the owner's local changes would be overwritten,
    stop and report. Never stash, reset, or force anything there.
-5. If module `semver` is on for the project, load skill
-   `claude-harness:semver` and release the merged change as it says.
-6. Do not push.
-7. Remove what this change created: `git worktree remove <worktree-path>`,
-   then `git branch -d <worktree-branch>`. Both refuse unmerged or unsaved
-   work; then stop and report, never add `--force` or `-D`.
-8. Report: base branch, merge commit, and how to undo it
-   (`git revert -m 1 <merge-commit>`). If ignored files such as `.env` were
-   changed in the worktree, say so: they do not travel with the merge and are
-   gone with the worktree. Copy them back before removal only when the owner
-   asks.
+5. If module `semver` is on, load skill `claude-harness:semver` and release
+   the merged change as it says. Then write the daily report if module
+   `daily` is on (skill `claude-harness:daily`).
+6. Remove what this change created: `git worktree remove <worktree-path>`,
+   then `git branch -d <worktree-branch>`.
+
+### `merge_in: worktree` (the owner switched the main checkout to another branch)
+
+The main checkout is not touched: the owner is working there.
+
+3. In the worktree: `git checkout <base>`, then
+   `git merge --no-ff <worktree-branch> -m "<what the change does>"`.
+4. Still in the worktree, on the base branch: release with skill
+   `claude-harness:semver` if module `semver` is on, then write the daily
+   report if module `daily` is on.
+5. `git branch -d <worktree-branch>` (in the worktree, where the base branch
+   containing it is checked out).
+6. Call `ExitWorktree` with `action: "keep"`, then in the main checkout
+   `git worktree remove <worktree-path>`.
+7. Backlog changes the API wrote into the main checkout during the change
+   stay uncommitted there, on the owner's branch; name them in the report.
+
+### Both
+
+- Do not push.
+- `git worktree remove` and `git branch -d` refuse unmerged or unsaved work;
+  then stop and report, never add `--force` or `-D`.
+- Report: base branch, where it was merged (main checkout or worktree), merge
+  commit, and how to undo it (`git revert -m 1 <merge-commit>` on the base
+  branch). If ignored files such as `.env` were changed in the worktree, say
+  so: they do not travel with the merge and are gone with the worktree. Copy
+  them back before removal only when the owner asks.
 
 ## Abort
 

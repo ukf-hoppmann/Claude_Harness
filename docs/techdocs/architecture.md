@@ -46,7 +46,7 @@ Teilprojekten steht jeder Skill-Hinweis einmal, dazu eine Zeile pro Projekt.
 | Modul | Hook (prüft, kostet nichts, solange alles stimmt) | Skill (lädt beim Thema) | Skript | Warum so |
 |---|---|---|---|---|
 | `todo` | Nur Backend `files`: Formatprüfung am Ende eines Turns, nur nach Backlog-Änderungen | Backlog-Regeln; API-Befehle in `api.md`, Formatdetails in `format.md`, jeweils nur bei Bedarf | `backlog_api.py` (API), `backlog.py` (Prüfung, Übersicht) | Im API-Modus prüft der Server jede Änderung; im Datei-Modus lässt sich das Format prüfen und darf nicht kaputtgehen; die Arbeitsregeln betreffen nur Backlog-Arbeit |
-| `daily` | Erinnerung bei neuen Commits auf dem Hauptzweig | Berichtsregeln | `daily.py` (offene Commits, Bestätigen) | Das Fehlen eines Berichts ist erkennbar; Schreiben ist nur nach Commits Thema; die Git-Auswertung ist stures Abarbeiten |
+| `daily` | Erinnerung bei neuen Commits auf dem Branch, in den gemerged wird | Berichtsregeln | `daily.py` (offene Commits, Bestätigen) | Das Fehlen eines Berichts ist erkennbar; Schreiben ist nur nach Commits Thema; die Git-Auswertung ist stures Abarbeiten |
 | `techdocs` | Erinnerung, wenn Code, aber keine Doku geändert wurde | Doku-Regeln | – | Vergessene Doku ist erkennbar; die Regeln braucht es nur bei dokumentationsrelevanten Änderungen |
 | `development` / `architecture` | Blockiert Plan, Spec und Code-Änderungen, bis die Regeln gelesen sind | Umgang mit Architekturregeln | – | Die Regeln gelten für jede Code-Änderung und dürfen nicht übergangen werden; Bereichsregeln als Scopes nur für passende Pfade |
 | `development` / `decomposition` | – | Kriterien für Backlog-Tasks und Plan-Abschnitte, Test-zuerst-Regeln, Dimensions-Checkliste | – | Ob gut zerlegt oder zuerst getestet wurde, kann kein Skript prüfen; die Regeln braucht es nur beim Planen und Umsetzen |
@@ -84,7 +84,7 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
    - `check_backlog.py`: prüft jeden Backlog, der in der Session geändert
      wurde, bei Teilprojekten also pro Projekt.
    - `check_daily.py`: erinnert an den Tagesbericht, wenn neue Commits auf dem
-     Hauptzweig noch nicht erfasst sind, pro Projekt. Ein Commit zählt nur für
+     Branch, in den gemerged wird, noch nicht erfasst sind, pro Projekt. Ein Commit zählt nur für
      das Projekt, dessen Dateien er ändert; Commits, die nur Daily- oder
      Backlog-Ordner ändern, zählen nicht, der Backlog dokumentiert sich selbst.
    - `check_techdocs.py`: erinnert einmal pro Projekt und Session, wenn
@@ -100,7 +100,7 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 | Projektkonfiguration | `.claude-harness/config.toml` | im Repo versioniert |
 | Merker pro Session (Backlog geändert, Hinweise gemeldet, Doku-Erinnerung, gelesene Architekturregeln, gemeldete SemVer-Befunde) | `$CLAUDE_PLUGIN_DATA`, sonst `<tmp>/claude-harness/` | pro Session |
 | Ausgangsbranch eines Worktrees | Git-Config `branch.<worktree-branch>.harnessBase` | bis der Branch gelöscht wird |
-| Bestätigter Stand des Tagesberichts | `.git/claude-harness/daily-ack`, für ein Projekt unterhalb des Git-Roots `daily-ack-<Ordner mit _ statt />` | pro Klon und Projektordner, nie committet |
+| Bestätigter Stand des Tagesberichts, eine Zeile `<Commit> <Branch>` pro Branch | `.git/claude-harness/daily-ack`, für ein Projekt unterhalb des Git-Roots `daily-ack-<Ordner mit _ statt />` | pro Klon und Projektordner, nie committet |
 | Release-Tags | Tags `<Präfix><Version>` | im Repo, nur lokal, bis der Owner sie pusht |
 | Backlog, Tagesberichte, Systemdoku, Regeln der Suite `development`, Versionsdatei | unter `docs.root` (Standard `docs/`) bzw. `README.md` | im Repo versioniert |
 
@@ -110,7 +110,8 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 |---|---|---|
 | Plugin mit Skills und Hooks statt gerenderter Regeln in `CLAUDE.md` | Regeln kosten nur Tokens, wenn sie gebraucht werden | `EPIC-007` |
 | Ein Plugin mit Modulschaltern in der Config | Einfache Installation; Module prüfen ihren Schalter selbst | `EPIC-001` |
-| Tagesbericht nur im Haupt-Checkout nach dem Merge | Vermeidet Merge-Konflikte bei parallelen Worktrees | `STORY-013` |
+| Tagesbericht erst nach dem Merge, auf dem Branch, in den gemerged wird (nie auf dem Branch eines laufenden Changes) | Vermeidet Merge-Konflikte bei parallelen Worktrees; Bericht und Änderung landen im selben Branch | `STORY-013` |
+| Change merged in seinen Ausgangsbranch, auch wenn der Haupt-Checkout inzwischen gewechselt hat (dann im Worktree) | Die Arbeit des Owners auf dem anderen Branch bleibt unberührt | – |
 | Systemdoku im selben Change wie der Code | Doku und Code bleiben in jedem Stand konsistent | `STORY-012` |
 | Gestufte Ablage: Hook → Scope → Skill → Skript → Root-`CLAUDE.md` | Nur das Nötigste ist immer im Kontext; Pflichtregeln prüft ein Hook | `STORY-019` |
 | Architekturregeln als Teil der Suite `development`, englisch, Scopes als Tabelle in der Regeldatei, Lesen per Hook erzwungen | Regeln werden zuverlässig gelesen; Spezielles nur, wo es gilt | `STORY-023` |
