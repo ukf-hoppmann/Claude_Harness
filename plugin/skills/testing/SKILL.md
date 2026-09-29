@@ -38,6 +38,7 @@ from tests for the owner.
   implementation/
     unit/          one unit in isolation; mirrors the source folder structure
     integration/   several components together: real files, processes, local test servers
+    system/        optional: the whole system end to end, started and used as its users do
   functional/
     <function>/    one folder per business function, e.g. filters/, load_cache/
       test_<scenario>
@@ -49,6 +50,23 @@ from tests for the owner.
 - Create a folder only when something goes into it.
 - File names follow the framework's convention; without one, `test_<name>`.
 - Something used by one test only stays next to that test.
+
+### System tests
+
+`unit/` and `integration/` are the default. Add `system/` when the project
+is a system that can be run as a whole (an app, a service, a CLI with its
+real configuration) and a flow can only be secured end to end, e.g. install,
+start, and one request through all layers. They are optional: do not create
+them for every change, and do not add them to a project that has no such
+system.
+
+- They drive the system only from outside, through its real entry points
+  (CLI, HTTP, UI, installed plugin), not through internal functions.
+- They set up and remove what they need (temporary folders, local test
+  servers, test data); never production services or real accounts.
+- If they need something that is not always available (a browser, a
+  container, a long start-up), keep them out of the normal test run and give
+  them their own command in `<tests>/README.md`.
 
 ## Implementation tests
 
@@ -84,6 +102,7 @@ whether a longer sequence after adding load and cache returns the right data.
 `<tests>/README.md`, written in `docs.language`, states:
 
 - the command for all implementation tests (without the functional tests);
+- the command for the system tests, if they have their own;
 - the command for one functional test, with its parameters and an example;
 - a list of the functional tests: function, scenario, what it checks.
 
@@ -98,7 +117,8 @@ file; look for its callers.
 
 - Run the affected tests again after the last change, however small, before
   reporting the work as done.
-- Name what you did not test and why (e.g. a suite that needs a database).
+- Name what you did not test and why (e.g. a suite that needs a database,
+  or system tests that were not run).
 - Call a failing test unrelated or pre-existing only after checking it, e.g.
   by running it without your change.
 - Run functional tests only when the owner asks, or to show them a result.
