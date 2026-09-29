@@ -9,34 +9,6 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 ## Work items
 
-- `STORY-037` **Testkonventionen: Ablage, Gliederung, Test-Arten**
-  - Type: Story.
-  - Parent: `EPIC-004`.
-  - Status: Awaiting confirmation.
-  - Created: 2026-09-28.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Verbindlich festlegen, wo und wie Tests in einem Projekt liegen:
-    alle Tests in einem Testordner (keine Inline-Tests), mit fester
-    Gliederung, getrennt nach Implementierungstests (vom Agenten für die
-    eigene Absicherung gebaut) und Funktionalitätstests (für den
-    Projekt-Owner, um fachliche Funktionen wie Filter oder größere Abläufe
-    gezielt selbst zu prüfen).
-  - Completion criteria: Die Regeln zu Testordner, Gliederung, Benennung und
-    den beiden Test-Arten stehen im Plugin (Suite development) und sind für
-    Projekte mit anderer Sprache oder anderem Test-Framework anwendbar. Der
-    Owner kann Funktionalitätstests getrennt von den Implementierungstests
-    aufrufen und findet sie über ihren Funktionsnamen. Funktionalitätstests
-    laufen nicht im Gesamtlauf mit, ihre Szenarien lassen sich über
-    Parameter setzen, und sie zeigen den Output. Dieses Repo ist nach den
-    Regeln gegliedert und die Tests laufen weiter durch.
-  - Summary: Legt fest, dass alle Tests in einem Ordner liegen und wie er
-    gegliedert ist. Unterscheidet Tests, die der Agent für sich baut, von
-    Tests, mit denen der Owner Funktionen selbst prüft.
-  - Notes: `items/STORY-037/STORY-037_notes.md`.
-  - Required for parent: Yes.
-
 - `EPIC-004` **Entwicklungsprozess & Prinzipien**
   - Type: Epic.
   - Status: Open.
