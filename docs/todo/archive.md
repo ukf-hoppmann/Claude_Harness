@@ -1170,3 +1170,33 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Prinzipien-Dokument gehört nicht mehr dazu.
   - Notes: `items/EPIC-004/EPIC-004_notes.md`.
   - Resolution: Confirmed by the project owner on 2026-09-29.
+
+- `TASK-018` **todo-Skill: Lücken beim Wiedereröffnen und bei geschlossenen Parents**
+  - Type: Task.
+  - Parent: None.
+  - Status: Completed.
+  - Created: 2026-09-28.
+  - Area: Dokumentation.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Der todo-Skill beschreibt den Umgang mit geschlossenen Parents so,
+    wie der ToDo-Viewer ihn umsetzt, und sagt dem Agenten, was er tun soll,
+    wenn der passende Parent eines neuen Items geschlossen ist.
+  - Completion criteria: format.md und das Verhalten des Servers
+    widersprechen sich nicht mehr: Entweder nimmt ein abgeschlossener Parent
+    kein Kind mehr an, auch kein optionales, oder der Server erlaubt
+    optionale Kinder. api.md beschreibt, wie ein geschlossenes oder
+    archiviertes Item wieder geöffnet wird. SKILL.md legt fest: Ist der
+    passende Parent eines neuen Items geschlossen, fragt der Agent den Owner
+    vor dem Anlegen, ob er ihn wieder öffnen soll, statt das Item ohne
+    Parent anzulegen.
+  - Summary: Schließt drei Lücken im todo-Skill, die beim Anlegen von
+    STORY-037 aufgefallen sind: Die Regel zu geschlossenen Parents passt
+    nicht zum Server, das Wiedereröffnen über die API ist nicht beschrieben,
+    und es fehlt eine Vorgabe, was bei einem geschlossenen Parent zu tun
+    ist.
+  - Notes: `items/TASK-018/TASK-018_notes.md`.
+  - Resolution: Vom Projektverantwortlichen am 2026-09-29 bestätigt:
+    todo-Skill behandelt geschlossene Parents wie der ToDo-Viewer,
+    Wiedereröffnen und parent_closed in api.md beschrieben (Merge 3f48fac,
+    v0.7.1).
