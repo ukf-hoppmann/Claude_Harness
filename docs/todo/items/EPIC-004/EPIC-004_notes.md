@@ -44,3 +44,18 @@ nicht mehr dazu.
 
 - Auf Wunsch des Owners wieder auf In progress gesetzt und STORY-037 als optionales Kind (Required for parent: No) eingehängt.
 - Das Epic kann wieder abgeschlossen werden, sobald STORY-037 geschlossen ist.
+
+## 2026-09-29 — Alle Kinder abgeschlossen
+
+### Discussed
+
+- Mit STORY-037 sind alle Kinder abgeschlossen oder abgelehnt. Abschlusskriterien geprüft: Architektur-Definitionen (STORY-023), Zerlegungs-Heuristik (STORY-004/005), Change-Ablauf (STORY-022) und Testkommando (STORY-037, tests/README.md) sind dokumentiert und wurden beim Change zu STORY-037 sichtbar angewendet (Plan mit Abschnitten, Worktree, Test zuerst, Release v0.7.0).
+- Das Ziel nennt die Testebenen Unit/Integration/System. Umgesetzt sind Unit und Integration als Implementierungstests sowie Funktionalitätstests des Owners; eine eigene Ebene System gibt es nicht. Die Abschlusskriterien verlangen sie nicht.
+
+### Decided
+
+- Epic auf Awaiting confirmation gesetzt.
+
+### Open
+
+- Owner bestätigt das Epic oder fordert eine eigene Ebene System nach.
