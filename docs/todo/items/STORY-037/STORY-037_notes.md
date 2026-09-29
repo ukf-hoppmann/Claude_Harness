@@ -30,3 +30,18 @@
 ### Decided
 
 - Auf Wunsch des Owners EPIC-004 wieder geöffnet und die Story als optionales Kind (Required for parent: No) eingehängt; die offene Frage dazu ist damit erledigt.
+
+## 2026-09-29 — Offene Fragen geklärt
+
+### Discussed
+
+- Der Owner hat die vier offenen Fragen und den vermuteten Widerspruch beim Feld Required for parent beantwortet.
+
+### Decided
+
+- Die vorgeschlagene Gliederung gilt: tests/implementation/unit/, tests/implementation/integration/, tests/functional/<funktion>/ mit Dateien test_<szenario>, tests/fixtures/, tests/helpers/.
+- Funktionalitätstests gehören dem Owner. Sie laufen nicht im normalen Gesamtlauf mit, sondern nur auf Aufruf, und werden in der Regel auf Wunsch des Owners gebaut.
+- Funktionalitätstests sind so gebaut, dass sich mit wenig Aufwand verschiedene Szenarien prüfen lassen: Die Eingaben (z. B. die Filtereinstellungen beim VariantFilter) lassen sich über Parameter setzen, und der Test zeigt den Output, damit der Owner das Verhalten selbst beurteilen kann.
+- Der Testordner liegt in der Regel neben src/. Das ist der Standard in der Harness-Config und gilt auch, wenn dort nichts eingetragen ist.
+- Besonderheiten eines Frameworks (z. B. eigene Test-Ablage wie __tests__ bei Jest) werden erwähnt, sobald sie in einem Projekt auftreten. Dann wird im Einzelfall entschieden; das Plugin regelt sie nicht im Voraus.
+- Required for parent ist bewusst Yes; der Owner hat es so gesetzt. Der Eintrag vom 2026-09-28 zu 'No' ist damit überholt.
