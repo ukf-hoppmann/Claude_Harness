@@ -31,6 +31,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Modul `semver` | Skill für Einstufung und Release, Prüfung von Versionsdatei, Tag-Schritt und Spiegel-Dateien, Prüf-Hook | `plugin/skills/semver/`, `plugin/scripts/semver.py`, `check_semver.py` |
 | Konflikte | Skill für Konflikte mit Projektregeln und Harness-Vorgaben, Suche des Harness-Repos für die Übergabe von Harness-Wünschen | `plugin/skills/conflicts/`, `plugin/scripts/harness_repo.py` |
 | Befehl `init` | Richtet den Harness in einem Projekt oder Teilprojekt ein | `plugin/skills/init/` |
+| Befehl `update` | Bringt die Config eines Projekts auf den aktuellen Stand: Migrationen, Abgleich mit der Config-Vorlage | `plugin/skills/update/`, `plugin/scripts/config_update.py` |
 | Vorlagen | Config, Backlog, Tagesbericht, Systemdoku, Architekturregeln | `plugin/templates/` |
 | Sitzungszustand | Pfade für Merker pro Session | `plugin/scripts/state.py` |
 
@@ -52,6 +53,7 @@ Teilprojekten steht jeder Skill-Hinweis einmal, dazu eine Zeile pro Projekt.
 | `semver` | Meldet ungültige Version, zu großen Schritt seit dem letzten Release-Tag und abweichende Spiegel-Dateien; Session-Start zeigt Version und unveröffentlichte Commits | Wann und wie eingestuft und released wird, Einrichtung | `semver.py` (Status, Prüfung, Commits seit dem Release) | Der Schritt lässt sich prüfen, weil die Versionsdatei überall gleich aussieht; die Einstufung braucht Urteil und ist nur beim Merge oder Release Thema |
 | Konflikte (kein Modul, immer aktiv) | – | Verfahren bei Konflikten, Übergabe an den Harness-Backlog | `harness_repo.py` (Harness-Repo finden oder vorschlagen) | Konflikte lassen sich nicht mechanisch erkennen; das Verfahren braucht es nur im Konfliktfall, dann aber für alle Module |
 | `init` | – | Einrichtungsablauf, nur vom Nutzer aufrufbar | – | Wird einmal pro Projekt gebraucht |
+| `update` | – | Aktualisierungsablauf, nur vom Nutzer aufrufbar | `config_update.py` (Abgleich mit der Vorlage) | Wird nur nach einem Plugin-Update gebraucht; der Abgleich ist stures Abarbeiten, die Entscheidungen trifft der Nutzer |
 
 Unterordner-`CLAUDE.md` nutzt der Harness nicht; bereichsbezogene Regeln
 sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.

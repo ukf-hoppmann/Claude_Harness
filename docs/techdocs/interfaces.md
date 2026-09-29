@@ -24,23 +24,27 @@ Dateiformate.
 ## Befehl `/claude-harness:update`
 
 - Zweck: die `.claude-harness/config.toml` eines bereits eingerichteten
-  Projekts oder Teilprojekts auf das aktuelle Schema bringen.
+  Projekts oder Teilprojekts auf den aktuellen Stand des Harness bringen.
 - Aufruf: nur durch den Nutzer (`disable-model-invocation`).
 - Wirkung: fragt, welches Projekt (Root oder ein registriertes
-  Teilprojekt) aktualisiert wird; vergleicht dessen `version` mit
-  `CONFIG_VERSION` (`harness_config.py`). Ist sie gleich, meldet er
-  "bereits aktuell" und ändert nichts. Ist sie älter und es gibt einen
-  durchgängigen Migrationspfad (`MIGRATIONS`), zeigt er die fehlenden
-  Schritte in Klartext, fragt nur bei neuen, nicht aus der
-  Migrationsbeschreibung ableitbaren Werten nach, zeigt die konkrete
-  Änderung an der Datei und schreibt sie erst nach Freigabe — bestehende
-  Kommentare und unveränderte Werte bleiben erhalten. Ein Aufruf
-  aktualisiert genau ein Projekt; Teilprojekte werden einzeln aufgerufen.
+  Teilprojekt) aktualisiert wird. Ist `version` älter als `CONFIG_VERSION`
+  und gibt es einen durchgängigen Migrationspfad (`MIGRATIONS`), zeigt er
+  die Schritte in Klartext und schreibt sie nach Freigabe. Danach gleicht er
+  die Config mit `config_update.py` gegen die Config-Vorlage ab: Fehlende
+  Abschnitte, Einstellungen, Module und Kommentare der Vorlage werden
+  ergänzt, bestehende Zeilen bleiben unverändert. Fragen stellt er wie
+  `init`: welche neuen Module aktiv sein sollen, welches Backlog-Backend
+  gilt (bei aktivem `todo`), welcher Harness-Repo-Pfad (nur Root) und, bei
+  einem von der Vorlage abweichenden Kommentar, ob er bleibt oder ersetzt
+  wird. Er zeigt den Diff und schreibt erst nach Freigabe. Danach prüft er
+  bei Backend `api` den ToDo-Viewer (`backlog_api.py health`), bei `files`
+  den Backlog, und bietet für neu aktivierte Module die Dokumente an, die
+  `init` anlegen würde. Ein Aufruf aktualisiert genau ein Projekt.
 - Fehlerfall: Fehlt die Config im Zielordner, verweist er auf
   `/claude-harness:init` statt etwas anzulegen. Ist die Version neuer als
-  `CONFIG_VERSION` oder gibt es keinen durchgängigen Migrationspfad, meldet
-  er das als ungültige Konfiguration, wie `init` und der
-  Session-Start-Hook es auch sonst tun.
+  `CONFIG_VERSION`, gibt es keinen durchgängigen Migrationspfad oder ist die
+  Config ungültig, meldet er das und ändert nichts. Ist nichts zu ergänzen,
+  meldet er „aktuell“.
 
 ## Skills
 
@@ -181,6 +185,40 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Claude Code und dient nur dem Vorschlag; fehlt sie oder passt ihr Format
   nicht, gibt es keine Ausgabe.
 - Exit-Code 0, 2 bei falschem Aufruf.
+
+## Skript `config_update.py`
+
+- Aufruf: `python3 plugin/scripts/config_update.py <Ordner> [--subproject]
+  [--set <Schlüssel>=<Wert> ...] [--write]`; `<Ordner>` enthält
+  `.claude-harness/config.toml`, `--subproject` für ein Teilprojekt (dort
+  kein `[harness]`).
+- Wirkung: vergleicht die Config mit `plugin/templates/config.toml` und
+  ergänzt fehlende Abschnitte, Einstellungen, Module und Kommentare der
+  Vorlage textbasiert an der Stelle der Vorlage; vorhandene Zeilen, eigene
+  Kommentare, Reihenfolge und fremde Abschnitte wie `[projects]` bleiben.
+  Eine fehlende Einstellung bekommt den Wert, der ohne sie gilt, damit sich
+  das Verhalten nicht ändert. Ohne `--write` wird nichts geschrieben.
+- Entscheidungen (`--set`):
+  - `modules.<Name>=true|false`: Modul fehlt in `[modules]` (Standard
+    `false`);
+  - `todo.backend=api|files`: fehlt, während `todo` aktiv ist (Standard
+    `api`);
+  - `harness.repo=<Pfad oder TOML-Liste>`: `[harness]` bzw. `repo` fehlt, nur
+    im Root-Projekt (Standard `[]`);
+  - `comment:<Stelle>=keep|replace`: ein vorhandener Kommentar weicht von
+    der Vorlage ab (Stelle `top`, `<Tabelle>` für den Block über der
+    Überschrift, `<Tabelle>.<Schlüssel>` für den Zeilenkommentar; Standard
+    `keep`).
+- Ausgabe: je Entscheidung
+  `decision: <Schlüssel> = <Wert> (pending|set; <Auswahl>)`, bei
+  Kommentaren gefolgt von `  project: …` und `  template: …`; dann
+  `changes: <n>` und der Unified Diff; nach dem Schreiben
+  `written: .claude-harness/config.toml`.
+- `--write` schreibt nur, wenn keine Entscheidung mehr offen ist; das
+  Ergebnis wird vorher wie beim Laden der Config geprüft.
+- Exit-Code 0; 1 bei fehlender oder ungültiger Config, veralteter Version,
+  unbekannter oder ungültiger Entscheidung und bei `--write` mit offenen
+  Entscheidungen (Meldung `error: …` auf stderr); 2 bei falschem Aufruf.
 
 ## Skript `worktree.py`
 
