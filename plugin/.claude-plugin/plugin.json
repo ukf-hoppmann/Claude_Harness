@@ -1,7 +1,7 @@
 {
   "name": "claude-harness",
   "description": "Project harness for Claude Code: configurable modules such as a typed project backlog with per-item notes and specs.",
-  "version": "0.7.2",
+  "version": "0.7.3",
   "author": {
     "name": "hoppmann"
   }
