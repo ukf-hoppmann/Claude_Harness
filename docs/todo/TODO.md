@@ -27,8 +27,10 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     den beiden Test-Arten stehen im Plugin (Suite development) und sind für
     Projekte mit anderer Sprache oder anderem Test-Framework anwendbar. Der
     Owner kann Funktionalitätstests getrennt von den Implementierungstests
-    aufrufen und findet sie über ihren Funktionsnamen. Dieses Repo ist nach
-    den Regeln gegliedert und die Tests laufen weiter durch.
+    aufrufen und findet sie über ihren Funktionsnamen. Funktionalitätstests
+    laufen nicht im Gesamtlauf mit, ihre Szenarien lassen sich über
+    Parameter setzen, und sie zeigen den Output. Dieses Repo ist nach den
+    Regeln gegliedert und die Tests laufen weiter durch.
   - Summary: Legt fest, dass alle Tests in einem Ordner liegen und wie er
     gegliedert ist. Unterscheidet Tests, die der Agent für sich baut, von
     Tests, mit denen der Owner Funktionen selbst prüft.

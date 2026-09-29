@@ -45,3 +45,9 @@
 - Der Testordner liegt in der Regel neben src/. Das ist der Standard in der Harness-Config und gilt auch, wenn dort nichts eingetragen ist.
 - Besonderheiten eines Frameworks (z. B. eigene Test-Ablage wie __tests__ bei Jest) werden erwähnt, sobald sie in einem Projekt auftreten. Dann wird im Einzelfall entschieden; das Plugin regelt sie nicht im Voraus.
 - Required for parent ist bewusst Yes; der Owner hat es so gesetzt. Der Eintrag vom 2026-09-28 zu 'No' ist damit überholt.
+
+## 2026-09-29 — Abschlusskriterien ergänzt
+
+### Decided
+
+- Mit Zustimmung des Owners ergänzt: Funktionalitätstests laufen nicht im Gesamtlauf mit, ihre Szenarien lassen sich über Parameter setzen, und sie zeigen den Output.
