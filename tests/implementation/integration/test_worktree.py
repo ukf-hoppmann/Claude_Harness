@@ -241,6 +241,7 @@ class WorktreeScriptTest(unittest.TestCase):
             "clean": "yes",
             "base_moved": "no",
             "main_on_base": "yes",
+            "merge_in": "main",
         })
 
     def test_check_dirty_worktree(self):
@@ -267,8 +268,17 @@ class WorktreeScriptTest(unittest.TestCase):
         self.run_script("start")
         git(self.main, "checkout", "-q", "main")
         result = self.run_script("check")
-        self.assertEqual(result.returncode, 1)
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertEqual(self.fields(result)["main_on_base"], "no")
+        self.assertEqual(self.fields(result)["merge_in"], "worktree")
+
+    def test_check_base_checked_out_elsewhere(self):
+        self.run_script("start")
+        git(self.main, "checkout", "-q", "main")
+        git(self.main, "worktree", "add", "-q", str(self.main.parent / "other"), "ansTest")
+        result = self.run_script("check")
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(self.fields(result)["merge_in"], "none")
 
     def test_check_without_start(self):
         result = self.run_script("check")

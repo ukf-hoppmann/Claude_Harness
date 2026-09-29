@@ -63,19 +63,23 @@ def _git_out(cwd: Path, *args: str) -> str:
     return result.stdout.strip()
 
 
+def _worktrees(cwd: Path) -> list[tuple[Path, str | None]]:
+    """Path and checked-out branch (None if detached) of every worktree, the main checkout first."""
+    trees: list[tuple[Path, str | None]] = []
+    for line in _git_out(cwd, "worktree", "list", "--porcelain").splitlines():
+        if line.startswith("worktree "):
+            trees.append((Path(line[len("worktree "):]), None))
+        elif line.startswith("branch ") and trees:
+            trees[-1] = (trees[-1][0], line[len("branch "):].removeprefix("refs/heads/"))
+    return trees
+
+
 def _main_checkout(cwd: Path) -> tuple[Path, str | None]:
     """Path and checked-out branch (None if detached) of the repository's main worktree."""
-    path, branch = None, None
-    for line in _git_out(cwd, "worktree", "list", "--porcelain").splitlines():
-        if line.startswith("worktree ") and path is None:
-            path = Path(line[len("worktree "):])
-        elif line.startswith("branch ") and path is not None:
-            branch = line[len("branch "):].removeprefix("refs/heads/")
-        elif not line:
-            break
-    if path is None:
+    trees = _worktrees(cwd)
+    if not trees:
         raise WorktreeError("no main checkout found")
-    return path, branch
+    return trees[0]
 
 
 def in_main_checkout(path: Path) -> Path:
@@ -154,14 +158,18 @@ def check(cwd: Path) -> list[str]:
     clean = not _git_out(cwd, "status", "--porcelain")
     moved = _git(cwd, "merge-base", "--is-ancestor", base, "HEAD").returncode != 0
     on_base = main_branch == base
+    # The owner switched the main checkout away: the worktree itself checks out the base and merges.
+    base_free = all(branch != base for _, branch in _worktrees(cwd))
+    merge_in = "main" if on_base else "worktree" if base_free else "none"
     lines = [
         f"base: {base}",
         f"main: {main}",
         f"clean: {'yes' if clean else 'no'}",
         f"base_moved: {'yes' if moved else 'no'}",
         f"main_on_base: {'yes' if on_base else 'no'}",
+        f"merge_in: {merge_in}",
     ]
-    if not (clean and on_base):
+    if not clean or merge_in == "none":
         raise CheckFailed(lines)
     return lines
 
