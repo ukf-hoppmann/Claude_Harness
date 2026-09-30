@@ -22,7 +22,7 @@ docs/todo/                  ← später konfigurierbar (EPIC-001)
 
 Übernommen aus Agent_Harness-Format v2:
 
-- IDs: `EPIC-NNN`, `STORY-NNN`, `TASK-NNN`; stabil, ändern sich nie.
+- IDs: `EPIC-NNN`, `STORY-NNN`, `TASK-NNN`; stabil bei Status, Priorität, Parent und Umfang. Einzige Ausnahme: Ein Typwechsel über die API (`retype`) vergibt eine neue ID, alle Verweise ziehen mit.
 - Pflichtfelder: `Type`, `Status`, `Created`, `Area`, `Priority`,
   `Dependencies`, `Goal`, `Completion criteria`.
 - Story/Task zusätzlich `Parent` (oder `None`), bei gesetztem Parent
