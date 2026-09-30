@@ -54,7 +54,7 @@ are relative to it.
    root has no config yet, propose one that only registers subprojects
    (`version = 1` plus `[projects]`, no modules) and write it only after
    approval.
-7. If `todo` is enabled and `TODO.md` does not exist in the chosen folder, ask
+7. If `todo` is enabled with `backend = "files"` and `TODO.md` does not exist in the chosen folder, ask
    separately whether to create `TODO.md` and `archive.md` from
    `${CLAUDE_PLUGIN_ROOT}/templates/todo/`. Translate the prose into
    `docs.language`, but keep the `## Work items` heading, the format line

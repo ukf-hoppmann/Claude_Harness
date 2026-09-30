@@ -175,12 +175,19 @@ class BacklogApiTest(unittest.TestCase):
         self.assertIn("module todo is off", result.stderr)
         self.assertEqual(self.viewer.requests, [])
 
-    def test_missing_todo_file_registers_nothing(self):
+    def test_missing_todo_file_is_fine(self):
         (self.todo / "TODO.md").unlink()
-        self.viewer.sources.clear()
+        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
         result = self.run_api("index")
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("TODO.md", result.stderr)
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_database_source_is_found_by_its_markdown_folder(self):
+        self.viewer.sources.clear()
+        self.viewer.sources.append({"id": "db1", "project": "project", "path": "", "backend": "database",
+                                    "sync_path": str(self.todo), "markdown_path": str(self.todo)})
+        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
+        result = self.run_api("index")
+        self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.viewer.calls("POST"), [])
 
     def test_without_config(self):

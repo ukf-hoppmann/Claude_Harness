@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import quote, urlencode
 
-from backlog import TODO_FILE
 from harness_config import CONFIG_RELATIVE_PATH, ROOT_PROJECT, ConfigError, project_root
 from projects import Project, load_projects
 from worktree import WorktreeError, in_main_checkout
@@ -104,12 +103,8 @@ def find_project(name: str) -> Project:
 
 def source_folder(project: Project) -> Path:
     """The project's backlog folder in the main checkout: the server writes there, never into a worktree."""
+    # No TODO.md needed: the server may keep the backlog in its database, the Markdown files are optional.
     folder = project.root / project.config.todo_path
-    if not (folder / TODO_FILE).is_file():
-        raise ApiError(
-            f"{folder / TODO_FILE} does not exist; the backlog must be created first (skill claude-harness:todo)",
-            EXIT_USAGE,
-        )
     try:
         return in_main_checkout(folder)
     except (WorktreeError, OSError):
@@ -119,7 +114,9 @@ def source_folder(project: Project) -> Path:
 
 def source_id(api: Api, folder: Path, project: Project) -> str:
     for source in api.call("GET", "/sources"):
-        if Path(source["path"]).resolve() == folder:
+        # A database source has no path of its own; its Markdown folder is sync_path or markdown_path.
+        paths = (source.get("path"), source.get("markdown_path"), source.get("sync_path"))
+        if any(p and Path(p).resolve() == folder for p in paths):
             return source["id"]
     body = {"path": str(folder)}
     if project.name != ROOT_PROJECT:

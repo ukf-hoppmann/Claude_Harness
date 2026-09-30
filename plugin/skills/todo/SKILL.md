@@ -1,6 +1,6 @@
 ---
 name: todo
-description: Rules for the project backlog (TODO.md, archive.md, per-item notes and specs). Use when reading, discussing, creating, updating, or archiving backlog items — epics, stories, tasks, their status, notes, or specs.
+description: Rules for the project backlog (via the ToDo-Viewer API, or TODO.md, archive.md, per-item notes and specs in files mode). Use when reading, discussing, creating, updating, or archiving backlog items — epics, stories, tasks, their status, notes, or specs.
 ---
 
 # Project backlog
@@ -19,13 +19,15 @@ description: Rules for the project backlog (TODO.md, archive.md, per-item notes 
      `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" [--project <name>] <command>`
      (`--project` for a subproject's backlog).
      Commands and inputs: [api.md](api.md); read it before the first call.
-     Never edit `TODO.md`, `archive.md`, or `items/` directly in this mode.
+     **Never read, edit, create, or delete `TODO.md`, `archive.md`, or `items/`
+     in this mode** — not even to look something up; the server owns them and
+     may keep the backlog in its database instead. They are not required here.
    - `files`: edit the Markdown files directly as [format.md](format.md)
      describes.
 4. API mode: if the helper exits with code 3 (server not reachable), tell the
    user and ask whether to start the server, work on the files this time, or
    stop. Do not fall back to the files on your own.
-5. If `TODO.md` is missing, tell the user and ask for permission before
+5. Files mode only (API mode needs no `TODO.md`): if `TODO.md` is missing, tell the user and ask for permission before
    creating anything. The backlog may just live elsewhere — look for it and
    ask. Only after approval, create `TODO.md` and `archive.md` from
    `${CLAUDE_PLUGIN_ROOT}/templates/todo/`.

@@ -105,11 +105,11 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
         f"Document language: {config.language} (write all harness documents in it).",
     ]
     if config.enabled("todo"):
-        if not (root / config.todo_path / TODO_FILE).is_file():
-            lines.append(_backlog_missing(config, show))
-        elif config.todo_backend == "api":
-            # No reachability check here: hooks do not use the network.
+        if config.todo_backend == "api":
+            # No reachability check here: hooks do not use the network. TODO.md is optional in this mode.
             lines.append(f"Backlog: {config.todo_path} via ToDo-Viewer API ({config.todo_api_url}); {TODO_HINT}")
+        elif not (root / config.todo_path / TODO_FILE).is_file():
+            lines.append(_backlog_missing(config, show))
         else:
             lines.append(f"Backlog: {config.todo_path}/{TODO_FILE}; {TODO_HINT}")
             lines += _backlog_problems(root, config)
@@ -205,10 +205,11 @@ def _project_problems(projects: ProjectSet, project: Project) -> list[str]:
     root, config, show = project.root, project.config, _shown_in(project)
     problems: list[str] = []
     if config.enabled("todo"):
-        if not (root / config.todo_path / TODO_FILE).is_file():
-            problems.append(_backlog_missing(config, show))
-        elif config.todo_backend == "files":
-            problems += _backlog_problems(root, config)
+        if config.todo_backend == "files":
+            if not (root / config.todo_path / TODO_FILE).is_file():
+                problems.append(_backlog_missing(config, show))
+            else:
+                problems += _backlog_problems(root, config)
     if config.enabled("techdocs"):
         problems += _techdocs_missing(root, config, show)
     if config.part_enabled("architecture"):

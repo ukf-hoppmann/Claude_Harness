@@ -16,7 +16,8 @@ Run it in the session's project. It takes the backlog folder and the URL from
 the harness config: the root project by default, a subproject with
 `--project <name>` (the names the session start lists). Pick the project the
 work belongs to; there is no path argument. The helper finds the ToDo-Viewer
-source of that backlog and registers it if missing. Inside a worktree it uses
+source of that backlog (Markdown or database source) and registers it if
+missing. No `TODO.md` is needed in the project for this. Inside a worktree it uses
 the backlog of the main checkout. JSON input goes to stdin; use a quoted
 heredoc so the shell leaves the text alone:
 

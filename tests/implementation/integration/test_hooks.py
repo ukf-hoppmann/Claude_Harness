@@ -117,8 +117,14 @@ class HookTest(unittest.TestCase):
         self.assertIn("Backlog: docs/todo via ToDo-Viewer API (http://localhost:5411/api/v2);", out)
         self.assertNotIn("errors", out)
 
-    def test_session_start_api_backend_still_reports_missing_backlog(self):
+    def test_session_start_api_backend_does_not_require_todo_file(self):
         self.write_config(backend="api")
+        out = self.run_hook("session_start.py", {}).stdout
+        self.assertNotIn("does not exist", out)
+        self.assertIn("via ToDo-Viewer API", out)
+
+    def test_session_start_files_backend_reports_missing_backlog(self):
+        self.write_config(backend="files")
         self.assertIn("does not exist", self.run_hook("session_start.py", {}).stdout)
 
     def test_session_start_subproject_with_api_backend(self):
