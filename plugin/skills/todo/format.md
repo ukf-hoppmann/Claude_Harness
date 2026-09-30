@@ -44,7 +44,9 @@ working language.
 
 Identifiers use the pattern `PREFIX-NNN` (`EPIC-001`, `STORY-001`,
 `TASK-001`), counted per type. They never change — not when an item changes
-type, status, priority, parent, or scope. References are written in backticks;
+status, priority, parent, or scope. The one exception is a type change through
+the API (`retype`): the prefix is the type, so the item gets a new ID and all
+references follow; in files mode an item keeps its ID. References are written in backticks;
 several references are comma-separated; no reference is `None`.
 
 ## Status model

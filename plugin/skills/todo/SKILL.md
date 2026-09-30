@@ -55,7 +55,7 @@ Read only what the task needs:
   user's request clearly asks for it; otherwise propose it first. Only the
   user removes items from the trash for good — never do that yourself.
 - Ask first before: creating items; changing the meaning of
-  `Goal`/`Completion criteria`; changing `Parent`, `Required for parent`,
+  `Goal`/`Completion criteria`; changing the type (API: `retype`, which also changes the ID); changing `Parent`, `Required for parent`,
   `Dependencies`, or `Priority`; setting `Completed`/`Rejected`; reopening.
 - When you start work on an item, set it to `In progress`. When its
   completion criteria are met and verified, set it to `Awaiting confirmation`

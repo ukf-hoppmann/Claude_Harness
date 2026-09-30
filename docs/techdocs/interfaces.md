@@ -140,6 +140,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   | `note <ID>` | Notes-Eintrag anhängen; stdin: `{topic, discussed, decided, open, summary?}` |
   | `doc <ID> <name>` | Notes oder Spec ausgeben: `version: <v>`, Leerzeile, Inhalt |
   | `put-doc <ID> <name> <version\|new> [--summary TEXT]` | Dokument mit dem Text von stdin ersetzen oder neu anlegen |
+  | `retype <ID> <version> <type>` | Typ ändern (`Epic`, `Story`, `Task`; `POST /items/{source}/{ID}/retype`); der Eintrag erhält die nächste freie ID des neuen Typs, alle Verweise ziehen mit; Antwort: Eintrag mit neuer ID |
   | `delete <ID> <version> [--cascade]` | In den Papierkorb, mit `--cascade` samt Nachfahren |
   | `trash` | Einträge im Papierkorb als JSON |
   | `restore <ID> <version>` | Aus dem Papierkorb zurückholen |

@@ -29,6 +29,7 @@ USAGE = """usage: backlog_api.py [--project <name>] <command> [arguments]
   note <ID>                               stdin: JSON {"topic", "discussed", "decided", "open", "summary"}
   doc <ID> <name>                         print a notes/spec document: 'version: <v>', blank line, content
   put-doc <ID> <name> <version|new> [--summary TEXT]   stdin: the complete new document text
+  retype <ID> <version> <type>            change the type (Epic|Story|Task); the item gets a new ID
   delete <ID> <version> [--cascade]       move to the trash (with --cascade including descendants)
   trash                                   items in the trash as JSON
   restore <ID> <version>                  restore an item from the trash"""
@@ -149,7 +150,7 @@ def _item(sid: str, identifier: str, suffix: str = "") -> str:
 
 def run(project_name: str, command: str, args: list[str]) -> None:
     arity = {"health": 0, "index": 0, "show": 1, "create": 0, "update": 2, "note": 1, "doc": 2,
-             "put-doc": 3, "delete": 2, "trash": 0, "restore": 2}
+             "put-doc": 3, "retype": 3, "delete": 2, "trash": 0, "restore": 2}
     options = {"put-doc": "--summary", "delete": "--cascade"}
     flag = options.get(command)
     positional = list(args)
@@ -199,6 +200,9 @@ def run(project_name: str, command: str, args: list[str]) -> None:
             body["summary"] = option_value
         document = api.call("PUT", _item(sid, identifier, f"/documents/{quote(name)}"), body)
         print(f"{document['name']}: saved, version {document['version']}")
+    elif command == "retype":
+        identifier, version, new_type = positional
+        _print_json(api.call("POST", _item(sid, identifier, "/retype"), {"version": version, "type": new_type}))
     elif command == "delete":
         identifier, version = positional
         query = {"version": version, **({"cascade": "true"} if option_value else {})}

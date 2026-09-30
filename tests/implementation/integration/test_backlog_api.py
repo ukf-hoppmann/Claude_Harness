@@ -249,6 +249,12 @@ class BacklogApiTest(unittest.TestCase):
         self.run_api("restore", "EPIC-001", "v4")
         self.assertEqual(self.viewer.calls("POST")[-1]["body"], {"version": "v4"})
 
+    def test_retype_posts_version_and_type(self):
+        self.viewer.routes[("POST", f"{API}/items/src1/TASK-004/retype")] = (200, {"id": "STORY-009"})
+        result = self.run_api("retype", "TASK-004", "v2", "Story")
+        self.assertEqual(self.viewer.calls("POST")[-1]["body"], {"version": "v2", "type": "Story"})
+        self.assertIn("STORY-009", result.stdout)
+
     def test_no_purge_command(self):
         result = self.run_api("purge", "EPIC-001", "v1")
         self.assertEqual(result.returncode, 2)
