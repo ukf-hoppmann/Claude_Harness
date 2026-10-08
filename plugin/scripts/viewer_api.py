@@ -97,24 +97,32 @@ def source_folder(project: Project) -> Path:
         return folder.resolve()
 
 
-def source_id(api: Api, folder: Path, project: Project) -> str:
+def source_record(api: Api, folder: Path, project: Project) -> dict[str, Any]:
+    """The ToDo-Viewer source of the project's backlog folder; registers it if missing."""
     for source in api.call("GET", "/sources"):
         # A database source has no path of its own; its Markdown folder is sync_path or markdown_path.
         paths = (source.get("path"), source.get("markdown_path"), source.get("sync_path"))
         if any(p and Path(p).resolve() == folder for p in paths):
-            return source["id"]
+            return source
     body = {"path": str(folder)}
     if project.name != ROOT_PROJECT:
         # Without a name the server uses the Git repository's, which subprojects share with the root.
         body["project"] = project.name
     source = api.call("POST", "/sources", body)
     print(f"registered backlog {folder} as ToDo-Viewer source {source['id']}", file=sys.stderr)
-    return source["id"]
+    return source
 
 
-def stdin_json() -> dict[str, Any]:
+def source_id(api: Api, folder: Path, project: Project) -> str:
+    return source_record(api, folder, project)["id"]
+
+
+def stdin_json(required: bool = True) -> dict[str, Any]:
+    text = sys.stdin.read()
+    if not required and not text.strip():
+        return {}
     try:
-        data = json.loads(sys.stdin.read())
+        data = json.loads(text)
     except ValueError as exc:
         raise ApiError(f"stdin must be a JSON object: {exc}", EXIT_USAGE) from exc
     if not isinstance(data, dict):
