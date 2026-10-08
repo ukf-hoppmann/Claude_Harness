@@ -13,6 +13,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `docs.root` | Pfad | `"docs"` | nein | Ordner für alle Harness-Dokumente, relativ zum Projekt-Root |
 | `docs.language` | ISO-639-1-Code | `"en"` | nein | Sprache aller erzeugten Dokumente (Fließtext und Überschriften, nicht maschinell geprüfte Feldnamen) |
 | `modules.todo` | Boolean | `false` | nein | Schaltet das Backlog-Modul ein |
+| `modules.notes` | Boolean | `false` | nein | Schaltet das Notes-Modul ein (Skill `claude-harness:notes`): Erinnerungen, Fragen und Ideen als Notes und Topics im ToDo-Viewer, nur über dessen API. Das Modul hat keine eigenen Einstellungen; es nutzt `todo.path` (Projektzuordnung) und `todo.api_url` des Projekts, auch wenn `modules.todo` aus ist. Der Session-Start nennt nur das Modul, er fragt keine fälligen Notes ab |
 | `modules.daily` | Boolean | `false` | nein | Schaltet die Tagesberichte ein |
 | `modules.techdocs` | Boolean | `false` | nein | Schaltet die Systemdoku-Regeln ein |
 | `modules.development` | Boolean | `false` | nein | Schaltet die Suite `development` mit allen Teilbereichen ein |
@@ -37,7 +38,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 
 Nicht aufgeführte Module sind aus. Teilbereiche der Suite `development` sind
 an, solange die Suite an ist, außer sie stehen auf `false`. Die Vorlage
-schaltet `todo`, `techdocs` und `development` ein und `daily` und `semver` aus.
+schaltet `todo`, `techdocs` und `development` ein und `notes`, `daily` und `semver` aus.
 
 Validierung (Fehler werden beim Session-Start gemeldet, Hooks tun dann
 nichts):

@@ -89,6 +89,14 @@ Read only what the task needs:
 - Reuse existing areas before inventing new ones. Files: new IDs take the
   next free number of their type; API: the server assigns them.
 
+## Notes
+
+Reminders, open questions, observations, and ideas without a completion
+definition are not backlog work; they are notes (skill `claude-harness:notes`,
+when `[modules].notes` is on). Turning a note into an item and an item back
+into a note runs through that skill. A backlog item's notes entries
+(`<ID>_notes.md`) are not those notes; when unclear which is meant, ask.
+
 ## Committing backlog changes
 
 - Files mode: backlog changes belong to the change they describe and are

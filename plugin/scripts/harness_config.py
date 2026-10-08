@@ -13,7 +13,7 @@ README = PurePosixPath("README.md")
 # Where Claude Code creates worktrees (EnterWorktree), relative to the project root.
 WORKTREES_DIR = PurePosixPath(".claude/worktrees")
 CONFIG_VERSION = 1
-KNOWN_MODULES = ("todo", "daily", "techdocs", "development", "semver")
+KNOWN_MODULES = ("todo", "notes", "daily", "techdocs", "development", "semver")
 DEFAULT_DOCS_ROOT = PurePosixPath("docs")
 DEFAULT_LANGUAGE = "en"
 DEFAULT_TODO_PATH = PurePosixPath("todo")

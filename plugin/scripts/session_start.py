@@ -25,6 +25,10 @@ MAX_REPORTED = 5
 
 # Skill pointers; with several projects each appears once (architecture rule 7).
 TODO_HINT = "rules in skill claude-harness:todo (load it only when working with the backlog)."
+NOTES_HINT = (
+    "rules in skill claude-harness:notes (load it when asked to remember, remind, or look at "
+    "due notes)."
+)
 DAILY_HINT = "rules in skill claude-harness:daily (load it when reminded or asked about daily reports)."
 TECHDOCS_HINT = (
     "rules in skill claude-harness:techdocs (load it when changing documented behavior, interfaces, "
@@ -113,6 +117,9 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
         else:
             lines.append(f"Backlog: {config.todo_path}/{TODO_FILE}; {TODO_HINT}")
             lines += _backlog_problems(root, config)
+    if config.enabled("notes"):
+        # Static line: hooks do not use the network, so due notes are not looked up here.
+        lines.append(f"Notes: via ToDo-Viewer API ({config.todo_api_url}); {NOTES_HINT}")
     if config.enabled("daily"):
         lines.append(f"Daily reports: {config.daily_path}/; {DAILY_HINT}")
     if config.enabled("techdocs"):
@@ -154,6 +161,8 @@ def _several_projects(projects: ProjectSet) -> list[str]:
     configs = [p.config for p in projects.projects]
     if any(c.enabled("todo") for c in configs):
         lines.append(f"Backlog: {TODO_HINT}")
+    if any(c.enabled("notes") for c in configs):
+        lines.append(f"Notes: {NOTES_HINT}")
     if any(c.enabled("daily") for c in configs):
         lines.append(f"Daily reports: {DAILY_HINT}")
     if any(c.enabled("techdocs") for c in configs):
