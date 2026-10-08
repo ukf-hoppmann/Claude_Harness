@@ -11,7 +11,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
 
 - `EPIC-009` **Notes und Topics: Erinnerungen neben dem Backlog**
   - Type: Epic.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-10-06.
   - Area: Dokumentation.
   - Priority: Normal.
@@ -39,7 +39,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-009`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-10-06.
   - Area: Konfiguration.
   - Priority: Normal.
@@ -66,7 +66,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-009`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-10-06.
   - Area: Entwicklung.
   - Priority: Normal.
@@ -94,7 +94,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-009`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-10-06.
   - Area: Dokumentation.
   - Priority: Normal.
@@ -122,7 +122,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Type: Story.
   - Parent: `EPIC-009`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-10-06.
   - Area: Dokumentation.
   - Priority: Normal.

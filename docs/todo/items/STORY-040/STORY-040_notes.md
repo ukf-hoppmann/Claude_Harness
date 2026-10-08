@@ -14,3 +14,17 @@
 ### Open
 
 - api.md folgt dem Helfer aus STORY-039.
+
+## 2026-10-08 — Umsetzung
+
+### Discussed
+
+- SKILL.md und api.md geschrieben, Befehle stimmen mit notes_api.py überein.
+
+### Decided
+
+- Zeitauflösung mit lokaler Zeitzone als ISO 8601 mit Offset; mehrdeutige Angaben werden erfragt.
+
+### Open
+
+- Die Probe mit echten Notes (Erkennung, Anlegen, Bestätigung des Zeitpunkts, Lesen über den Index) steht aus, solange nichts in den Viewer geschrieben wurde. Nach der Abnahme von STORY-039 sinnvoll.
