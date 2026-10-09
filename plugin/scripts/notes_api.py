@@ -1,4 +1,4 @@
-"""Work on notes and topics through the ToDo-Viewer's HTTP API (modules.notes).
+"""Work on notes and topics through the ToDo-Viewer's HTTP API (part of the todo module).
 
 Usage: notes_api.py [--project <name>] <command> [arguments]; see USAGE.
 The project and the server come from the harness config of the session's project, never from a path argument.
@@ -20,7 +20,7 @@ from viewer_api import (
 USAGE = """usage: notes_api.py [--project <name> | --source <name>] <command> [arguments]
   --project <name>                        a registered subproject; default: the root project
   --source <name>                         another project's notes by its exact name from 'sources'
-                                          (only with the owner's explicit approval, see skill notes)
+                                          (only with the owner's explicit approval, see skill todo, notes.md)
   health                                  server reachable?
   sources                                 the names of all projects the viewer knows, with their folders
 Reading (labels are NOTE-001 / TOPIC-001; the lean index comes first, then the one note you need):
@@ -236,7 +236,12 @@ def run(project_name: str, source_name: str | None, name: str, args: list[str]) 
         raise ApiError(USAGE, EXIT_USAGE)
     command = Command(0, lambda c: None) if name in local else COMMANDS[name]
     positional, options = _split(command, args)
-    project = find_project(project_name, "notes")
+    project = find_project(project_name, "todo")
+    if not project.config.notes_enabled():
+        raise ApiError(
+            f"notes need todo.backend = \"api\" in project {project.name}: they live only in the ToDo-Viewer",
+            EXIT_USAGE,
+        )
     api = Api(project.config.todo_api_url)
     if name == "health":
         print_json(api.call("GET", "/health"))

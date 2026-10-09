@@ -9,22 +9,18 @@ language = "en"     # ISO 639-1 language of generated documents
 # Modules: true = active, false = inactive. Unlisted modules are inactive.
 [modules]
 todo = true
-notes = false
 daily = false
 techdocs = true
 development = true
 semver = false
 
-# Notes and topics (reminders, questions, ideas) live in the ToDo-Viewer's
-# database, never in files. The module reads the project's backlog folder
-# ([todo].path) and [todo].api_url to find the project and the server; it has
-# no settings of its own.
-
 # Backlog folder, relative to docs.root. backend: "api" = the AI works through
 # the ToDo-Viewer's HTTP API at api_url (the server checks format and rules);
 # "files" = the AI edits the Markdown files directly and a hook checks them.
 # With "api" the AI never touches TODO.md, archive.md or items/, and they are
-# not required (the server may keep the backlog in its database).
+# not required (the server may keep the backlog in its database). Notes and
+# topics (reminders, questions, ideas) belong to this module too; they live in
+# the ToDo-Viewer's database, never in files, and exist only with "api".
 [todo]
 path = "todo"
 backend = "api"

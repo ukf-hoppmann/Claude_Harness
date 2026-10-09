@@ -50,8 +50,7 @@ Dateiformate.
 
 | Skill | Wird geladen, wenn … |
 |---|---|
-| `claude-harness:todo` | mit dem Backlog gearbeitet wird |
-| `claude-harness:notes` | der Besitzer etwas merken oder sich erinnern lassen will, nach offenen oder fälligen Notes fragt oder eine Note in Backlog-Arbeit (oder zurück) umwandelt |
+| `claude-harness:todo` | mit dem Backlog gearbeitet wird, der Besitzer etwas merken oder sich erinnern lassen will, nach offenen oder fälligen Notes fragt oder eine Note in Backlog-Arbeit (oder zurück) umwandelt (Notes-Regeln in `notes.md` des Skills, nur bei Bedarf) |
 | `claude-harness:daily` | der Daily-Hook erinnert oder nach Tagesberichten gefragt wird |
 | `claude-harness:techdocs` | eine Änderung Nutzung, Komponenten, Schnittstellen, Einstellungen oder Betrieb betrifft oder der techdocs-Hook erinnert |
 | `claude-harness:architecture` | Code geplant oder geändert wird, Architekturregeln geändert werden, eine Anforderung den Regeln widerspricht oder der Architektur-Hook eine Änderung ablehnt |
@@ -71,7 +70,7 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
-| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: bei `todo.backend = "api"` Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `notes` eine statische Zeile mit API-URL und Skill-Hinweis (ohne Abfrage von Fälligem); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
+| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: bei `todo.backend = "api"` Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` mit Backend `api` eine statische Zeile mit API-URL und Skill-Hinweis (ohne Abfrage von Fälligem); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur bei `todo.backend = "files"`: Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
@@ -167,7 +166,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 ## Skript `notes_api.py`
 
 - Zweck: Notes und Topics über die HTTP-API des ToDo-Viewers pflegen
-  (Modul `notes`). Die Notes liegen nur in der Datenbank des Viewers; das
+  (Teil des Moduls `todo`). Die Notes liegen nur in der Datenbank des Viewers; das
   Skript hat keinen Dateizugriff darauf. Maßgeblich für die API selbst ist
   `docs/techdocs/interfaces.md` im ToDo-Viewer (Abschnitt „HTTP-API v2:
   Topics, Notes und Links“); das Notes-Modell beschreibt dessen Doku.
@@ -175,10 +174,9 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   [argumente]` wie bei `backlog_api.py`: Projekt der Session, ohne
   `--project` das Root-Projekt. URL (`todo.api_url`) und Projekt kommen aus der
   Config; die Notes werden unter dem Namen angesprochen, unter dem der Viewer
-  den Backlog-Ordner (`todo.path`) kennt. Das Modul `notes` muss an sein, das
-  Modul `todo` nicht. `--source <Name>` wie bei `backlog_api.py` spricht die
+  den Backlog-Ordner (`todo.path`) kennt. Das Modul `todo` muss an sein und das Backend `api` haben (Notes gibt es nur im Viewer). `--source <Name>` wie bei `backlog_api.py` spricht die
   Notes eines anderen Projekts des Viewers an (Freigabe: Skill `todo`).
-- Befehle (vollständig: Aufruf ohne Argumente und `plugin/skills/notes/api.md`):
+- Befehle (vollständig: Aufruf ohne Argumente und `plugin/skills/todo/notes-api.md`):
   Lesen: `health`, `sources` (Namen aller Projekte des Viewers), `index` (schlanker Index mit Filtern `--topic`, `--status`,
   `--due`, `--archived`, `--linked-item`, `--all-projects`), `due`, `show`,
   `topics`, `topic`, `links`, `backlinks`, `notes-of-item`, `notes-of-topic`,
@@ -192,7 +190,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Notes nicht an) und das Ändern der Einstellungen des Viewers
   (`settings` liest nur).
 - Exit-Code: wie bei `backlog_api.py`; Exit 2 auch bei abgeschaltetem Modul
-  `notes`.
+  `todo` oder Backend `files`.
 
 ## Skript `viewer_api.py`
 

@@ -27,10 +27,12 @@ class NotesApiTest(unittest.TestCase):
         self.viewer.close()
         self._tmp.cleanup()
 
-    def write_config(self, url, notes="true"):
+    def write_config(self, url, todo="true", backend="api"):
         config = self.project / ".claude-harness" / "config.toml"
         config.parent.mkdir(parents=True, exist_ok=True)
-        config.write_text(f'version = 1\n[modules]\nnotes = {notes}\n[todo]\napi_url = "{url}"\n')
+        config.write_text(
+            f'version = 1\n[modules]\ntodo = {todo}\n[todo]\nbackend = "{backend}"\napi_url = "{url}"\n'
+        )
 
     def run_api(self, *args, stdin=""):
         env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project))
@@ -51,11 +53,18 @@ class NotesApiTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('"status": "ok"', result.stdout)
 
-    def test_module_off_is_a_usage_error(self):
-        self.write_config(self.viewer.url, notes="false")
+    def test_todo_off_is_a_usage_error(self):
+        self.write_config(self.viewer.url, todo="false")
         result = self.run_api("index")
         self.assertEqual(result.returncode, 2)
-        self.assertIn("module notes is off", result.stderr)
+        self.assertIn("module todo is off", result.stderr)
+        self.assertEqual(self.viewer.requests, [])
+
+    def test_files_backend_has_no_notes(self):
+        self.write_config(self.viewer.url, backend="files")
+        result = self.run_api("index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("notes need todo.backend", result.stderr)
         self.assertEqual(self.viewer.requests, [])
 
     def test_unreachable_server_has_own_exit_code(self):

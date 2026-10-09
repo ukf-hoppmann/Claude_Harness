@@ -9,7 +9,6 @@ language = "de"     # ISO 639-1 language of generated documents
 # Modules: true = active, false = inactive. Unlisted modules are inactive.
 [modules]
 todo = true
-notes = true
 daily = true
 techdocs = true
 development = true
