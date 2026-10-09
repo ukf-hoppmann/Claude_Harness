@@ -1,6 +1,6 @@
 ---
 name: todo
-description: Rules for the project backlog (via the ToDo-Viewer API, or TODO.md, archive.md, per-item notes and specs in files mode). Use when reading, discussing, creating, updating, or archiving backlog items — epics, stories, tasks, their status, notes, or specs.
+description: Rules for the project backlog and for notes and topics (via the ToDo-Viewer API, or TODO.md, archive.md, per-item notes and specs in files mode). Use when reading, discussing, creating, updating, or archiving backlog items — epics, stories, tasks, their status, notes, or specs — and when the user asks to remember, remind, or note something for later or asks about due notes.
 ---
 
 # Project backlog
@@ -105,9 +105,10 @@ Read only what the task needs:
 ## Notes
 
 Reminders, open questions, observations, and ideas without a completion
-definition are not backlog work; they are notes (skill `claude-harness:notes`,
-when `[modules].notes` is on). Turning a note into an item and an item back
-into a note runs through that skill. A backlog item's notes entries
+definition are not backlog work; they are notes ([notes.md](notes.md), only
+with `[todo].backend = "api"`; read it when asked to remember, remind, or look
+at due notes). Turning a note into an item and an item back into a note runs
+through it. A backlog item's notes entries
 (`<ID>_notes.md`) are not those notes; when unclear which is meant, ask.
 
 ## Committing backlog changes

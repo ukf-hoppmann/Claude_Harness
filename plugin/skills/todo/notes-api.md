@@ -2,7 +2,7 @@
 
 The ToDo-Viewer server stores topics, notes, links, and triggers, decides what
 is due, creates notices when linked items change, and checks all rules. It
-does not know what the user approved: the authority in [SKILL.md](SKILL.md)
+does not know what the user approved: the authority in [notes.md](notes.md)
 applies. The server's own description is its `interfaces.md` ("HTTP API v2:
 Topics, Notes und Links"); this file covers what you need to call the helper.
 
@@ -17,7 +17,7 @@ the project from the harness config (the root project by default, a subproject
 with `--project <name>`); notes belong to that project. There is no path
 argument. `--source <name>` (instead of `--project`) addresses another
 project's notes by the exact name from `sources`; it needs the owner's approval
-(skill `claude-harness:todo`). Without arguments it prints the command list. JSON input goes to
+(rules in [SKILL.md](SKILL.md)). Without arguments it prints the command list. JSON input goes to
 stdin; use a quoted heredoc:
 
 ```
@@ -104,4 +104,4 @@ settings.
     `demote_has_children`, `demote_referenced` (`details.items` names the
     items in the way).
 - Exit 2: wrong call or invalid JSON on stdin, or the module is off.
-- Exit 3: server not reachable; see step 4 in [SKILL.md](SKILL.md).
+- Exit 3: server not reachable; see step 4 in [notes.md](notes.md).

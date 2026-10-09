@@ -1,29 +1,24 @@
----
-name: notes
-description: Rules for notes and topics in the ToDo-Viewer (reminders, questions, observations, and ideas that are not backlog work). Use when the user asks to remember, remind, or note something for later, asks about open or due notes, or turns a note into backlog work or the reverse.
----
-
 # Notes and topics
 
 A note is a thought with a review date, not work: it has no completion
 criteria, only a trigger or a time to look at it again. Backlog work belongs
-to skill `claude-harness:todo`.
+to [SKILL.md](SKILL.md).
 
 ## Before you start
 
 1. Read `.claude-harness/config.toml` of the project the work belongs to (with
    subprojects, the session start lists each project and its folder; paths
-   below are relative to that folder). If `[modules].notes` is not `true`,
-   these rules do not apply — say so and stop.
+   below are relative to that folder). If `[modules].todo` is not `true` or
+   `[todo].backend` is not `"api"`, these rules do not apply — say so and stop.
 2. Write note texts (summary, body) in `[docs].language`; field names, status
    values, and roles stay English.
 3. Work only through
    `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/notes_api.py" [--project <name>] <command>`.
-   Commands and inputs: [api.md](api.md); read it before the first call. Notes
+   Commands and inputs: [notes-api.md](notes-api.md); read it before the first call. Notes
    live only in the ToDo-Viewer's database: there are no note files, so
    nothing is committed, and nothing falls back to files.
    Notes of another project (`--source <name>`) follow the approval rule of
-   skill `claude-harness:todo` for other projects' backlogs, including `sources`.
+   the rules of [SKILL.md](SKILL.md) for other projects' backlogs, including `sources`.
 4. If the helper exits with code 3 (server not reachable), tell the user and
    ask whether to start the server or stop.
 5. Notes are private as long as they live only in the database. Do not treat
@@ -32,7 +27,7 @@ to skill `claude-harness:todo`.
 
 ## Note, backlog item, or alarm
 
-- **Backlog item:** work with a completion definition. Use `claude-harness:todo`.
+- **Backlog item:** work with a completion definition. Use [SKILL.md](SKILL.md).
 - **Alarm:** a reminder for you in minutes or a few hours. Set it with the
   scheduling tools of Claude Code and say that it only fires while this
   session runs.
@@ -111,9 +106,9 @@ affected note with a new `topic_due` trigger.
 ## Converting
 
 - **Note to backlog item:** ask, propose parent, area, goal, and completion
-  criteria as `claude-harness:todo` requires, then `promote`. The note becomes
+  criteria as [SKILL.md](SKILL.md) requires, then `promote`. The note becomes
   `promoted` and keeps an `origin` link. If the server answers `parent_closed`,
-  follow the `todo` skill (ask once about reopening).
+  follow [SKILL.md](SKILL.md) (ask once about reopening).
 - **Backlog item to note:** `demote`, only after asking. It works only for an
   open item without children that no other item refers to; the item is closed
   as "downgraded to a note".

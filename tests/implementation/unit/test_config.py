@@ -37,9 +37,18 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.techdocs_path, PurePosixPath("docs/techdocs"))
         self.assertEqual(config.techdocs, ("architecture", "interfaces", "configuration"))
 
-    def test_notes_module(self):
-        self.assertFalse(parse_config({"version": 1}).enabled("notes"))
-        self.assertTrue(parse_config({"version": 1, "modules": {"notes": True}}).enabled("notes"))
+    def test_notes_belong_to_todo_with_api_backend(self):
+        on = {"version": 1, "modules": {"todo": True}}
+        self.assertTrue(parse_config(on).notes_enabled())
+        self.assertFalse(parse_config({**on, "todo": {"backend": "files"}}).notes_enabled())
+        self.assertFalse(parse_config({"version": 1, "modules": {"todo": False}}).notes_enabled())
+        self.assertFalse(parse_config({"version": 1}).notes_enabled())
+
+    def test_notes_module_switch_is_gone(self):
+        with self.assertRaises(ConfigError) as ctx:
+            parse_config({"version": 1, "modules": {"notes": True}})
+        self.assertIn("unknown module 'notes'", str(ctx.exception))
+        self.assertIn("part of todo", str(ctx.exception))
 
     def test_todo_backend(self):
         config = parse_config({"version": 1})
@@ -211,7 +220,6 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "harness": {"other": 1}},
             {"version": 1, "harness": "x"},
             {"version": 1, "modules": {"semver": "on"}},
-            {"version": 1, "modules": {"notes": "on"}},
             {"version": 1, "semver": {"file": "/abs"}},
             {"version": 1, "semver": {"file": "../VERSION"}},
             {"version": 1, "semver": {"sync": "package.json"}},

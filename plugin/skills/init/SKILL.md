@@ -23,12 +23,11 @@ are relative to it.
    - which language generated documents use (`docs.language`, default `en`);
    - which folder holds all harness documents (`docs.root`, default `docs`);
    - which modules to enable (currently: `todo`, `daily`, `techdocs`,
-     `development`, `semver`, `notes`; `semver` and `notes` are off unless the
-     user wants them; `notes` needs the ToDo-Viewer and has no settings);
+     `development`, `semver`; `semver` is off unless the user wants it);
    - for `todo`: the backlog folder relative to `docs.root` (default `todo`),
      and whether the AI works through the ToDo-Viewer API (`backend = "api"`,
      default; `api_url` defaults to `http://localhost:5411/api/v2`) or on
-     the files directly (`backend = "files"`);
+     the files directly (`backend = "files"`; notes need the API);
    - for `daily`: the report folder relative to `docs.root` (default
      `daily`);
    - for `techdocs`: the folder relative to `docs.root` (default `techdocs`)

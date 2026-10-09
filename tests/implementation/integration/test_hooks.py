@@ -120,11 +120,10 @@ class HookTest(unittest.TestCase):
     def test_session_start_names_notes_module_without_network(self):
         self.write_config(backend="api")
         out = self.run_hook("session_start.py", {}).stdout
-        self.assertNotIn("Notes:", out)
-        config = self.project / ".claude-harness" / "config.toml"
-        config.write_text(config.read_text().replace("[modules]\n", "[modules]\nnotes = true\n", 1))
+        self.assertIn("Notes: via ToDo-Viewer API (http://localhost:5411/api/v2); rules in skill claude-harness:todo", out)
+        self.write_config(backend="files")
         out = self.run_hook("session_start.py", {}).stdout
-        self.assertIn("Notes: via ToDo-Viewer API (http://localhost:5411/api/v2); rules in skill claude-harness:notes", out)
+        self.assertNotIn("Notes:", out)
 
     def test_session_start_api_backend_does_not_require_todo_file(self):
         self.write_config(backend="api")

@@ -13,7 +13,7 @@ README = PurePosixPath("README.md")
 # Where Claude Code creates worktrees (EnterWorktree), relative to the project root.
 WORKTREES_DIR = PurePosixPath(".claude/worktrees")
 CONFIG_VERSION = 1
-KNOWN_MODULES = ("todo", "notes", "daily", "techdocs", "development", "semver")
+KNOWN_MODULES = ("todo", "daily", "techdocs", "development", "semver")
 DEFAULT_DOCS_ROOT = PurePosixPath("docs")
 DEFAULT_LANGUAGE = "en"
 DEFAULT_TODO_PATH = PurePosixPath("todo")
@@ -142,6 +142,10 @@ class HarnessConfig:
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
 
+    def notes_enabled(self) -> bool:
+        """Notes are part of the todo module; they live only in the ToDo-Viewer, so they need the API backend."""
+        return self.enabled("todo") and self.todo_backend == "api"
+
     def part_enabled(self, part: str) -> bool:
         return self.enabled("development") and self.development_parts.get(part, True)
 
@@ -247,7 +251,12 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
         errors.append("[modules] must be a table")
     else:
         for name, value in raw_modules.items():
-            if name not in KNOWN_MODULES:
+            if name == "notes":
+                errors.append(
+                    "unknown module 'notes': notes are part of todo now (active with todo and "
+                    "todo.backend = \"api\"); remove modules.notes"
+                )
+            elif name not in KNOWN_MODULES:
                 errors.append(
                     f"unknown module '{name}' (known: {', '.join(KNOWN_MODULES)})"
                 )
