@@ -12,14 +12,17 @@ from dataclasses import dataclass
 from typing import Any
 from urllib.parse import quote
 
-from harness_config import ROOT_PROJECT
 from viewer_api import (
-    EXIT_USAGE, Api, ApiError, find_project, print_json, source_folder, source_record, stdin_json,
+    EXIT_USAGE, Api, ApiError, find_project, named_source, print_json, print_sources, source_folder,
+    source_record, split_target, stdin_json,
 )
 
-USAGE = """usage: notes_api.py [--project <name>] <command> [arguments]
+USAGE = """usage: notes_api.py [--project <name> | --source <name>] <command> [arguments]
   --project <name>                        a registered subproject; default: the root project
+  --source <name>                         another project's notes by its exact name from 'sources'
+                                          (only with the owner's explicit approval, see skill notes)
   health                                  server reachable?
+  sources                                 the names of all projects the viewer knows, with their folders
 Reading (labels are NOTE-001 / TOPIC-001; the lean index comes first, then the one note you need):
   index [--topic L] [--status S] [--due] [--archived] [--linked-item ID] [--all-projects]
                                           lean index: topics and notes without long texts
@@ -227,31 +230,36 @@ def _split(command: Command, args: list[str]) -> tuple[list[str], dict[str, str 
     return positional, options
 
 
-def run(project_name: str, name: str, args: list[str]) -> None:
-    if name != "health" and name not in COMMANDS:
+def run(project_name: str, source_name: str | None, name: str, args: list[str]) -> None:
+    local = {"health", "sources"}
+    if name not in local and name not in COMMANDS:
         raise ApiError(USAGE, EXIT_USAGE)
-    command = Command(0, lambda c: c.call("GET", "/health")) if name == "health" else COMMANDS[name]
+    command = Command(0, lambda c: None) if name in local else COMMANDS[name]
     positional, options = _split(command, args)
     project = find_project(project_name, "notes")
     api = Api(project.config.todo_api_url)
     if name == "health":
         print_json(api.call("GET", "/health"))
         return
+    if name == "sources":
+        print_sources(api)
+        return
     # The notes of a project are addressed by the project name the viewer knows its backlog by.
-    record = source_record(api, source_folder(project), project)
+    if source_name is not None:
+        record = named_source(api, source_name)
+    else:
+        record = source_record(api, source_folder(project), project)
     command.handler(Context(api, record["project"], record["id"], positional, options))
 
 
 def main(argv: list[str]) -> int:
     args = argv[1:]
-    project_name = ROOT_PROJECT
-    if args[:1] == ["--project"] and len(args) >= 2:
-        project_name, args = args[1], args[2:]
-    if not args:
-        print(USAGE, file=sys.stderr)
-        return EXIT_USAGE
     try:
-        run(project_name, args[0], args[1:])
+        project_name, source_name, args = split_target(args)
+        if not args:
+            print(USAGE, file=sys.stderr)
+            return EXIT_USAGE
+        run(project_name, source_name, args[0], args[1:])
     except ApiError as exc:
         print(exc if exc.exit_code == EXIT_USAGE and str(exc) == USAGE else f"error: {exc}", file=sys.stderr)
         return exc.exit_code

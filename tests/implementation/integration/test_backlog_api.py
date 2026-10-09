@@ -105,6 +105,57 @@ class BacklogApiTest(unittest.TestCase):
             self.viewer.calls("POST")[0]["body"], {"path": str(sub_todo), "project": "VariantFilter"}
         )
 
+    def add_misc_source(self):
+        # A database source without any folder, like the ToDo-Viewer's Misc.
+        self.viewer.sources.append({"id": "misc1", "project": "Misc", "path": "", "backend": "database",
+                                    "sync_path": None, "markdown_path": None, "mirror": "none"})
+
+    def test_sources_lists_the_names_the_viewer_knows(self):
+        self.add_misc_source()
+        result = self.run_api("sources")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), [
+            "Project | Folder",
+            f"project | {self.todo}",
+            "Misc | -",
+        ])
+        self.assertEqual(self.viewer.calls("POST"), [])
+
+    def test_source_option_addresses_a_source_by_its_exact_name(self):
+        self.add_misc_source()
+        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
+        result = self.run_api("--source", "Misc", "index")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["misc1"]})
+        self.assertEqual(self.viewer.calls("POST"), [])
+
+    def test_unknown_source_names_the_known_ones_and_registers_nothing(self):
+        self.add_misc_source()
+        result = self.run_api("--source", "misc", "index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("unknown source 'misc' (known: project, Misc)", result.stderr)
+        self.assertEqual(self.viewer.calls("POST"), [])
+        self.assertEqual([r["path"] for r in self.viewer.requests], [f"{API}/sources"])
+
+    def test_ambiguous_source_name_is_refused(self):
+        self.viewer.sources.append({"id": "dup", "project": "project", "path": "/elsewhere"})
+        result = self.run_api("--source", "project", "index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("ambiguous", result.stderr)
+
+    def test_source_and_project_exclude_each_other(self):
+        self.write_subproject()
+        result = self.run_api("--source", "Misc", "--project", "VariantFilter", "index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("--source", result.stderr)
+        self.assertEqual(self.viewer.requests, [])
+
+    def test_source_still_needs_the_todo_module_of_the_session_project(self):
+        self.write_config(self.viewer.url, todo="false")
+        result = self.run_api("--source", "Misc", "index")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("module todo is off", result.stderr)
+
     def test_unknown_project(self):
         self.write_subproject()
         result = self.run_api("--project", "Nope", "index")

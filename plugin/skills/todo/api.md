@@ -9,13 +9,15 @@ not know which changes the project owner approved: the change authority in
 ## Calling the helper
 
 ```
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" [--project <name>] <command> [arguments]
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog_api.py" [--project <name> | --source <name>] <command> [arguments]
 ```
 
 Run it in the session's project. It takes the backlog folder and the URL from
 the harness config: the root project by default, a subproject with
 `--project <name>` (the names the session start lists). Pick the project the
-work belongs to; there is no path argument. The helper finds the ToDo-Viewer
+work belongs to; there is no path argument. `--source <name>` instead addresses
+a backlog outside the session's project by the exact name from `sources`; it
+needs the owner's approval ([SKILL.md](SKILL.md)) and never registers a source. The helper finds the ToDo-Viewer
 source of that backlog (Markdown or database source) and registers it if
 missing. No `TODO.md` is needed in the project for this. Inside a worktree it uses
 the backlog of the main checkout. JSON input goes to stdin; use a quoted
@@ -30,6 +32,7 @@ EOF
 | Command | Use |
 |---|---|
 | `health` | Is the server reachable? |
+| `sources` | `Project \| Folder` of every backlog the viewer knows; the names `--source` accepts |
 | `index` | Overview: `ID \| Type \| Status \| Area \| Title \| Parent` |
 | `show <ID>` | One item as JSON with its `version`, archived items included |
 | `create` | New item. stdin: `type`, `title`, `area`, `goal`, `completion_criteria`, optional `parent`, `required_for_parent` (`"Yes"`/`"No"`), `priority`, `dependencies` (list of IDs), `summary`. Prints the item with its new ID |

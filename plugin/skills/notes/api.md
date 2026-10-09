@@ -15,7 +15,9 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/notes_api.py" [--project <name>] <command
 Run it in the session's project. It takes the server URL (`[todo].api_url`) and
 the project from the harness config (the root project by default, a subproject
 with `--project <name>`); notes belong to that project. There is no path
-argument. Without arguments it prints the command list. JSON input goes to
+argument. `--source <name>` (instead of `--project`) addresses another
+project's notes by the exact name from `sources`; it needs the owner's approval
+(skill `claude-harness:todo`). Without arguments it prints the command list. JSON input goes to
 stdin; use a quoted heredoc:
 
 ```
@@ -58,6 +60,7 @@ EOF
 | Command | Use |
 |---|---|
 | `health` | Server reachable? |
+| `sources` | `Project \| Folder` of every project the viewer knows; the names `--source` accepts |
 | `index [--topic L] [--status S] [--due] [--archived] [--linked-item ID] [--all-projects]` | The lean index: topics (`Label \| Path \| Due at \| Due \| Notes`) and notes (`Label \| Status \| Reason \| Review at \| Topic \| Summary`). Default: open notes of this project. `--topic` includes sub-topics; `--archived` reads the archive; `--linked-item` finds notes linked or triggered by that item; `--all-projects` adds the project in front of each label |
 | `due` | All due notes of all projects with reason, topic path, arrived triggers, and possible actions (JSON) |
 | `show <NOTE>` | One note: body, triggers, open notices, version |

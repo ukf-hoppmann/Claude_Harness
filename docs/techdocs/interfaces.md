@@ -129,11 +129,20 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Root-Projekt ohne (der Server nimmt den Namen des Git-Repos). Liegt der
   Ordner in einem Git-Worktree, gilt derselbe Ordner im Haupt-Checkout: Der
   Server schreibt immer dort.
+- Fremdes Backlog: `--source <Name>` (statt `--project`; beide zusammen sind
+  ein Aufruffehler, Exit 2) spricht die Quelle des Viewers an, deren
+  `project` genau dem Namen entspricht, auch eine reine Datenbank-Quelle ohne
+  Ordner wie `Misc`. Die URL kommt weiter aus der Config des Session-Projekts,
+  dessen Modul `todo` an sein muss. Ein unbekannter Name (Exit 2, mit Liste
+  der bekannten) oder ein mehrdeutiger Name bricht ab; es wird nie eine Quelle
+  angelegt. Wann die KI das nutzen darf, regelt der Skill `todo`
+  (ausdrückliche Freigabe des Owners); das Skript prüft das nicht.
 - Befehle:
 
   | Befehl | Wirkung |
   |---|---|
   | `health` | Erreichbarkeit (`GET /health`) |
+  | `sources` | `Project \| Folder` jeder Quelle, die der Viewer kennt (die Namen für `--source`; `-` ohne Ordner) |
   | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` |
   | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte |
   | `create` | Neuer Eintrag; stdin: JSON-Felder ohne `source_id`; die ID vergibt der Server |
@@ -167,9 +176,10 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   `--project` das Root-Projekt. URL (`todo.api_url`) und Projekt kommen aus der
   Config; die Notes werden unter dem Namen angesprochen, unter dem der Viewer
   den Backlog-Ordner (`todo.path`) kennt. Das Modul `notes` muss an sein, das
-  Modul `todo` nicht.
+  Modul `todo` nicht. `--source <Name>` wie bei `backlog_api.py` spricht die
+  Notes eines anderen Projekts des Viewers an (Freigabe: Skill `todo`).
 - Befehle (vollständig: Aufruf ohne Argumente und `plugin/skills/notes/api.md`):
-  Lesen: `health`, `index` (schlanker Index mit Filtern `--topic`, `--status`,
+  Lesen: `health`, `sources` (Namen aller Projekte des Viewers), `index` (schlanker Index mit Filtern `--topic`, `--status`,
   `--due`, `--archived`, `--linked-item`, `--all-projects`), `due`, `show`,
   `topics`, `topic`, `links`, `backlinks`, `notes-of-item`, `notes-of-topic`,
   `docs`, `doc`, `notices`, `trash`, `settings`. Schreiben (JSON auf stdin,
@@ -190,7 +200,8 @@ Gemeinsamer Client von `backlog_api.py` und `notes_api.py`, kein eigener
 Befehl: HTTP-Aufruf mit Zeitlimit, Fehlertext aus der Fehlerantwort des
 Servers (`code`, `message`, `details`, Hinweis bei `version_conflict`),
 Exit-Codes (1 Fehlerantwort, 2 falscher Aufruf, 3 Server nicht erreichbar),
-Auswahl des Projekts aus der Config, Auffinden (und bei Bedarf Anlegen) der
+Auswahl des Projekts aus der Config (`--project`) oder einer Quelle nach
+exaktem Namen (`--source`, `sources`), Auffinden (und bei Bedarf Anlegen) der
 Viewer-Quelle zum Backlog-Ordner und Lesen von JSON auf stdin.
 
 ## Skript `daily.py`

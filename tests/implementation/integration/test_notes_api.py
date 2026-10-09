@@ -249,6 +249,36 @@ class NotesApiTest(unittest.TestCase):
         self.assertEqual(result.returncode, 2)
         self.assertEqual(self.viewer.calls("POST"), [])
 
+    def add_misc_source(self):
+        self.viewer.sources.append({"id": "misc1", "project": "Misc", "path": "", "backend": "database",
+                                    "sync_path": None, "markdown_path": None, "mirror": "none"})
+
+    def test_sources_lists_the_names_the_viewer_knows(self):
+        self.add_misc_source()
+        result = self.run_api("sources")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout.splitlines(), ["Project | Folder", f"project | {self.todo}", "Misc | -"])
+
+    def test_source_option_addresses_the_notes_of_another_project(self):
+        self.add_misc_source()
+        self.route("GET", f"{API}/projects/Misc/topics", [])
+        result = self.run_api("--source", "Misc", "topics")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last()["path"], f"{API}/projects/Misc/topics")
+        self.assertEqual(self.viewer.calls("POST"), [])
+
+    def test_unknown_source_names_the_known_ones(self):
+        self.add_misc_source()
+        result = self.run_api("--source", "misc", "topics")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("unknown source 'misc' (known: project, Misc)", result.stderr)
+
+    def test_source_and_project_exclude_each_other(self):
+        result = self.run_api("--source", "Misc", "--project", "x", "topics")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("--source", result.stderr)
+        self.assertEqual(self.viewer.requests, [])
+
     def test_missing_source_is_registered(self):
         self.viewer.sources.clear()
         # The fake viewer names a source registered without a project "p".
