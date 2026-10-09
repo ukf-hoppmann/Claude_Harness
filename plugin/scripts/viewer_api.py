@@ -117,6 +117,47 @@ def source_id(api: Api, folder: Path, project: Project) -> str:
     return source_record(api, folder, project)["id"]
 
 
+def split_target(args: list[str]) -> tuple[str, str | None, list[str]]:
+    """(project, source, remaining arguments) from the leading --project / --source options.
+
+    --source names a ToDo-Viewer source (see the sources command) outside the session's own backlogs.
+    """
+    project_name, source_name = ROOT_PROJECT, None
+    rest = list(args)
+    while len(rest) >= 2 and rest[0] in ("--project", "--source"):
+        if rest[0] == "--project":
+            project_name = rest[1]
+        else:
+            source_name = rest[1]
+        rest = rest[2:]
+    if source_name is not None and project_name != ROOT_PROJECT:
+        raise ApiError("--source and --project exclude each other", EXIT_USAGE)
+    return project_name, source_name, rest
+
+
+def _source_folder_of(source: dict[str, Any]) -> str | None:
+    return source.get("path") or source.get("markdown_path") or source.get("sync_path") or None
+
+
+def named_source(api: Api, name: str) -> dict[str, Any]:
+    """The viewer's source whose project name is exactly `name`; never registers a source."""
+    sources = api.call("GET", "/sources")
+    found = [s for s in sources if s.get("project") == name]
+    if not found:
+        known = ", ".join(str(s.get("project")) for s in sources)
+        raise ApiError(f"unknown source {name!r} (known: {known})", EXIT_USAGE)
+    if len(found) > 1:
+        raise ApiError(f"source name {name!r} is ambiguous ({len(found)} sources)", EXIT_USAGE)
+    return found[0]
+
+
+def print_sources(api: Api) -> None:
+    """One line per source the viewer knows: its project name and its Markdown folder, if any."""
+    print("Project | Folder")
+    for source in api.call("GET", "/sources"):
+        print(f"{source.get('project')} | {_source_folder_of(source) or '-'}")
+
+
 def stdin_json(required: bool = True) -> dict[str, Any]:
     text = sys.stdin.read()
     if not required and not text.strip():

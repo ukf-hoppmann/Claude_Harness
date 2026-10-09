@@ -9,15 +9,17 @@ import sys
 from typing import Any
 from urllib.parse import quote
 
-from harness_config import ROOT_PROJECT
 from viewer_api import (
-    EXIT_USAGE, Api, ApiError, find_project, print_json, source_folder, source_id,
-    stdin_json,
+    EXIT_USAGE, Api, ApiError, find_project, named_source, print_json, print_sources, source_folder,
+    source_id, split_target, stdin_json,
 )
 
-USAGE = """usage: backlog_api.py [--project <name>] <command> [arguments]
+USAGE = """usage: backlog_api.py [--project <name> | --source <name>] <command> [arguments]
   --project <name>                        a registered subproject; default: the root project
+  --source <name>                         another project's backlog by its exact name from 'sources'
+                                          (only with the owner's explicit approval, see skill todo)
   health                                  server reachable?
+  sources                                 the names of all backlogs the viewer knows, with their folders
   index                                   one line per item: ID | Type | Status | Area | Title | Parent
   show <ID>                               item as JSON, with its version (archived items too)
   create                                  stdin: JSON fields (type, title, area, goal, completion_criteria, ...)
@@ -35,8 +37,8 @@ def _item(sid: str, identifier: str, suffix: str = "") -> str:
     return f"/items/{quote(sid)}/{quote(identifier)}{suffix}"
 
 
-def run(project_name: str, command: str, args: list[str]) -> None:
-    arity = {"health": 0, "index": 0, "show": 1, "create": 0, "update": 2, "note": 1, "doc": 2,
+def run(project_name: str, source_name: str | None, command: str, args: list[str]) -> None:
+    arity = {"health": 0, "sources": 0, "index": 0, "show": 1, "create": 0, "update": 2, "note": 1, "doc": 2,
              "put-doc": 3, "retype": 3, "delete": 2, "trash": 0, "restore": 2}
     options = {"put-doc": "--summary", "delete": "--cascade"}
     flag = options.get(command)
@@ -58,7 +60,13 @@ def run(project_name: str, command: str, args: list[str]) -> None:
     if command == "health":
         print_json(api.call("GET", "/health"))
         return
-    sid = source_id(api, source_folder(project), project)
+    if command == "sources":
+        print_sources(api)
+        return
+    if source_name is not None:
+        sid = named_source(api, source_name)["id"]
+    else:
+        sid = source_id(api, source_folder(project), project)
 
     if command == "index":
         items = api.call("GET", "/index", query={"source_id": sid})["items"]
@@ -103,14 +111,12 @@ def run(project_name: str, command: str, args: list[str]) -> None:
 
 def main(argv: list[str]) -> int:
     args = argv[1:]
-    project_name = ROOT_PROJECT
-    if args[:1] == ["--project"] and len(args) >= 2:
-        project_name, args = args[1], args[2:]
-    if not args:
-        print(USAGE, file=sys.stderr)
-        return EXIT_USAGE
     try:
-        run(project_name, args[0], args[1:])
+        project_name, source_name, args = split_target(args)
+        if not args:
+            print(USAGE, file=sys.stderr)
+            return EXIT_USAGE
+        run(project_name, source_name, args[0], args[1:])
     except ApiError as exc:
         print(exc if exc.exit_code == EXIT_USAGE and str(exc) == USAGE else f"error: {exc}", file=sys.stderr)
         return exc.exit_code

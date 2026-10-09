@@ -22,6 +22,8 @@ to skill `claude-harness:todo`.
    Commands and inputs: [api.md](api.md); read it before the first call. Notes
    live only in the ToDo-Viewer's database: there are no note files, so
    nothing is committed, and nothing falls back to files.
+   Notes of another project (`--source <name>`) follow the approval rule of
+   skill `claude-harness:todo` for other projects' backlogs, including `sources`.
 4. If the helper exits with code 3 (server not reachable), tell the user and
    ask whether to start the server or stop.
 5. Notes are private as long as they live only in the database. Do not treat
