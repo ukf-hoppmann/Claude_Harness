@@ -342,6 +342,31 @@ def export_status(plugin_root: Path, project: Path) -> str:
     return "outdated" if plan_export(plugin_root, project) else "current"
 
 
+def copy_problem(project: Path, wanted: bool, plugin_root: Path) -> str | None:
+    """A session-start line when the project's copy does not match cloud.export, else None.
+
+    Code that runs from a copy has no plugin to compare with and says nothing.
+    """
+    if not (plugin_root / "skills").is_dir():
+        return None
+    try:
+        manifest = read_manifest(project)
+        if not wanted:
+            if manifest is None:
+                return None
+            return "Cloud copy: present although cloud.export is off. Run /claude-harness:update to remove it, or set cloud.export = true."
+        if manifest is None:
+            return "Cloud copy: cloud.export is on but the project has no copy. Run /claude-harness:update to create it, then commit it."
+        if export_status(plugin_root, project) == "current":
+            return None
+        return (
+            f"Cloud copy: outdated (copy {manifest.get('plugin_version')}, plugin {plugin_version(plugin_root)}). "
+            "Run /claude-harness:update, then commit it."
+        )
+    except ExportError as error:
+        return f"Cloud copy: cannot be checked ({error})."
+
+
 def plan_remove(project: Path) -> tuple[list[Change], list[str]]:
     """What a removal would delete or restore, and the copied files it leaves alone because they were edited.
 
