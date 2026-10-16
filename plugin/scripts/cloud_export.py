@@ -38,6 +38,7 @@ SETTINGS_FILE = PurePosixPath(".claude/settings.json")
 # The manifest lists what an export wrote, so that update and removal know exactly which files are theirs.
 MANIFEST_FILE = RUNTIME_DIR / "manifest.json"
 MANIFEST_FORMAT = 1
+RUNTIME_GITIGNORE = b"__pycache__/\n*.pyc\n"
 # Prefix of every exported skill: it avoids clashes with built-in skills such as init.
 SKILL_PREFIX = "harness-"
 # Skills that stay with the local plugin: init and update manage the copy, worktree has no cloud counterpart.
@@ -212,6 +213,8 @@ def runtime_files(plugin_root: Path) -> dict[str, bytes]:
         base = plugin_root / folder
         for path in sorted(p for p in base.rglob("*") if p.is_file() and not _is_noise(p.relative_to(base))):
             files[(RUNTIME_DIR / folder / path.relative_to(base).as_posix()).as_posix()] = path.read_bytes()
+    # Running the scripts in a cloud session writes bytecode caches; they must never reach a commit.
+    files[(RUNTIME_DIR / ".gitignore").as_posix()] = RUNTIME_GITIGNORE
     return files
 
 
@@ -385,11 +388,22 @@ def plan_remove(project: Path) -> tuple[list[Change], list[str]]:
             changes.append(Change(path, "delete", current, None))
         else:
             kept.append(path)
+    changes += _cache_removals(project)
     settings_change = _settings_removal(project, manifest)
     if settings_change:
         changes.append(settings_change)
     changes.append(Change(MANIFEST_FILE.as_posix(), "delete", _read(project, MANIFEST_FILE.as_posix()), None))
     return changes, kept
+
+
+def _cache_removals(project: Path) -> list[Change]:
+    """Bytecode caches that running the copied scripts left below the runtime folder; they are no copy and no edit."""
+    root = project.resolve()
+    runtime = root / RUNTIME_DIR
+    if not runtime.is_dir():
+        return []
+    caches = sorted(p for p in runtime.rglob("*") if p.is_file() and "__pycache__" in p.relative_to(runtime).parts)
+    return [Change(p.relative_to(root).as_posix(), "delete", p.read_bytes(), None) for p in caches]
 
 
 def _settings_removal(project: Path, manifest: dict[str, Any]) -> Change | None:

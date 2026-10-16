@@ -309,7 +309,10 @@ Viewer-Quelle zum Backlog-Ordner und Lesen von JSON auf stdin.
     `.claude-harness/runtime` ersetzt (in der Cloud ist `CLAUDE_PROJECT_DIR`
     in der Shell leer);
   - den Skripten und Vorlagen unter `.claude-harness/runtime/scripts/` und
-    `.claude-harness/runtime/templates/` (ohne Caches);
+    `.claude-harness/runtime/templates/` (ohne Caches) und einer
+    `.gitignore` im Ordner `runtime/`, die Bytecode-Caches (`__pycache__/`,
+    `*.pyc`) aus Git heraushält, die das Ausführen der Skripte in der Cloud
+    erzeugt;
   - den Hook-Einträgen in `.claude/settings.json`, erzeugt aus
     `plugin/hooks/hooks.json`: gleiche Ereignisse, Matcher und Zeitlimits, der
     Befehl lautet `[ "$CLAUDE_CODE_REMOTE" != "true" ] || python3
@@ -331,8 +334,9 @@ Viewer-Quelle zum Backlog-Ordner und Lesen von JSON auf stdin.
   `update`, eine aus dem Plugin verschwundene Datei `delete`; von Hand
   geänderte Dateien werden überschrieben, wenn der Nutzer das nach der
   Vorschau freigibt. Die Hook-Einträge werden ersetzt, nicht verdoppelt.
-- Rückbau (`--remove`): löscht jede im Manifest genannte, unveränderte Datei,
-  lässt von Hand geänderte stehen (`kept`), stellt die `settings.json` wieder
+- Rückbau (`--remove`): löscht jede im Manifest genannte, unveränderte Datei
+  und die Bytecode-Caches unter `runtime/`, lässt von Hand geänderte stehen
+  (`kept`), stellt die `settings.json` wieder
   her (den Text vor dem ersten Export Byte für Byte, solange die Datei seit
   dem Export unberührt ist; sonst werden nur die Einträge der Kopie entfernt,
   und eine vom Export angelegte Datei, die dann leer wäre, wird gelöscht) und

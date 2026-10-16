@@ -71,6 +71,7 @@ class PlanTest(RemoveTestCase):
         paths = {c.path for c in changes if c.kind == "delete"}
         self.assertEqual(kept, [])
         self.assertEqual(paths, {
+            ".claude-harness/runtime/.gitignore",
             ".claude-harness/runtime/manifest.json",
             ".claude-harness/runtime/scripts/check.py",
             ".claude-harness/runtime/templates/config.toml",
@@ -83,6 +84,18 @@ class PlanTest(RemoveTestCase):
         self.export()
         self.remove()
         self.assertEqual(sorted(base.tree(self.project)), [".claude-harness/config.toml"])
+        self.assertFalse((self.project / ".claude-harness/runtime").exists())
+
+    def test_bytecode_caches_of_the_copied_scripts_go_with_it(self):
+        before = base.tree(self.project)
+        self.export()
+        cache = self.write(".claude-harness/runtime/scripts/__pycache__/check.cpython-311.pyc", "x")
+        changes, kept = plan_remove(self.project)
+        self.assertIn(".claude-harness/runtime/scripts/__pycache__/check.cpython-311.pyc", {c.path for c in changes})
+        self.assertEqual(kept, [])
+        apply_changes(self.project, changes)
+        self.assertFalse(cache.exists())
+        self.assertEqual(base.tree(self.project), before)
         self.assertFalse((self.project / ".claude-harness/runtime").exists())
 
     def test_without_a_copy_there_is_nothing_to_remove(self):

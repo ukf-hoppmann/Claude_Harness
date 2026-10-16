@@ -64,6 +64,7 @@ class FirstExportTest(PlanTestCase):
         self.assertEqual(
             sorted(changes),
             [
+                ".claude-harness/runtime/.gitignore",
                 ".claude-harness/runtime/manifest.json",
                 ".claude-harness/runtime/scripts/check.py",
                 ".claude-harness/runtime/templates/config.toml",
@@ -100,7 +101,12 @@ class FirstExportTest(PlanTestCase):
         self.assertNotIn(".claude/settings.json", manifest["files"])
         for path, digest in manifest["files"].items():
             self.assertEqual(digest, hashlib.sha256((self.project / path).read_bytes()).hexdigest(), path)
-        self.assertEqual(len(manifest["files"]), 4)  # two skills, one script, one template
+        self.assertEqual(len(manifest["files"]), 5)  # two skills, one script, one template, the runtime .gitignore
+
+    def test_the_runtime_folder_keeps_bytecode_caches_out_of_git(self):
+        self.export()
+        ignore = (self.project / ".claude-harness/runtime/.gitignore").read_text(encoding="utf-8")
+        self.assertEqual(ignore, "__pycache__/\n*.pyc\n")
 
     def test_manifest_remembers_that_the_settings_file_was_created(self):
         self.export()
