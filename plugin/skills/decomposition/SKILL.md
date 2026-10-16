@@ -1,6 +1,6 @@
 ---
 name: decomposition
-description: Rules for splitting work into small, separately testable steps and for when tests come first (development suite). Use when planning or starting the implementation of a change, presenting an implementation plan, or considering whether a backlog item should get child tasks.
+description: Rules for splitting work into small, separately testable steps and for when tests come first (development suite). Use when planning or starting the implementation of a change, presenting an implementation plan, splitting an epic into stories, or considering whether a story should get child tasks.
 ---
 
 # Decomposition
@@ -23,16 +23,39 @@ without the planning session's context, even by a simpler model.
 
 Work is split at two levels of very different size. Do not mix them.
 
-### Backlog: child tasks (coarse)
+### Backlog: stories and tasks (coarse)
 
-Propose child tasks for a story only if all three hold:
+Cut by capability first, then by session.
 
-1. Each task delivers a result the project owner can use or check on its own.
-2. Each task can be finished in a session of its own.
-3. The story does not fit sensibly into one implementation plan.
+- **Story:** one coherent capability the owner can name and check as a
+  whole ("import bank statements"), never a layer or component
+  ("database infrastructure"). Its size is not limited to one session or
+  one plan.
+- **Task:** one delivery of a story that fits into one session and ends in
+  a checkable state: it has its own test or observable check, the project
+  builds, and all tests pass.
 
-The layers of one feature are never backlog tasks; they are sections of the
-plan. Create items only as the `todo` skill allows (owner approval).
+When splitting an epic:
+
+1. List the capabilities the epic delivers; each becomes a story.
+2. A story that needs more than one session gets tasks, one per
+   session-sized delivery, ordered by dependencies.
+3. A story that fits into one session gets no tasks.
+
+Check before proposing:
+
+- A story without an owner-visible result of its own is a task of the
+  story it enables, or of the epic if it enables several.
+- Stories that only make sense together or build the same capability
+  become one story with tasks.
+- An epic with more than about eight stories: check whether they bundle
+  into fewer capability stories; if not, say why in the proposal.
+- The layers of one feature within a session are never backlog tasks;
+  they are plan sections.
+
+Create or restructure items only as the `todo` skill allows (owner
+approval). If an existing epic breaks these rules, propose a regrouping;
+do not regroup on your own.
 
 ### Plan: sections (fine)
 
