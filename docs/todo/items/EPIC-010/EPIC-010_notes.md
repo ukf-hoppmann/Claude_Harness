@@ -73,3 +73,18 @@
 
 - Für Kriterium 1 (Harness ohne Plugin in der Cloud) ist noch keine Story angelegt.
 - Notes liegen im Dateimodus im Repository (GitHub); der Besitzer entscheidet pro Projekt (STORY-043, Kriterium 5).
+
+## 2026-10-16 — docs/todo komplett nach GitHub; Arbeit künftig über die Web-Oberfläche
+
+### Discussed
+
+- Der Besitzer hat den Vorab-Test in einem Chat-Projekt auf claude.ai ausgeführt (Chat mit Code-Sandbox, keine Code-Sitzung: Arbeitsverzeichnis /home/claude, kein geklontes Repository, CLAUDE_PROJECT_DIR leer). Künftig soll die Arbeit über die Web-Oberfläche statt über die lokale Version laufen.
+- Der ToDo-Viewer hat den Notes-Spiegel docs/todo/notes/ in das Repository geschrieben (NOTE-001, NOTE-002, topics.md, counters.md).
+
+### Decided
+
+- Der Besitzer entscheidet: docs/todo wird komplett committet und nach GitHub gepusht, einschließlich docs/todo/notes/. Das ist sein Sync. Damit ist die offene Frage zu Notes auf GitHub für dieses Projekt beantwortet (siehe STORY-043, Kriterium 5). Notes-Inhalte werden trotzdem nicht in andere eingecheckte Dokumente kopiert.
+
+### Open
+
+- Ob der Besitzer in der Web-Oberfläche den Bereich Chat oder den Bereich Code (claude.ai/code) meint, ist zu klären: Nur in einer Code-Sitzung wird das Repository geklont und .claude/ geladen, nur dort greift der Harness.
