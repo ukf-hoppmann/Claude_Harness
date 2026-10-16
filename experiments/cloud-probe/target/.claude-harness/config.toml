@@ -1,0 +1,8 @@
+# Claude_Harness project configuration for the cloud probe (STORY-047).
+version = 1
+
+[modules]
+todo = true
+
+[todo]
+backend = "files"
