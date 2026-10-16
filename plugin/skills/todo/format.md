@@ -68,7 +68,8 @@ completion confirmation.
 - `Epic`: A larger outcome containing multiple independently verifiable
   results.
 - `Story`: An independently deliverable and observable result for a user,
-  operator, or consuming system.
+  operator, or consuming system: a coherent capability, possibly delivered
+  through several tasks.
 - `Task`: Supporting work that does not by itself deliver an independent
   stakeholder-visible result.
 

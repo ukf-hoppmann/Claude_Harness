@@ -65,7 +65,7 @@ Dateiformate.
 | `claude-harness:daily` | der Daily-Hook erinnert oder nach Tagesberichten gefragt wird |
 | `claude-harness:techdocs` | eine Änderung Nutzung, Komponenten, Schnittstellen, Einstellungen oder Betrieb betrifft oder der techdocs-Hook erinnert |
 | `claude-harness:architecture` | Code geplant oder geändert wird, Architekturregeln geändert werden, eine Anforderung den Regeln widerspricht oder der Architektur-Hook eine Änderung ablehnt |
-| `claude-harness:decomposition` | eine Umsetzung geplant oder begonnen, ein Umsetzungsplan vorgelegt oder überlegt wird, ob ein Backlog-Item Kind-Tasks bekommt |
+| `claude-harness:decomposition` | eine Umsetzung geplant oder begonnen, ein Umsetzungsplan vorgelegt, ein Epic in Stories zerlegt oder überlegt wird, ob eine Story Kind-Tasks bekommt |
 | `claude-harness:testing` | Tests geschrieben, abgelegt oder ausgeführt werden oder der Projektverantwortliche einen Funktionalitätstest wünscht |
 | `claude-harness:semver` | eine Änderung in ihren Ausgangsbranch zurückgemergt wird, ein Release gewünscht ist, der SemVer-Hook erinnert oder das Modul eingerichtet wird |
 | `claude-harness:conflicts` | eine Anforderung oder ein Wunsch des Projektverantwortlichen den Projektregeln oder einer Harness-Vorgabe widerspricht oder der Harness selbst ein Problem verursacht; gilt unabhängig von den Modul-Schaltern |
