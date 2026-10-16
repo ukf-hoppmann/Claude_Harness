@@ -45,6 +45,13 @@ Plugin unter `plugin/`. In einem Projekt einbinden, z. B. über
 }
 ```
 
+### Globaler Einstieg
+
+Damit `/harness-init` in jedem Projekt verfügbar ist, auch ohne aktiviertes
+Plugin, liegt der Skill `~/.claude/skills/harness-init/SKILL.md`. Er verweist
+auf `plugin/skills/init/SKILL.md` in diesem Repo und aktiviert am Ende das
+Plugin im Projekt. Bei einem anderen Repo-Pfad die Pfade im Skill anpassen.
+
 ## Schnellstart
 
 1. Claude Code im Projekt starten.
