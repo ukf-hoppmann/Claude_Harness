@@ -1,15 +1,29 @@
 """Copy the plugin into a project so that Claude Code cloud sessions can use it.
 
-A cloud session loads the repository but not the plugin. The copy puts what the plugin provides into
-places the cloud does load: skills below .claude/skills, scripts and templates below
-.claude-harness/runtime, hooks in .claude/settings.json. Only plugin/ is ever copied.
+Usage: cloud_export.py <project folder> [--status] [--write]
+  A cloud session loads the repository but not the plugin. The copy puts what the plugin provides into
+  places the cloud does load: skills below .claude/skills (prefix harness-), scripts and templates below
+  .claude-harness/runtime, hooks in .claude/settings.json (they run only when CLAUDE_CODE_REMOTE is true).
+  Only plugin/ is ever copied. The manifest .claude-harness/runtime/manifest.json records what was written.
+  (no option)  preview: what a write would change
+  --write      write the changes
+  --status     only report the state of the copy: missing, current, or outdated
+Output: "plugin: <version>", "copy: <version or none>", one line per change ("create", "update", or
+"delete" plus the path; "(edited)" marks a file that is not what the last export wrote), "changes: <n>", the
+unified diff of every update, and "written: <n>" after --write. --status prints "status: <state>" instead of
+the changes.
+Exit codes: 0 ok, 1 error (an "error:" line; nothing has been written), 2 usage.
 """
 
 from __future__ import annotations
 
 import copy
+import difflib
+import hashlib
 import json
 import re
+import sys
+from dataclasses import dataclass
 from pathlib import Path, PurePosixPath
 from typing import Any
 
@@ -18,6 +32,9 @@ from typing import Any
 SKILLS_DIR = PurePosixPath(".claude/skills")
 RUNTIME_DIR = PurePosixPath(".claude-harness/runtime")
 SETTINGS_FILE = PurePosixPath(".claude/settings.json")
+# The manifest lists what an export wrote, so that update and removal know exactly which files are theirs.
+MANIFEST_FILE = RUNTIME_DIR / "manifest.json"
+MANIFEST_FORMAT = 1
 # Prefix of every exported skill: it avoids clashes with built-in skills such as init.
 SKILL_PREFIX = "harness-"
 # Skills that stay with the local plugin: init and update manage the copy, worktree has no cloud counterpart.
@@ -168,3 +185,190 @@ def _without_managed(group: Any) -> Any:
 
 def _is_managed(hook: Any) -> bool:
     return isinstance(hook, dict) and MANAGED_MARK in str(hook.get("command", ""))
+
+
+@dataclass(frozen=True)
+class Change:
+    """One file the export would write (create, update) or remove (delete)."""
+
+    path: str  # posix, relative to the project root
+    kind: str  # "create", "update", or "delete"
+    old: bytes | None
+    new: bytes | None
+    edited: bool = False  # the file on disk is not what the last export wrote (edited by hand, or not ours)
+
+
+def plugin_version(plugin_root: Path) -> str:
+    return str(json.loads((plugin_root / ".claude-plugin" / "plugin.json").read_text(encoding="utf-8"))["version"])
+
+
+def runtime_files(plugin_root: Path) -> dict[str, bytes]:
+    """Project path -> content for the plugin's scripts and templates."""
+    files: dict[str, bytes] = {}
+    for folder in ("scripts", "templates"):
+        base = plugin_root / folder
+        for path in sorted(p for p in base.rglob("*") if p.is_file() and not _is_noise(p.relative_to(base))):
+            files[(RUNTIME_DIR / folder / path.relative_to(base).as_posix()).as_posix()] = path.read_bytes()
+    return files
+
+
+def read_manifest(project: Path) -> dict[str, Any] | None:
+    """The manifest of the last export, or None when the project has no copy."""
+    path = project / MANIFEST_FILE
+    if not path.is_file():
+        return None
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError as error:
+        raise ExportError(f"{MANIFEST_FILE} is not valid JSON: {error}") from error
+    if not isinstance(data, dict) or not isinstance(data.get("files"), dict):
+        raise ExportError(f"{MANIFEST_FILE} is not a manifest")
+    return data
+
+
+def plan_export(plugin_root: Path, project: Path) -> list[Change]:
+    """What an export would change in the project; writes nothing. Raises ExportError on unusable settings."""
+    desired = {**skill_files(plugin_root), **runtime_files(plugin_root)}
+    previous = read_manifest(project)
+    recorded: dict[str, str] = previous["files"] if previous else {}
+    changes: list[Change] = []
+    for path, content in sorted(desired.items()):
+        current = _read(project, path)
+        if current is None:
+            changes.append(Change(path, "create", None, content))
+        elif current != content:
+            changes.append(Change(path, "update", current, content, edited=_digest(current) != recorded.get(path)))
+    for path in sorted(set(recorded) - set(desired)):
+        current = _read(project, path)
+        if current is not None:
+            changes.append(Change(path, "delete", current, None, edited=_digest(current) != recorded[path]))
+    settings_change, created = _settings_change(plugin_root, project, previous)
+    if settings_change:
+        changes.append(settings_change)
+    manifest = _manifest_bytes(plugin_version(plugin_root), desired, created)
+    current_manifest = _read(project, MANIFEST_FILE.as_posix())
+    if current_manifest != manifest:
+        kind = "create" if current_manifest is None else "update"
+        changes.append(Change(MANIFEST_FILE.as_posix(), kind, current_manifest, manifest))
+    return changes
+
+
+def _settings_change(plugin_root: Path, project: Path, previous: dict[str, Any] | None) -> tuple[Change | None, bool]:
+    """The change to .claude/settings.json (None when the hooks are in place) and whether the export created the file."""
+    current_bytes = _read(project, SETTINGS_FILE.as_posix())
+    current = parse_settings(current_bytes.decode("utf-8") if current_bytes is not None else "")
+    plugin_hooks = json.loads((plugin_root / "hooks" / "hooks.json").read_text(encoding="utf-8"))
+    merged = merge_hooks(current, hook_entries(plugin_hooks))
+    created = bool(previous["settings_created"]) if previous else current_bytes is None
+    if merged == current and current_bytes is not None:
+        return None, created
+    kind = "create" if current_bytes is None else "update"
+    return Change(SETTINGS_FILE.as_posix(), kind, current_bytes, dump_settings(merged).encode("utf-8")), created
+
+
+def _manifest_bytes(version: str, files: dict[str, bytes], settings_created: bool) -> bytes:
+    data = {
+        "format": MANIFEST_FORMAT,
+        "plugin_version": version,
+        "settings_created": settings_created,
+        "files": {path: _digest(content) for path, content in sorted(files.items())},
+    }
+    return (json.dumps(data, indent=2, sort_keys=True) + "\n").encode("utf-8")
+
+
+def _digest(content: bytes) -> str:
+    return hashlib.sha256(content).hexdigest()
+
+
+def _target(project: Path, relative: str) -> Path:
+    """The file for a project-relative path; refuses anything that leaves the project."""
+    pure = PurePosixPath(relative)
+    root = project.resolve()
+    if pure.is_absolute() or ".." in pure.parts or not (root / relative).resolve().is_relative_to(root):
+        raise ExportError(f"{relative} is outside the project")
+    return root / relative
+
+
+def _read(project: Path, relative: str) -> bytes | None:
+    target = _target(project, relative)
+    return target.read_bytes() if target.is_file() else None
+
+
+def apply_changes(project: Path, changes: list[Change]) -> None:
+    """Write the changes. Every path is checked before the first file is touched."""
+    targets = [(change, _target(project, change.path)) for change in changes]
+    for change, target in targets:
+        if change.kind == "delete":
+            target.unlink(missing_ok=True)
+            _prune_empty(project, target)
+        elif change.new is not None:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(change.new)
+
+
+def _prune_empty(project: Path, deleted: Path) -> None:
+    """Remove the folders a deleted file leaves empty, up to the folders the project owns anyway."""
+    root = project.resolve()
+    keep = {root, root / ".claude", root / ".claude-harness", root / SKILLS_DIR}
+    parent = deleted.parent
+    while parent not in keep and parent.is_dir() and not any(parent.iterdir()):
+        parent.rmdir()
+        parent = parent.parent
+
+
+def export_status(plugin_root: Path, project: Path) -> str:
+    """"missing" (no copy), "current", or "outdated" (the copy differs from what the plugin would write)."""
+    if read_manifest(project) is None:
+        return "missing"
+    return "outdated" if plan_export(plugin_root, project) else "current"
+
+
+def main(argv: list[str]) -> int:
+    options = {a for a in argv[1:] if a.startswith("--")}
+    folders = [a for a in argv[1:] if not a.startswith("--")]
+    if len(folders) != 1 or options - {"--status", "--write"} or ("--status" in options and "--write" in options):
+        print("usage: cloud_export.py <project folder> [--status] [--write]", file=sys.stderr)
+        return 2
+    project = Path(folders[0])
+    plugin_root = Path(__file__).resolve().parent.parent
+    try:
+        if not (project / ".claude-harness" / "config.toml").is_file():
+            raise ExportError(f"no .claude-harness/config.toml in {project}; run /claude-harness:init first")
+        manifest = read_manifest(project)
+        print(f"plugin: {plugin_version(plugin_root)}")
+        print(f"copy: {manifest['plugin_version'] if manifest else 'none'}")
+        if "--status" in options:
+            print(f"status: {export_status(plugin_root, project)}")
+            return 0
+        changes = plan_export(plugin_root, project)
+        _print_changes(changes)
+        if "--write" in options:
+            apply_changes(project, changes)
+            print(f"written: {len(changes)}")
+    except ExportError as error:
+        print(f"error: {error}")
+        return 1
+    return 0
+
+
+def _print_changes(changes: list[Change]) -> None:
+    for change in changes:
+        print(f"{change.kind} {change.path}" + (" (edited)" if change.edited else ""))
+    print(f"changes: {len(changes)}")
+    for change in changes:
+        if change.kind == "update" and change.old is not None and change.new is not None:
+            _print_diff(change.path, change.old, change.new)
+
+
+def _print_diff(path: str, old: bytes, new: bytes) -> None:
+    try:
+        before, after = old.decode("utf-8"), new.decode("utf-8")
+    except UnicodeDecodeError:
+        return
+    diff = difflib.unified_diff(before.splitlines(keepends=True), after.splitlines(keepends=True), path, path)
+    for line in diff:
+        sys.stdout.write(line if line.endswith("\n") else line + "\n")
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
