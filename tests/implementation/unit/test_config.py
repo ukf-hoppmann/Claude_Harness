@@ -124,6 +124,12 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.harness_repos, ("/abs/harness", "~/code/harness"))
         self.assertEqual(parse_config({"version": 1, "harness": {"repo": []}}).harness_repos, ())
 
+    def test_cloud_export(self):
+        self.assertFalse(parse_config({"version": 1}).cloud_export)
+        self.assertFalse(parse_config({"version": 1, "cloud": {}}).cloud_export)
+        self.assertTrue(parse_config({"version": 1, "cloud": {"export": True}}).cloud_export)
+        self.assertFalse(parse_config({"version": 1, "cloud": {"export": False}}).cloud_export)
+
     def test_semver(self):
         config = parse_config({"version": 1})
         self.assertFalse(config.enabled("semver"))
@@ -177,7 +183,7 @@ class ParseConfigTest(unittest.TestCase):
 
     def test_subproject_rejects_registry_and_harness(self):
         self.assertEqual(parse_config({"version": 1}, subproject=True).projects, ())
-        for extra in ({"projects": {"A": "Plugins/A"}}, {"harness": {"repo": []}}):
+        for extra in ({"projects": {"A": "Plugins/A"}}, {"harness": {"repo": []}}, {"cloud": {"export": True}}):
             with self.subTest(data=extra), self.assertRaises(ConfigError):
                 parse_config({"version": 1, **extra}, subproject=True)
 
@@ -219,6 +225,10 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "harness": {"repo": [1]}},
             {"version": 1, "harness": {"other": 1}},
             {"version": 1, "harness": "x"},
+            {"version": 1, "cloud": {"export": "yes"}},
+            {"version": 1, "cloud": {"export": 1}},
+            {"version": 1, "cloud": {"other": True}},
+            {"version": 1, "cloud": "x"},
             {"version": 1, "modules": {"semver": "on"}},
             {"version": 1, "semver": {"file": "/abs"}},
             {"version": 1, "semver": {"file": "../VERSION"}},

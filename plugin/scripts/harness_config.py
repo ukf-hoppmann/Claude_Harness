@@ -42,10 +42,12 @@ TABLE_KEYS = {
     "development": {"path", "tests", *DEVELOPMENT_PARTS},
     "harness": {"repo"},
     "semver": {"file", "sync", "paths"},
+    "cloud": {"export"},
 }
 _TOP_LEVEL_KEYS = {"version", "modules", "projects", *TABLE_KEYS}
-# Tables only the root project may contain: the subproject registry and the harness repo.
-_ROOT_ONLY_TABLES = ("projects", "harness")
+# Tables only the root project may contain: the subproject registry, the harness repo, and the cloud copy
+# (one copy per repository, at its root).
+_ROOT_ONLY_TABLES = ("projects", "harness", "cloud")
 _LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
 _URL_PATTERN = re.compile(r"https?://\S+")
 PROJECT_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
@@ -138,6 +140,8 @@ class HarnessConfig:
     semver_paths: tuple[PurePosixPath, ...] = (PurePosixPath("."),)
     todo_backend: str = DEFAULT_TODO_BACKEND
     todo_api_url: str = DEFAULT_TODO_API_URL
+    # The project keeps a copy of the plugin for cloud sessions (see cloud_export.py).
+    cloud_export: bool = False
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
@@ -297,6 +301,10 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
             errors.append(f"development.{part} must be true or false")
 
     harness_repos = _harness_repos(_table(data, "harness", errors).get("repo", []), errors)
+    cloud_export = _table(data, "cloud", errors).get("export", False)
+    if not isinstance(cloud_export, bool):
+        errors.append("cloud.export must be true or false")
+        cloud_export = False
     projects = _projects(data.get("projects", {}), errors)
     raw_semver = _table(data, "semver", errors)
     semver_file = _path_value(raw_semver, "file", "semver", DEFAULT_VERSION_FILE, errors)
@@ -327,6 +335,7 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
         semver_paths=semver_paths,
         todo_backend=todo_backend,
         todo_api_url=todo_api_url.rstrip("/"),
+        cloud_export=cloud_export,
     )
 
 

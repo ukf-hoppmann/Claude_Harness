@@ -6,7 +6,7 @@ Usage: config_update.py <folder> [--subproject] [--set KEY=VALUE ...] [--write]
   A missing key gets the value that applies while it is absent. Decisions:
   new modules, todo.backend while todo is on, harness.repo (root project
   only), and comments that differ from the template.
-  --subproject  the folder is a registered subproject (no [harness] table)
+  --subproject  the folder is a registered subproject (no [harness] and no [cloud] table)
   --set         one decision: modules.<name>=true|false, todo.backend=api|files,
                 harness.repo=<path or TOML list of paths>,
                 comment:<place>=keep|replace
@@ -33,7 +33,7 @@ from harness_config import CONFIG_RELATIVE_PATH, ConfigError, parse_config
 # The plugin's own template; it always sits at this place next to the scripts.
 TEMPLATE = Path(__file__).resolve().parent.parent / "templates" / "config.toml"
 # Tables that are not completed in a subproject config.
-_ROOT_ONLY = ("harness",)
+_ROOT_ONLY = ("harness", "cloud")
 TOP = "top"
 _HEADER = re.compile(r"\s*\[([A-Za-z0-9_.-]+)\]\s*(#.*)?$")
 _KEY = re.compile(r"\s*([A-Za-z0-9_-]+)\s*=")
