@@ -45,3 +45,17 @@
 
 - Der Besitzer legt das Wegwerf-Repository und das Probe-Environment an und führt Sitzung A und B aus; die Antworttabellen kommen zurück in die Sitzung.
 - Der Stand von main auf GitHub liegt fünf Commits hinter dem lokalen main; für den Probelauf ohne Bedeutung.
+
+## 2026-10-16 — Vorab-Test in der Cloud (Sitzung ohne zugeordnetes Repository)
+
+### Discussed
+
+- Ergebnis des Vorab-Tests vom 2026-10-16 (vom Besitzer eingefügt, Wortlaut der Cloud-Sitzung): Python 3.13.16; CLAUDE_CODE_REMOTE=true; CLAUDE_PROJECT_DIR leer; Benutzer root, HOME /root, Arbeitsverzeichnis /home/claude; claude-CLI 2.1.301 unter /opt/node22/bin/claude, claude plugin ist vorhanden. Damit sind die Grundvoraussetzungen für Weg B erfüllt: Python über 3.11 und die CLI auf der Maschine.
+- git ls-remote und git clone des Harness-Repositories über https ohne Zugangsdaten scheitern mit could not read Username (Exit 128). Das Repository war der Sitzung nicht zugeordnet und für Claude noch nicht freigegeben, das Ergebnis ist deshalb erwartbar und trennt Nicht-Freigabe nicht von Nicht-Zuordnung. raw.githubusercontent.com: CONNECT-Tunnel mit 403 (der Proxy sperrt den Host in dieser Umgebung, obwohl die Doku ihn in der Trusted-Liste nennt; die Netzwerkstufe der Umgebung ist nicht geprüft).
+- ~/.claude der Maschine enthält kein settings.json, aber Skills (Symlinks nach /mnt/skills/public, Ordner session-start-hook und synced) und die Dateien stop-hook-git-check.sh, stop-hook-reply-gate.py, user-prompt-submit-reply-reminder.py und launcher-settings.json. Die Plattform legt dort selbst Skills und Hook-Skripte ab. Das spricht dafür, dass Dateien unter ~/.claude der Maschine zum Betrieb gehören (Hinweis für Weg B, kein Beleg).
+- Einschränkung: Die Sitzung sah wahrscheinlich nach einem Chat mit Code-Sandbox aus, nicht nach einer Code-Sitzung (Arbeitsverzeichnis /home/claude, kein geklontes Repository, Memory-Dateien und Preferences im Kontext). Q2, Q3 und Q5 (Wirkung von Hooks und Skills, zwei Repositories) sind damit nicht geprüft.
+
+### Open
+
+- Q1 bleibt offen: Ob ein nicht zugeordnetes, aber für Claude freigegebenes Repository im Setup-Script oder zur Laufzeit klonbar ist, zeigt erst ein Test nach der Freigabe (Claude-GitHub-App auf dem Konto von Claude_Harness mit Zugriff auf genau dieses Repository) in einer Code-Sitzung mit einem anderen zugeordneten Repository.
+- Nachfragen in der vorhandenen Sitzung, die ohne Freigabe Aufschluss geben: /root/.ccr/README.md, Proxy-Status, launcher-settings.json (Werte geschwärzt), Skill session-start-hook, Aufrufzeile des claude-Prozesses (zeigt z. B. --settings).
