@@ -57,9 +57,11 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     ein Config-Fehler gemeldet. 2. Sitzungsstart, Backlog-Hooks und Hinweise
     der Skills folgen dem wirksamen Backend. 3. Techdocs (Konfiguration) und
     der todo-Skill beschreiben die Variable. 4. Tests decken beide Backends
-    und den Fehlerfall ab. 5. Ob die Cloud zusätzlich automatisch erkannt
-    wird (z. B. über `CLAUDE_CODE_REMOTE`), ist geprüft; die Entscheidung
-    steht in den Notes.
+    und den Fehlerfall ab. 5. Die Cloud wird automatisch erkannt
+    (Entscheidung des Besitzers, 2026-10-16): Ist `CLAUDE_CODE_REMOTE` auf
+    `true` gesetzt, gilt der Dateimodus. Rangfolge:
+    `CLAUDE_HARNESS_TODO_BACKEND` vor der Cloud-Erkennung vor
+    `[todo].backend`.
   - Summary: Lokal arbeitet der Harness weiter über die API des
     ToDo-Viewers, in der Cloud automatisch über die Markdown-Dateien. Die
     gemeinsame Config bleibt dafür unverändert.
@@ -161,6 +163,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Summary: Klare Schritte, wie der Stand zwischen Cloud und dem lokalen
     ToDo-Viewer hin und her wandert, damit nichts verloren geht und lokal
     weiter nur die API genutzt wird.
+  - Notes: `items/STORY-045/STORY-045_notes.md`.
 
 - `STORY-046` **Doppelt vergebene IDs bei paralleler Arbeit in Cloud und lokal vermeiden**
   - Type: Story.
@@ -191,7 +194,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
     Abgleich mit dem ToDo-Viewer verloren geht, wenn lokal gleichzeitig ein
     Eintrag mit derselben Nummer entsteht.
 
-- `STORY-047` **Harness ohne Plugin in Cloud-Sessions verfügbar machen**
+- `STORY-047` **Harness als Kopie im Projekt für Cloud-Sessions bereitstellen**
   - Type: Story.
   - Parent: `EPIC-010`.
   - Required for parent: Yes.
@@ -200,26 +203,44 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Area: Architektur.
   - Priority: Important.
   - Dependencies: None.
-  - Goal: In einer Cloud-Session eines Fremdprojekts (z. B. ezf-ui) wird das
-    Plugin nicht geladen. Trotzdem stehen dort Regeln, Hooks und Skripte des
-    Harness bereit, sodass Backlog (Dateimodus), Notes, Daily Reports,
-    Techdocs und die übrigen Module wie lokal gelten.
-  - Completion criteria: 1. Geprüft und in den Notes belegt (Doku und
-    Probelauf): was eine Cloud-Session aus dem Repository des Zielprojekts
-    lädt (z. B. CLAUDE.md, .claude/skills, Hooks in .claude/settings.json)
-    und was nicht, welche Python-Version die VM hat (der Harness braucht
-    3.11+), und wie die Pfadvariablen `CLAUDE_PLUGIN_ROOT` und
-    `CLAUDE_PLUGIN_DATA` dort zu ersetzen sind. 2. Die Entscheidung, wie der
-    Harness ins Zielprojekt kommt (z. B. erzeugte Kopie unter `.claude/`,
-    Submodul, Setup-Script des Environments), steht mit Begründung und
-    Aufwand für Aktualisierungen in den Notes. 3. Umgesetzt: Ein Befehl
-    richtet ein Projekt für die Cloud ein, und Skills, Hooks und Skripte
-    laufen dort ohne Plugin. 4. Module, die in der Cloud nicht funktionieren
-    (z. B. worktree), sind benannt und abgeschaltet oder angepasst. 5.
-    Techdocs und README beschreiben Einrichtung und Aktualisierung. 6. Ein
-    Probelauf in einer Cloud-Sitzung zeigt, dass Sitzungsstart-Hinweis,
-    Backlog im Dateimodus und mindestens ein Hook dort wirken.
-  - Summary: Lokal wird der Harness als Plugin geladen. In der Cloud fehlt
-    dieser Weg; hier steht, was die Doku dazu sagt und welche Wege es gibt,
-    die Regeln und Skripte trotzdem dorthin zu bringen.
+  - Goal: In einer Cloud-Session eines Projekts, in der das Plugin nicht
+    geladen wird, stehen Regeln, Hooks und Skripte des Harness bereit, weil
+    eine erzeugte Kopie davon im Projekt liegt und eingecheckt ist (Weg A,
+    Beschluss des Besitzers vom 2026-10-16). `/claude-harness:init` und
+    `/claude-harness:update` legen die Kopie an und halten sie aktuell.
+    Lokal bleibt das Plugin maßgeblich; die Kopie darf dort nichts doppelt
+    tun.
+  - Completion criteria: 1. Die Belege stehen in den Notes: Die Cloud lädt
+    das Plugin nicht, wohl aber CLAUDE.md, .claude/skills und die Hooks aus
+    .claude/settings.json (in Sessions mit einem Repository); Python 3.13
+    und CLAUDE_CODE_REMOTE=true sind dort gesetzt. 2. Ein Generator erzeugt
+    aus plugin/ die Kopie im Projekt: Skills unter .claude/skills mit Präfix
+    (kein Namenskonflikt mit eingebauten Skills, Querverweise und
+    Pfadplatzhalter im Text ersetzt), Skripte und Vorlagen unter
+    .claude-harness/, Hooks in .claude/settings.json (vorhandene Einträge
+    bleiben erhalten). Kopiert wird nur plugin/, nie Backlog, Notes oder
+    Tagesberichte des Harness-Repositories. 3. `/claude-harness:init`
+    richtet die Kopie in einem neuen Projekt ein und
+    `/claude-harness:update` aktualisiert sie, mit Diff und Freigabe vor dem
+    Schreiben und einem Versionsvermerk, an dem eine veraltete Kopie
+    erkennbar ist. 4. Lokal läuft nichts doppelt: Die eingecheckten Hooks
+    beenden sich still, wenn sie nicht in einer Cloud-Session laufen. 5.
+    Module, die in der Cloud nicht funktionieren (z. B. worktree), sind
+    benannt und ausgenommen oder angepasst. 6. Techdocs und README
+    beschreiben Einrichtung, Aktualisierung und die Grenzen (Hooks nur in
+    Sessions mit einem Repository). 7. Ein Abnahmelauf in einer
+    Cloud-Session mit einem Projekt, das die Kopie enthält, zeigt:
+    Sitzungsstart-Hinweis, Backlog im Dateimodus und mindestens ein Hook
+    wirken. 8. Die Kopie lässt sich einfach und vollständig wieder
+    entfernen, damit das Projekt zum Stand ohne Cloud-Kopie zurückkehrt
+    (etwa wenn wieder nur lokal gearbeitet wird): Ein Manifest listet alle
+    erzeugten Dateien und Hook-Einträge; der Rückbau zeigt vorher, was
+    entfällt, schreibt erst nach Freigabe, lässt von Hand geänderte Dateien
+    stehen und meldet sie, und lässt fremde Einträge in
+    .claude/settings.json unberührt. Ein Test beweist die Rundreise: Export,
+    dann Rückbau ergibt denselben Dateistand wie vorher.
+  - Summary: Lokal wird der Harness als Plugin geladen. In der Cloud liegt
+    stattdessen eine von init und update erzeugte Kopie im Projekt, die mit
+    eingecheckt wird und die Regeln, Prüfungen und Skripte dort
+    bereitstellt.
   - Notes: `items/STORY-047/STORY-047_notes.md`.

@@ -88,3 +88,17 @@
 ### Open
 
 - Ob der Besitzer in der Web-Oberfläche den Bereich Chat oder den Bereich Code (claude.ai/code) meint, ist zu klären: Nur in einer Code-Sitzung wird das Repository geklont und .claude/ geladen, nur dort greift der Harness.
+
+## 2026-10-16 — Weg A beschlossen
+
+### Discussed
+
+- Ergebnis der Cloud-Tests vom 2026-10-16 (Details in den Notes von STORY-047): Das Plugin wird in der Cloud nicht geladen, Skills und CLAUDE.md eines zugeordneten Repositories aber schon, Hooks nur aus der settings.json des einzigen Repositories der Session.
+
+### Decided
+
+- Der Besitzer beschließt Weg A: Der Harness liegt als erzeugte, eingecheckte Kopie im Projekt; /claude-harness:init und /claude-harness:update legen sie an und aktualisieren sie. Damit ist Abnahmekriterium 1 dieses Epics geklärt. STORY-047 ist entsprechend angepasst.
+
+### Open
+
+- Umsetzung von STORY-042 bis STORY-047 und der Abnahmelauf in der Cloud (Kriterium 4 des Epics).
