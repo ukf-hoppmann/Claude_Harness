@@ -96,6 +96,46 @@ class StatusTest(CliTestCase):
         self.assertEqual(tree(self.project), before)
 
 
+class RemoveTest(CliTestCase):
+    def test_removal_preview_lists_the_deletions_and_writes_nothing(self):
+        self.run_cli("--write")
+        before = tree(self.project)
+        result = self.run_cli("--remove")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("delete .claude/skills/harness-todo/SKILL.md", result.stdout)
+        self.assertIn("delete .claude-harness/runtime/manifest.json", result.stdout)
+        self.assertEqual(self.lines(result, "changes: "), [f"changes: {len(self.lines(result, 'delete '))}"])
+        self.assertEqual(tree(self.project), before)
+
+    def test_export_then_removal_brings_back_the_project_as_it_was(self):
+        (self.project / ".claude").mkdir()
+        (self.project / ".claude/settings.json").write_text('{"worktree": { "baseRef": "head" }}\n', encoding="utf-8")
+        (self.project / "README.md").write_text("readme\n", encoding="utf-8")
+        before = tree(self.project)
+        self.run_cli("--write")
+        self.assertNotEqual(tree(self.project), before)
+        result = self.run_cli("--remove", "--write")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertRegex(result.stdout, r"(?m)^written: \d+$")
+        self.assertEqual(tree(self.project), before)
+
+    def test_a_file_edited_by_hand_stays_and_is_listed(self):
+        self.run_cli("--write")
+        edited = self.project / ".claude/skills/harness-todo/SKILL.md"
+        edited.write_text("mine\n", encoding="utf-8")
+        result = self.run_cli("--remove", "--write")
+        self.assertIn("kept .claude/skills/harness-todo/SKILL.md (edited)", result.stdout)
+        self.assertEqual(edited.read_text(encoding="utf-8"), "mine\n")
+
+    def test_without_a_copy_it_is_an_error(self):
+        result = self.run_cli("--remove")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("error: no copy to remove", result.stdout)
+
+    def test_removal_and_status_do_not_go_together(self):
+        self.assertEqual(self.run_cli("--remove", "--status").returncode, 2)
+
+
 class ErrorTest(CliTestCase):
     def test_a_project_without_a_config_is_refused(self):
         (self.project / ".claude-harness/config.toml").unlink()

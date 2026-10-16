@@ -1,6 +1,6 @@
 """Copy the plugin into a project so that Claude Code cloud sessions can use it.
 
-Usage: cloud_export.py <project folder> [--status] [--write]
+Usage: cloud_export.py <project folder> [--status | --remove] [--write]
   A cloud session loads the repository but not the plugin. The copy puts what the plugin provides into
   places the cloud does load: skills below .claude/skills (prefix harness-), scripts and templates below
   .claude-harness/runtime, hooks in .claude/settings.json (they run only when CLAUDE_CODE_REMOTE is true).
@@ -8,10 +8,13 @@ Usage: cloud_export.py <project folder> [--status] [--write]
   (no option)  preview: what a write would change
   --write      write the changes
   --status     only report the state of the copy: missing, current, or outdated
+  --remove     take the copy out again: delete what the manifest lists, restore .claude/settings.json (the
+               original text while it is untouched, otherwise only the copy's hooks are removed), delete the
+               manifest last. Files edited by hand stay and are listed as "kept".
 Output: "plugin: <version>", "copy: <version or none>", one line per change ("create", "update", or
-"delete" plus the path; "(edited)" marks a file that is not what the last export wrote), "changes: <n>", the
-unified diff of every update, and "written: <n>" after --write. --status prints "status: <state>" instead of
-the changes.
+"delete" plus the path; "(edited)" marks a file that is not what the last export wrote), "kept <path>" lines
+for a removal, "changes: <n>", the unified diff of every update, and "written: <n>" after --write. --status
+prints "status: <state>" instead of the changes.
 Exit codes: 0 ok, 1 error (an "error:" line; nothing has been written), 2 usage.
 """
 
@@ -242,10 +245,10 @@ def plan_export(plugin_root: Path, project: Path) -> list[Change]:
         current = _read(project, path)
         if current is not None:
             changes.append(Change(path, "delete", current, None, edited=_digest(current) != recorded[path]))
-    settings_change, created = _settings_change(plugin_root, project, previous)
+    settings_change, settings_state = _settings_plan(plugin_root, project, previous)
     if settings_change:
         changes.append(settings_change)
-    manifest = _manifest_bytes(plugin_version(plugin_root), desired, created)
+    manifest = _manifest_bytes(plugin_version(plugin_root), desired, settings_state)
     current_manifest = _read(project, MANIFEST_FILE.as_posix())
     if current_manifest != manifest:
         kind = "create" if current_manifest is None else "update"
@@ -253,24 +256,40 @@ def plan_export(plugin_root: Path, project: Path) -> list[Change]:
     return changes
 
 
-def _settings_change(plugin_root: Path, project: Path, previous: dict[str, Any] | None) -> tuple[Change | None, bool]:
-    """The change to .claude/settings.json (None when the hooks are in place) and whether the export created the file."""
+def _settings_plan(
+    plugin_root: Path, project: Path, previous: dict[str, Any] | None
+) -> tuple[Change | None, dict[str, Any]]:
+    """The change to .claude/settings.json (None when the hooks are in place) and what the manifest records about it.
+
+    The manifest keeps whether the export created the file, the text it had before the first export, and the hash
+    of the text the export left behind. A removal restores the original exactly as long as the file is untouched.
+    """
     current_bytes = _read(project, SETTINGS_FILE.as_posix())
     current = parse_settings(current_bytes.decode("utf-8") if current_bytes is not None else "")
     plugin_hooks = json.loads((plugin_root / "hooks" / "hooks.json").read_text(encoding="utf-8"))
     merged = merge_hooks(current, hook_entries(plugin_hooks))
-    created = bool(previous["settings_created"]) if previous else current_bytes is None
-    if merged == current and current_bytes is not None:
-        return None, created
-    kind = "create" if current_bytes is None else "update"
-    return Change(SETTINGS_FILE.as_posix(), kind, current_bytes, dump_settings(merged).encode("utf-8")), created
+    change = None
+    written = current_bytes if current_bytes is not None else b""
+    if current_bytes is None or merged != current:
+        written = dump_settings(merged).encode("utf-8")
+        kind = "create" if current_bytes is None else "update"
+        change = Change(SETTINGS_FILE.as_posix(), kind, current_bytes, written)
+    if previous:
+        created, original = bool(previous["settings_created"]), previous.get("settings_original")
+    else:
+        created = current_bytes is None
+        # An original that already holds the copy's hooks cannot be restored as it was; removal then strips them.
+        original = None if current_bytes is None or remove_hooks(current) != current else current_bytes.decode("utf-8")
+    # Without a write the recorded hash stays: a file the user merely reformatted is no reason to touch the manifest.
+    digest = previous["settings_written"] if previous and change is None else _digest(written)
+    return change, {"settings_created": created, "settings_original": original, "settings_written": digest}
 
 
-def _manifest_bytes(version: str, files: dict[str, bytes], settings_created: bool) -> bytes:
+def _manifest_bytes(version: str, files: dict[str, bytes], settings_state: dict[str, Any]) -> bytes:
     data = {
         "format": MANIFEST_FORMAT,
         "plugin_version": version,
-        "settings_created": settings_created,
+        **settings_state,
         "files": {path: _digest(content) for path, content in sorted(files.items())},
     }
     return (json.dumps(data, indent=2, sort_keys=True) + "\n").encode("utf-8")
@@ -323,11 +342,59 @@ def export_status(plugin_root: Path, project: Path) -> str:
     return "outdated" if plan_export(plugin_root, project) else "current"
 
 
+def plan_remove(project: Path) -> tuple[list[Change], list[str]]:
+    """What a removal would delete or restore, and the copied files it leaves alone because they were edited.
+
+    The manifest goes last, so an interrupted removal can simply be run again. Writes nothing.
+    """
+    manifest = read_manifest(project)
+    if manifest is None:
+        raise ExportError(f"no copy to remove: {MANIFEST_FILE} not found")
+    changes: list[Change] = []
+    kept: list[str] = []
+    for path, recorded in sorted(manifest["files"].items()):
+        current = _read(project, path)
+        if current is None:
+            continue
+        if _digest(current) == recorded:
+            changes.append(Change(path, "delete", current, None))
+        else:
+            kept.append(path)
+    settings_change = _settings_removal(project, manifest)
+    if settings_change:
+        changes.append(settings_change)
+    changes.append(Change(MANIFEST_FILE.as_posix(), "delete", _read(project, MANIFEST_FILE.as_posix()), None))
+    return changes, kept
+
+
+def _settings_removal(project: Path, manifest: dict[str, Any]) -> Change | None:
+    """Delete the settings file the export created, restore the original, or strip the copy's hooks from it."""
+    path = SETTINGS_FILE.as_posix()
+    current_bytes = _read(project, path)
+    if current_bytes is None:
+        return None
+    created, original = bool(manifest.get("settings_created")), manifest.get("settings_original")
+    untouched = manifest.get("settings_written") == _digest(current_bytes)
+    if untouched and created:
+        return Change(path, "delete", current_bytes, None)
+    if untouched and original is not None:
+        return Change(path, "update", current_bytes, original.encode("utf-8"))
+    current = parse_settings(current_bytes.decode("utf-8"))
+    stripped = remove_hooks(current)
+    if stripped == current:
+        return None
+    if created and stripped == {}:
+        return Change(path, "delete", current_bytes, None, edited=not untouched)
+    return Change(path, "update", current_bytes, dump_settings(stripped).encode("utf-8"), edited=not untouched)
+
+
 def main(argv: list[str]) -> int:
     options = {a for a in argv[1:] if a.startswith("--")}
     folders = [a for a in argv[1:] if not a.startswith("--")]
-    if len(folders) != 1 or options - {"--status", "--write"} or ("--status" in options and "--write" in options):
-        print("usage: cloud_export.py <project folder> [--status] [--write]", file=sys.stderr)
+    if len(folders) != 1 or options - {"--status", "--write", "--remove"} or ("--status" in options and len(options) > 1) or (
+        "--remove" in options and "--status" in options
+    ):
+        print("usage: cloud_export.py <project folder> [--status | --remove] [--write]", file=sys.stderr)
         return 2
     project = Path(folders[0])
     plugin_root = Path(__file__).resolve().parent.parent
@@ -340,8 +407,12 @@ def main(argv: list[str]) -> int:
         if "--status" in options:
             print(f"status: {export_status(plugin_root, project)}")
             return 0
-        changes = plan_export(plugin_root, project)
-        _print_changes(changes)
+        kept: list[str] = []
+        if "--remove" in options:
+            changes, kept = plan_remove(project)
+        else:
+            changes = plan_export(plugin_root, project)
+        _print_changes(changes, kept)
         if "--write" in options:
             apply_changes(project, changes)
             print(f"written: {len(changes)}")
@@ -351,9 +422,11 @@ def main(argv: list[str]) -> int:
     return 0
 
 
-def _print_changes(changes: list[Change]) -> None:
+def _print_changes(changes: list[Change], kept: list[str]) -> None:
     for change in changes:
         print(f"{change.kind} {change.path}" + (" (edited)" if change.edited else ""))
+    for path in kept:
+        print(f"kept {path} (edited)")
     print(f"changes: {len(changes)}")
     for change in changes:
         if change.kind == "update" and change.old is not None and change.new is not None:
