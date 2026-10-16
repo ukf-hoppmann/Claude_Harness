@@ -161,3 +161,15 @@
 ### Open
 
 - Abnahmelauf in der Cloud (Kriterium 7) durch den Besitzer nach dem Merge.
+
+## 2026-10-16 — Umsetzung abgeschlossen, Release v0.10.0, Abnahmelauf offen
+
+### Discussed
+
+- Umgesetzt und in main gemergt (22564ab): cloud_export.py (Vorschau, Schreiben, Status, Rückbau mit Manifest), Config cloud.export, Zeile Cloud copy im Sitzungsstart, init- und update-Schritte, Techdoku und README. 406 Tests grün (vorher 302). Release v0.10.0 (905b49c, Tag nur lokal).
+- Kriterien 1 bis 6 und 8 sind erfüllt; Kriterium 7 (Abnahmelauf in einer echten Cloud-Sitzung) steht aus, deshalb bleibt die Story In progress. Die Kopie wurde nur lokal simuliert (Hooks als Shell-Befehle mit CLAUDE_CODE_REMOTE=true, Rundreise Export und Rückbau).
+
+### Open
+
+- Abnahmelauf durch den Besitzer: In einem Testprojekt (z. B. ezf-ui) cloud.export auf true setzen, /claude-harness:update ausführen, die Kopie in einem eigenen Commit einchecken und nach GitHub pushen. Dann eine Cloud-Sitzung nur mit diesem Repository starten und prüfen: Erscheint die Sitzungsstart-Zeile Claude_Harness: modules …? Sind die Skills harness-* in der Skill-Liste? Läuft ein Hook (z. B. die Stop-Erinnerung des Tagesberichts oder der Dokumentation)? Hinweis: Ohne STORY-042 sucht der todo-Skill in der Cloud die API; für den Abnahmelauf genügen Sitzungsstart und ein Hook, oder todo.backend vorübergehend auf files stellen.
+- Nach bestandenem Lauf: Story auf Awaiting confirmation, den Ordner experiments/cloud-probe entfernen.
