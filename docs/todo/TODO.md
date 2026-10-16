@@ -63,6 +63,7 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Summary: Lokal arbeitet der Harness weiter über die API des
     ToDo-Viewers, in der Cloud automatisch über die Markdown-Dateien. Die
     gemeinsame Config bleibt dafür unverändert.
+  - Notes: `items/STORY-042/STORY-042_notes.md`.
 
 - `STORY-043` **Notes und Topics im Dateimodus führen**
   - Type: Story.
@@ -189,3 +190,36 @@ Format: Claude_Harness backlog format version 1. The rules are defined in the
   - Summary: Verhindert, dass ein in der Cloud angelegter Eintrag beim
     Abgleich mit dem ToDo-Viewer verloren geht, wenn lokal gleichzeitig ein
     Eintrag mit derselben Nummer entsteht.
+
+- `STORY-047` **Harness ohne Plugin in Cloud-Sessions verfügbar machen**
+  - Type: Story.
+  - Parent: `EPIC-010`.
+  - Required for parent: Yes.
+  - Status: In progress.
+  - Created: 2026-10-16.
+  - Area: Architektur.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: In einer Cloud-Session eines Fremdprojekts (z. B. ezf-ui) wird das
+    Plugin nicht geladen. Trotzdem stehen dort Regeln, Hooks und Skripte des
+    Harness bereit, sodass Backlog (Dateimodus), Notes, Daily Reports,
+    Techdocs und die übrigen Module wie lokal gelten.
+  - Completion criteria: 1. Geprüft und in den Notes belegt (Doku und
+    Probelauf): was eine Cloud-Session aus dem Repository des Zielprojekts
+    lädt (z. B. CLAUDE.md, .claude/skills, Hooks in .claude/settings.json)
+    und was nicht, welche Python-Version die VM hat (der Harness braucht
+    3.11+), und wie die Pfadvariablen `CLAUDE_PLUGIN_ROOT` und
+    `CLAUDE_PLUGIN_DATA` dort zu ersetzen sind. 2. Die Entscheidung, wie der
+    Harness ins Zielprojekt kommt (z. B. erzeugte Kopie unter `.claude/`,
+    Submodul, Setup-Script des Environments), steht mit Begründung und
+    Aufwand für Aktualisierungen in den Notes. 3. Umgesetzt: Ein Befehl
+    richtet ein Projekt für die Cloud ein, und Skills, Hooks und Skripte
+    laufen dort ohne Plugin. 4. Module, die in der Cloud nicht funktionieren
+    (z. B. worktree), sind benannt und abgeschaltet oder angepasst. 5.
+    Techdocs und README beschreiben Einrichtung und Aktualisierung. 6. Ein
+    Probelauf in einer Cloud-Sitzung zeigt, dass Sitzungsstart-Hinweis,
+    Backlog im Dateimodus und mindestens ein Hook dort wirken.
+  - Summary: Lokal wird der Harness als Plugin geladen. In der Cloud fehlt
+    dieser Weg; hier steht, was die Doku dazu sagt und welche Wege es gibt,
+    die Regeln und Skripte trotzdem dorthin zu bringen.
+  - Notes: `items/STORY-047/STORY-047_notes.md`.
