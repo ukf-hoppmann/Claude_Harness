@@ -64,6 +64,31 @@ Teilprojekt ein und trägt es in `[projects]` der Root-Config ein; die Session
 startet weiter im Repo-Root. Details:
 [Konfiguration, Abschnitt Teilprojekte](docs/techdocs/configuration.md#teilprojekte).
 
+## Cloud-Sitzungen (claude.ai/code)
+
+Eine Cloud-Sitzung klont das Repository und lädt das Plugin nicht. Damit der
+Harness dort wirkt, kann ein Projekt eine eingecheckte Kopie davon halten:
+
+1. In `.claude-harness/config.toml` `[cloud] export = true` setzen (nur im
+   Root-Projekt) und `/claude-harness:init` bzw. `/claude-harness:update`
+   ausführen. Beide zeigen eine Vorschau und schreiben erst nach Freigabe:
+   Skills `harness-<Name>` unter `.claude/skills/`, Skripte und Vorlagen unter
+   `.claude-harness/runtime/`, Hooks in `.claude/settings.json`.
+2. Die Kopie in einem eigenen Commit einchecken und pushen.
+3. Nach einem Plugin-Update meldet der Session-Start eine veraltete Kopie;
+   `/claude-harness:update` aktualisiert sie.
+4. Soll nur noch lokal gearbeitet werden, nimmt `/claude-harness:update` die
+   Kopie wieder heraus (`cloud.export = false`); das Manifest
+   `.claude-harness/runtime/manifest.json` stellt den Stand davor wieder her,
+   alternativ nimmt ein `git revert` des Commits sie zurück.
+
+Grenzen: Die Hooks der Kopie laufen nur in einer Sitzung mit einem Repository
+und nur in der Cloud (`CLAUDE_CODE_REMOTE=true`); lokal gelten die Hooks des
+Plugins. Der ToDo-Viewer ist aus der Cloud nicht erreichbar, der Backlog dort
+braucht `todo.backend = "files"`. Skills und Hooks der Kopie kosten lokal
+zusätzlich je Skill eine Beschreibung im Kontext. Details:
+[Schnittstellen, Skript `cloud_export.py`](docs/techdocs/interfaces.md#skript-cloud_exportpy).
+
 ## Entwicklung
 
 - `plugin/` ist das ausgelieferte Produkt; alles andere dient der Entwicklung.

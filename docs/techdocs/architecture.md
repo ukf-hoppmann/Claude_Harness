@@ -21,7 +21,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Hook-Registrierung | Verknüpft Ereignisse mit Skripten | `plugin/hooks/hooks.json` |
 | Config-Lader | Liest und validiert `.claude-harness/config.toml` | `plugin/scripts/harness_config.py` |
 | Projekte | Lädt das Root-Projekt und die in `[projects]` eingetragenen Teilprojekte und ordnet jede Datei ihrem Projekt zu | `plugin/scripts/projects.py` |
-| Session-Start | Meldet aktive Module, Sprache, fehlende Dateien und Backlog-Fehler, bei Teilprojekten pro Projekt | `plugin/scripts/session_start.py` |
+| Session-Start | Meldet aktive Module, Sprache, fehlende Dateien und Backlog-Fehler, bei Teilprojekten pro Projekt; meldet eine Cloud-Kopie, die nicht zu `cloud.export` passt | `plugin/scripts/session_start.py` |
 | Modul `todo` | Skill mit Backlog-Regeln und, als Unterdatei, den Regeln für Notes und Topics (Erinnerungen, Fragen, Beobachtungen, Ideen) im ToDo-Viewer; Backend `api`: Helfer für die HTTP-API des ToDo-Viewers (der Server prüft Format und Regeln); Backend `files`: Formatprüfung und Prüf-Hooks | `plugin/skills/todo/`, `plugin/scripts/backlog_api.py`, `notes_api.py`, `backlog.py`, `mark_backlog_dirty.py`, `check_backlog.py` |
 | Notes (Teil von `todo`) | Nur Backend `api`: Skript `notes_api.py` für die HTTP-API des Viewers. Die Notes liegen nur in der Datenbank des Viewers; der Viewer entscheidet über Fälligkeit und Auslöser, der Harness prüft nichts und hat keinen Hook außer der statischen Zeile beim Session-Start | `plugin/skills/todo/notes.md`, `notes-api.md`, `plugin/scripts/notes_api.py` |
 | API-Client | Gemeinsamer HTTP-Client für die Helfer `backlog_api.py` und `notes_api.py`: Aufruf, Fehlertexte und Exit-Codes, Projektwahl aus der Config, Auffinden der Viewer-Quelle des Backlog-Ordners | `plugin/scripts/viewer_api.py` |
@@ -33,8 +33,9 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Suite `development`, Teil `worktree` | Skill für den Change-Workflow im Worktree, Skript für Ausgangsbranch, Spiegeln ignorierter Dateien und Vorprüfung vor dem Merge, Prüfung von `worktree.baseRef` beim Session-Start | `plugin/skills/worktree/`, `plugin/scripts/worktree.py` |
 | Modul `semver` | Skill für Einstufung und Release, Prüfung von Versionsdatei, Tag-Schritt und Spiegel-Dateien, Prüf-Hook | `plugin/skills/semver/`, `plugin/scripts/semver.py`, `check_semver.py` |
 | Konflikte | Skill für Konflikte mit Projektregeln und Harness-Vorgaben, Suche des Harness-Repos für die Übergabe von Harness-Wünschen | `plugin/skills/conflicts/`, `plugin/scripts/harness_repo.py` |
-| Befehl `init` | Richtet den Harness in einem Projekt oder Teilprojekt ein | `plugin/skills/init/` |
-| Befehl `update` | Bringt die Config eines Projekts auf den aktuellen Stand: Migrationen, Abgleich mit der Config-Vorlage | `plugin/skills/update/`, `plugin/scripts/config_update.py` |
+| Befehl `init` | Richtet den Harness in einem Projekt oder Teilprojekt ein, auf Wunsch auch die Cloud-Kopie | `plugin/skills/init/` |
+| Befehl `update` | Bringt die Config eines Projekts auf den aktuellen Stand: Migrationen, Abgleich mit der Config-Vorlage; hält die Cloud-Kopie aktuell oder nimmt sie wieder heraus | `plugin/skills/update/`, `plugin/scripts/config_update.py` |
+| Cloud-Kopie | Erzeugt aus dem Plugin eine eingecheckte Kopie im Projekt (Skills, Skripte, Vorlagen, Hooks), weil Cloud-Sitzungen das Plugin nicht laden, wohl aber den Inhalt des Repositories; Manifest, Vorschau mit Diff, Rückbau | `plugin/scripts/cloud_export.py` |
 | Vorlagen | Config, Backlog, Tagesbericht, Systemdoku, Architekturregeln | `plugin/templates/` |
 | Sitzungszustand | Pfade für Merker pro Session | `plugin/scripts/state.py` |
 
@@ -57,7 +58,8 @@ Teilprojekten steht jeder Skill-Hinweis einmal, dazu eine Zeile pro Projekt.
 | `semver` | Meldet ungültige Version, zu großen Schritt seit dem letzten Release-Tag und abweichende Spiegel-Dateien; Session-Start zeigt Version und unveröffentlichte Commits | Wann und wie eingestuft und released wird, Einrichtung | `semver.py` (Status, Prüfung, Commits seit dem Release) | Der Schritt lässt sich prüfen, weil die Versionsdatei überall gleich aussieht; die Einstufung braucht Urteil und ist nur beim Merge oder Release Thema |
 | Konflikte (kein Modul, immer aktiv) | – | Verfahren bei Konflikten, Übergabe an den Harness-Backlog | `harness_repo.py` (Harness-Repo finden oder vorschlagen) | Konflikte lassen sich nicht mechanisch erkennen; das Verfahren braucht es nur im Konfliktfall, dann aber für alle Module |
 | `init` | – | Einrichtungsablauf, nur vom Nutzer aufrufbar | – | Wird einmal pro Projekt gebraucht |
-| `update` | – | Aktualisierungsablauf, nur vom Nutzer aufrufbar | `config_update.py` (Abgleich mit der Vorlage) | Wird nur nach einem Plugin-Update gebraucht; der Abgleich ist stures Abarbeiten, die Entscheidungen trifft der Nutzer |
+| `update` | – | Aktualisierungsablauf, nur vom Nutzer aufrufbar | `config_update.py` (Abgleich mit der Vorlage), `cloud_export.py` (Cloud-Kopie) | Wird nur nach einem Plugin-Update gebraucht; der Abgleich ist stures Abarbeiten, die Entscheidungen trifft der Nutzer |
+| Cloud-Kopie (`cloud.export`) | Session-Start meldet eine fehlende, veraltete oder trotz `cloud.export = false` vorhandene Kopie; die Hooks der Kopie laufen nur in Cloud-Sitzungen | Die Skills der Kopie (`harness-<Name>`) sind erzeugte Texte der Plugin-Skills | `cloud_export.py` (Vorschau, Schreiben, Status, Rückbau) | Cloud-Sitzungen laden das Plugin nicht, wohl aber `CLAUDE.md`, `.claude/skills` und die Hooks aus `.claude/settings.json` des einzigen Repositories der Sitzung; Erzeugen und Zurücknehmen sind stures Abarbeiten, die Freigabe gibt der Nutzer |
 
 Unterordner-`CLAUDE.md` nutzt der Harness nicht; bereichsbezogene Regeln
 sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
@@ -96,6 +98,20 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
      letzten Release-Tag und Spiegel-Dateien; derselbe Befund einmal pro
      Session.
 
+### In einer Cloud-Sitzung
+
+Eine Cloud-Sitzung (claude.ai/code, `CLAUDE_CODE_REMOTE=true`) klont das
+Repository und lädt das Plugin nicht. Hat das Projekt eine Cloud-Kopie, wirken
+dort dieselben Ereignisse wie lokal, nur aus den Dateien des Projekts: Die
+Skills `harness-<Name>` liegen unter `.claude/skills/`, die Hooks stehen in
+`.claude/settings.json` und rufen die Skripte unter `.claude-harness/runtime/`
+auf. Jeder Hook-Befehl beginnt mit einem Wächter
+(`[ "$CLAUDE_CODE_REMOTE" != "true" ] || …`): Lokal beendet er sich sofort, dort
+gelten die Hooks des Plugins, und der Exit-Code eines blockierenden Hooks
+bleibt in der Cloud erhalten. Die Hooks der Kopie gelten nur in Sitzungen mit
+einem Repository; bei mehreren Repositories lädt die Cloud keine Hooks aus
+deren `settings.json`.
+
 ## Zustand und Ablage
 
 | Zustand | Ort | Lebensdauer |
@@ -106,6 +122,7 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 | Bestätigter Stand des Tagesberichts, eine Zeile `<Commit> <Branch>` pro Branch | `.git/claude-harness/daily-ack`, für ein Projekt unterhalb des Git-Roots `daily-ack-<Ordner mit _ statt />` | pro Klon und Projektordner, nie committet |
 | Release-Tags | Tags `<Präfix><Version>` | im Repo, nur lokal, bis der Owner sie pusht |
 | Backlog, Tagesberichte, Systemdoku, Regeln der Suite `development`, Versionsdatei | unter `docs.root` (Standard `docs/`) bzw. `README.md` | im Repo versioniert |
+| Cloud-Kopie: Skills `harness-<Name>`, Skripte und Vorlagen, Hook-Einträge, Manifest | `.claude/skills/harness-*/`, `.claude-harness/runtime/` (mit `manifest.json`), Einträge in `.claude/settings.json` | im Repo versioniert, erzeugt und nie von Hand gepflegt; das Manifest nennt jede erzeugte Datei mit Hash |
 
 ## Wichtige Entscheidungen
 
@@ -121,3 +138,4 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 | Zerlegung als Teil der Suite `development`, Kriterien fest im Plugin, kein Hook | Kleine, einzeln testbare Schritte senken Fehler und Aufwand; die Güte einer Zerlegung ist nicht mechanisch prüfbar | `STORY-004` |
 | Changes mit Plan im Worktree vom aktuellen Branch, Merge-Commit zurück ohne Rückfrage, kein Push, fremde Worktrees nie löschen | Paralleles Arbeiten; Ziel ist der Branch, den der Eigner ausgecheckt hat; ein Revert nimmt den ganzen Change zurück | `STORY-022` |
 | Nur Python-Standardbibliothek | Keine Installationsschritte in Zielprojekten | `STORY-018` |
+| Der Harness läuft in Cloud-Sitzungen als eingecheckte, erzeugte Kopie im Projekt (Weg A); kopiert wird nur `plugin/`; die Hooks der Kopie laufen nur bei `CLAUDE_CODE_REMOTE=true`; die Kopie lässt sich über ihr Manifest vollständig wieder entfernen | Die Cloud lädt das Plugin nicht (Doku und Test), wohl aber den Repository-Inhalt; die Kopie braucht weder Setup-Script noch ein zweites Repository und ist ohne Spuren rückbaubar | `STORY-047`, `EPIC-010` |
