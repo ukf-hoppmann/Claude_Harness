@@ -33,6 +33,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `semver.sync` | Liste von Pfaden | `[]` | nein | Spiegel-Dateien, relativ zum Projekt, z. B. `["package.json"]`; jede muss die Version aus der Versionsdatei enthalten |
 | `semver.paths` | Liste von Pfaden | `["."]` | nein | Was zum ausgelieferten Produkt zählt, relativ zum Projekt; nur Commits unter diesen Pfaden gelten als unveröffentlicht. Beim Root-Projekt zählen Ordner von Teilprojekten nicht mit |
 | `projects.<Name>` | Pfad | – | nein | Trägt ein Teilprojekt ein: Name → Ordner relativ zum Projekt-Root. Nur in der Konfiguration des Root-Projekts erlaubt; siehe „Teilprojekte“ |
+| `cloud.export` | Boolean | `false` | nein | Das Projekt hält eine eingecheckte Kopie des Plugins für Cloud-Sitzungen (claude.ai/code), die `/claude-harness:init` anlegt und `/claude-harness:update` aktuell hält (Skills unter `.claude/skills/harness-*`, Skripte unter `.claude-harness/runtime/`, Hooks in `.claude/settings.json`). Nur im Root-Projekt erlaubt; ein Teilprojekt mit `[cloud]` meldet einen Fehler. Ist die Option aus, aber eine Kopie da, oder umgekehrt, meldet der Session-Start es. Aufbau, Vorschau und Rückbau: [Schnittstellen, Skript `cloud_export.py`](interfaces.md#skript-cloud_exportpy). Bei `true` müssen `.claude-harness/` und `.claude/` eingecheckt sein |
 | `harness.repo` | Liste von Pfaden | `[]` | nein | Mögliche Orte des Claude_Harness-Repos, einer pro Rechner; absolut oder mit `~` beginnend. Gilt der erste, der auf dem Rechner existiert und das Harness-Repo ist. Wird für die Übergabe von Harness-Wünschen an den Harness-Backlog gebraucht (Skill `claude-harness:conflicts`); ohne passenden Eintrag gibt die AI den Auftrag als Text aus |
 
 Nicht aufgeführte Module sind aus. Teilbereiche der Suite `development` sind
@@ -55,7 +56,8 @@ nichts):
   Buchstaben beginnen, andere Zeichen als Buchstaben, Ziffern, `_` und `-`
   enthalten oder `root` heißen; Projektpfade, die leer, absolut, `.` oder mit
   `..` sind; Projektpfade, die gleich sind oder ineinander liegen;
-- `[projects]` oder `[harness]` in der Konfiguration eines Teilprojekts.
+- `cloud.export`, das kein Boolean ist;
+- `[projects]`, `[harness]` oder `[cloud]` in der Konfiguration eines Teilprojekts.
 
 `harness.repo` enthält rechnerspezifische Pfade in einer eingecheckten Datei.
 Deshalb ist es eine Liste: Jeder Rechner ergänzt seinen Pfad; Einträge, die

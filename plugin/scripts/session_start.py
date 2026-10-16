@@ -7,6 +7,7 @@ from pathlib import Path, PurePosixPath
 
 from architecture import inherited_files, load_scopes, reset_read, rules_path
 from backlog import TODO_FILE, validate_backlog
+from cloud_export import copy_problem
 from techdocs import document_paths
 from harness_config import (
     CONFIG_RELATIVE_PATH,
@@ -143,6 +144,7 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
             lines.append(BASE_REF_LINE)
     if config.enabled("semver"):
         lines.append(f"SemVer: {_semver_summary(projects, project, show)}; {SEMVER_HINT}")
+    lines += _cloud_copy_lines(root, config)
     return lines
 
 
@@ -210,9 +212,18 @@ def _project_line(projects: ProjectSet, project: Project) -> str:
     return f"Project {project.name} ({project.path}): {'; '.join(parts)}."
 
 
+def _cloud_copy_lines(root: Path, config: HarnessConfig) -> list[str]:
+    """One line when the project's copy of the plugin for cloud sessions does not match cloud.export."""
+    # The copy exists once per repository, at the root project (cloud.export is root-only).
+    problem = copy_problem(root, config.cloud_export, Path(__file__).resolve().parent.parent)
+    return [problem] if problem else []
+
+
 def _project_problems(projects: ProjectSet, project: Project) -> list[str]:
     root, config, show = project.root, project.config, _shown_in(project)
     problems: list[str] = []
+    if project.name == ROOT_PROJECT:
+        problems += _cloud_copy_lines(root, config)
     if config.enabled("todo"):
         if config.todo_backend == "files":
             if not (root / config.todo_path / TODO_FILE).is_file():

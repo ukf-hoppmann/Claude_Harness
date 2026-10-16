@@ -1,6 +1,6 @@
 ---
 name: update
-description: Bring an already-initialized project's .claude-harness/config.toml up to the current Claude_Harness state: schema version, missing options, modules, and template comments.
+description: Bring an already-initialized project up to the current Claude_Harness state: config schema version, missing options, modules, template comments, and the copy of the plugin for cloud sessions.
 disable-model-invocation: true
 ---
 
@@ -58,7 +58,30 @@ the script itself.
    - For each module enabled in step 5, offer the documents `init` would set
      up for it (its steps 7 to 10), with the same rules: ask first, never
      overwrite.
-8. For the project root with registered subprojects, mention that each
+8. Cloud copy (project root only; a subproject has none): `cloud_export.py`
+   below means
+   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/cloud_export.py" <target folder>`.
+   Run it with `--status` (`missing`, `current`, or `outdated`), then:
+   - `cloud.export` is `true`, `missing` or `outdated`: run it without an
+     option and show the preview (one line per file, the diff of every
+     update). A file marked `(edited)` was changed by hand or is not from an
+     earlier copy: name it and ask whether it may be overwritten. Write with
+     `--write` after approval and say that the result must be committed, best
+     in a commit of its own so that `git revert` takes it out again.
+   - `cloud.export` is `true` and `current`: say so.
+   - `cloud.export` is `false` and the status is not `missing`: the project
+     still holds a copy. Ask whether to remove it or to switch `cloud.export`
+     on. To remove it, run `cloud_export.py --remove` and show the preview
+     (deleted files, files that are `kept` because they were edited by hand
+     and stay, and how `.claude/settings.json` is restored); write with
+     `--remove --write` after approval, name the kept files so the user can
+     decide about them, and say that the removal must be committed.
+   - `cloud.export` is `false` and the status is `missing`: only if the user
+     works with cloud sessions, offer to switch it on, once. Switching on
+     means changing `export = false` to `export = true` in `[cloud]` of the
+     config (show the change, edit after approval) and continuing with the
+     first case.
+9. For the project root with registered subprojects, mention that each
    subproject is updated separately by re-running this skill with that
    subproject chosen in step 1. One `update` call never touches more than
    one project's config.

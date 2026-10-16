@@ -61,6 +61,48 @@ class HookTest(unittest.TestCase):
         self.assertIn("ask for permission", result.stdout)
         self.assertFalse(self.todo_dir.exists())
 
+    def test_session_start_reports_a_missing_cloud_copy(self):
+        self.write_config()
+        config = self.project / ".claude-harness" / "config.toml"
+        config.write_text(config.read_text() + "[cloud]\nexport = true\n")
+        result = self.run_hook("session_start.py", {})
+        self.assertIn("Cloud copy:", result.stdout)
+        self.assertIn("/claude-harness:update", result.stdout)
+
+    def test_session_start_is_quiet_about_a_current_cloud_copy(self):
+        self.write_config()
+        config = self.project / ".claude-harness" / "config.toml"
+        config.write_text(config.read_text() + "[cloud]\nexport = true\n")
+        export = subprocess.run(
+            [sys.executable, str(SCRIPTS / "cloud_export.py"), str(self.project), "--write"], capture_output=True, text=True
+        )
+        self.assertEqual(export.returncode, 0, export.stdout)
+        self.assertNotIn("Cloud copy:", self.run_hook("session_start.py", {}).stdout)
+
+    def test_session_start_is_quiet_about_the_cloud_copy_when_the_option_is_off(self):
+        self.write_config()
+        self.assertNotIn("Cloud copy:", self.run_hook("session_start.py", {}).stdout)
+
+    def test_session_start_reports_a_cloud_copy_that_is_still_there_although_the_option_is_off(self):
+        self.write_config()
+        export = subprocess.run(
+            [sys.executable, str(SCRIPTS / "cloud_export.py"), str(self.project), "--write"], capture_output=True, text=True
+        )
+        self.assertEqual(export.returncode, 0, export.stdout)
+        self.assertIn("cloud.export is off", self.run_hook("session_start.py", {}).stdout)
+
+    def test_the_copys_own_session_start_does_not_check_the_copy(self):
+        self.write_config()
+        config = self.project / ".claude-harness" / "config.toml"
+        config.write_text(config.read_text() + "[cloud]\nexport = true\n")
+        subprocess.run([sys.executable, str(SCRIPTS / "cloud_export.py"), str(self.project), "--write"], capture_output=True, text=True)
+        copied = self.project / ".claude-harness/runtime/scripts/session_start.py"
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(self.data))
+        result = subprocess.run([sys.executable, str(copied)], input="{}", capture_output=True, text=True, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("Claude_Harness: modules", result.stdout)
+        self.assertNotIn("Cloud copy:", result.stdout)
+
     def test_session_start_reports_module_off(self):
         self.write_config(todo=False)
         result = self.run_hook("session_start.py", {})

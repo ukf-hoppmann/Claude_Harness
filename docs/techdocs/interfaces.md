@@ -16,8 +16,12 @@ Dateiformate.
   jeweils erst nach Freigabe. Ein Teilprojekt wird in `[projects]` der
   Root-Config eingetragen (fehlt sie, auf Freigabe als reine Registry
   angelegt); auf Wunsch übernimmt es Regeln des Root-Projekts unter
-  `## Inherited rules`. Fragt, ob `.claude-harness/` in die `.gitignore`
-  soll, und weist auf die Aktivierung über `.claude/settings.local.json` hin.
+  `## Inherited rules`. Fragt im Root-Projekt, ob Cloud-Sitzungen genutzt
+  werden (`cloud.export`); bei `true` zeigt er die Vorschau von
+  `cloud_export.py` (siehe unten) und legt die Kopie nach Freigabe an.
+  Fragt, ob `.claude-harness/` in die `.gitignore` soll (nicht bei
+  `cloud.export = true`: Kopie und Config müssen eingecheckt sein), und weist
+  auf die Aktivierung über `.claude/settings.local.json` hin.
 - Fehlerfall: Ist die Config im Zielordner schon vorhanden, zeigt er sie und
   ändert nichts.
 
@@ -39,7 +43,14 @@ Dateiformate.
   wird. Er zeigt den Diff und schreibt erst nach Freigabe. Danach prüft er
   bei Backend `api` den ToDo-Viewer (`backlog_api.py health`), bei `files`
   den Backlog, und bietet für neu aktivierte Module die Dokumente an, die
-  `init` anlegen würde. Ein Aufruf aktualisiert genau ein Projekt.
+  `init` anlegen würde. Im Root-Projekt gleicht er danach die Cloud-Kopie mit
+  `cloud_export.py --status` ab: Ist `cloud.export` an und die Kopie fehlt
+  oder ist veraltet, zeigt er die Vorschau und schreibt nach Freigabe (von
+  Hand geänderte Dateien nennt er und fragt, ob sie überschrieben werden
+  dürfen). Ist `cloud.export` aus, aber eine Kopie da, bietet er den Rückbau
+  an (`--remove`, ebenfalls mit Vorschau und Freigabe); ohne Kopie bietet er
+  einmal an, die Option einzuschalten. Ein Aufruf aktualisiert genau ein
+  Projekt.
 - Fehlerfall: Fehlt die Config im Zielordner, verweist er auf
   `/claude-harness:init` statt etwas anzulegen. Ist die Version neuer als
   `CONFIG_VERSION`, gibt es keinen durchgängigen Migrationspfad oder ist die
@@ -70,7 +81,7 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
-| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: bei `todo.backend = "api"` Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` mit Backend `api` eine statische Zeile mit API-URL und Skill-Hinweis (ohne Abfrage von Fälligem); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht | stdout → Kontext |
+| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: bei `todo.backend = "api"` Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` mit Backend `api` eine statische Zeile mit API-URL und Skill-Hinweis (ohne Abfrage von Fälligem); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur bei `todo.backend = "files"`: Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
@@ -247,7 +258,7 @@ Viewer-Quelle zum Backlog-Ordner und Lesen von JSON auf stdin.
 - Aufruf: `python3 plugin/scripts/config_update.py <Ordner> [--subproject]
   [--set <Schlüssel>=<Wert> ...] [--write]`; `<Ordner>` enthält
   `.claude-harness/config.toml`, `--subproject` für ein Teilprojekt (dort
-  kein `[harness]`).
+  weder `[harness]` noch `[cloud]`).
 - Wirkung: vergleicht die Config mit `plugin/templates/config.toml` und
   ergänzt fehlende Abschnitte, Einstellungen, Module und Kommentare der
   Vorlage textbasiert an der Stelle der Vorlage; vorhandene Zeilen, eigene
@@ -275,6 +286,66 @@ Viewer-Quelle zum Backlog-Ordner und Lesen von JSON auf stdin.
 - Exit-Code 0; 1 bei fehlender oder ungültiger Config, veralteter Version,
   unbekannter oder ungültiger Entscheidung und bei `--write` mit offenen
   Entscheidungen (Meldung `error: …` auf stderr); 2 bei falschem Aufruf.
+
+## Skript `cloud_export.py`
+
+- Zweck: eine Kopie des Plugins im Projekt, weil eine Cloud-Sitzung
+  (claude.ai/code) das Plugin nicht lädt, wohl aber `CLAUDE.md`,
+  `.claude/skills` und die Hooks aus `.claude/settings.json` des einzigen
+  Repositories der Sitzung. Es wird nur `plugin/` kopiert, nie Backlog, Notes
+  oder Tagesberichte des Harness-Repositories.
+- Aufruf: `python3 plugin/scripts/cloud_export.py <Projektordner> [--status |
+  --remove] [--write]`; der Ordner enthält `.claude-harness/config.toml`.
+  Ohne Option eine Vorschau, `--write` schreibt, `--status` meldet nur
+  `missing`, `current` oder `outdated`, `--remove` nimmt die Kopie wieder
+  heraus. Die Skills `init` und `update` rufen es auf; es gibt kein Netz und
+  nichts wird ohne `--write` geschrieben.
+- Die Kopie besteht aus:
+  - den Skills unter `.claude/skills/harness-<Name>/` (alle Skills des Plugins
+    außer `init`, `update` und `worktree`, samt Unterdateien); im Text ist der
+    Name der Frontmatter mit `harness-` versehen, `claude-harness:<Name>` zu
+    ausgelieferten Skills zu `harness-<Name>` umgeschrieben und
+    `${CLAUDE_PLUGIN_ROOT}` durch den projektrelativen Pfad
+    `.claude-harness/runtime` ersetzt (in der Cloud ist `CLAUDE_PROJECT_DIR`
+    in der Shell leer);
+  - den Skripten und Vorlagen unter `.claude-harness/runtime/scripts/` und
+    `.claude-harness/runtime/templates/` (ohne Caches) und einer
+    `.gitignore` im Ordner `runtime/`, die Bytecode-Caches (`__pycache__/`,
+    `*.pyc`) aus Git heraushält, die das Ausführen der Skripte in der Cloud
+    erzeugt;
+  - den Hook-Einträgen in `.claude/settings.json`, erzeugt aus
+    `plugin/hooks/hooks.json`: gleiche Ereignisse, Matcher und Zeitlimits, der
+    Befehl lautet `[ "$CLAUDE_CODE_REMOTE" != "true" ] || python3
+    "${CLAUDE_PROJECT_DIR:-.}/.claude-harness/runtime/scripts/<Skript>"`. Eigene
+    Hooks und andere Schlüssel der Datei bleiben, Einträge der Kopie erkennt
+    das Skript am Pfad `.claude-harness/runtime/scripts/`; ungültiges JSON
+    bricht ab, ohne etwas zu schreiben;
+  - dem Manifest `.claude-harness/runtime/manifest.json`: Format, Plugin-Version,
+    Hash jeder erzeugten Datei, ob die `settings.json` vom Export angelegt
+    wurde, ihr Text vor dem ersten Export und der Hash des zuletzt
+    geschriebenen Texts.
+- Ausgabe: `plugin: <Version>`, `copy: <Version oder none>`, je Änderung eine
+  Zeile `create|update|delete <Pfad>` (`(edited)`: die Datei weicht von dem ab,
+  was der letzte Export schrieb, etwa von Hand geändert), beim Rückbau Zeilen
+  `kept <Pfad> (edited)`, dann `changes: <n>`, der Unified Diff jedes
+  `update` und nach `--write` `written: <n>`; `--status` gibt stattdessen
+  `status: <Zustand>` aus.
+- Aktualisieren: Eine Datei, die der Plugin-Stand anders schreiben würde, wird
+  `update`, eine aus dem Plugin verschwundene Datei `delete`; von Hand
+  geänderte Dateien werden überschrieben, wenn der Nutzer das nach der
+  Vorschau freigibt. Die Hook-Einträge werden ersetzt, nicht verdoppelt.
+- Rückbau (`--remove`): löscht jede im Manifest genannte, unveränderte Datei
+  und die Bytecode-Caches unter `runtime/`, lässt von Hand geänderte stehen
+  (`kept`), stellt die `settings.json` wieder
+  her (den Text vor dem ersten Export Byte für Byte, solange die Datei seit
+  dem Export unberührt ist; sonst werden nur die Einträge der Kopie entfernt,
+  und eine vom Export angelegte Datei, die dann leer wäre, wird gelöscht) und
+  löscht das Manifest zuletzt, sodass ein unterbrochener Rückbau wiederholbar
+  ist. Eine Rundreise aus Export und Rückbau ergibt den Ausgangsstand.
+- Der Pfad jeder Datei wird vor dem ersten Schreiben geprüft; Pfade außerhalb
+  des Projekts werden verweigert.
+- Exit-Code 0; 1 bei Fehlern (Zeile `error: …` auf stdout, nichts
+  geschrieben); 2 bei falschem Aufruf.
 
 ## Skript `worktree.py`
 
@@ -330,6 +401,7 @@ Viewer-Quelle zum Backlog-Ordner und Lesen von JSON auf stdin.
 | Datei | Format | Definition |
 |---|---|---|
 | `.claude-harness/config.toml` | TOML | [configuration.md](configuration.md) |
+| `.claude-harness/runtime/manifest.json` | JSON, von `cloud_export.py` geschrieben | Abschnitt Skript `cloud_export.py` |
 | `TODO.md`, `archive.md`, `items/<ID>/` | Backlog-Format v1 (Markdown) | `plugin/skills/todo/format.md` |
 | `<YYYY-MM-DD>_daily.md` | Markdown nach Vorlage | `plugin/templates/daily/daily.md`, Skill `daily` |
 | Systemdoku | Markdown nach Vorlagen | `plugin/templates/techdocs/` |

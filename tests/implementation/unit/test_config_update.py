@@ -130,8 +130,22 @@ class CompleteTest(unittest.TestCase):
         self.assertEqual(tomllib.loads(listed.text)["harness"]["repo"], ["/a", "/b"])
 
     def test_subproject_gets_no_harness_table(self):
-        start = TEMPLATE.index("# Claude_Harness repository")
+        start = TEMPLATE.index("# Cloud sessions")  # a subproject has neither [cloud] nor [harness]
         project = TEMPLATE[:start]
+        result = complete(project, TEMPLATE, subproject=True)
+        self.assertEqual(result.text, project)
+        self.assertEqual(result.decisions, ())
+
+    def test_missing_cloud_table_is_completed_with_the_default_and_no_decision(self):
+        start = TEMPLATE.index("# Cloud sessions")
+        project = TEMPLATE[:start] + TEMPLATE[TEMPLATE.index("# Claude_Harness repository"):]
+        result = complete(project, TEMPLATE)
+        self.assertIs(tomllib.loads(result.text)["cloud"]["export"], False)
+        self.assertNotIn("cloud.export", decisions(result))
+        keeps_lines(self, project, result.text)
+
+    def test_subproject_gets_no_cloud_table(self):
+        project = TEMPLATE[:TEMPLATE.index("# Cloud sessions")]
         result = complete(project, TEMPLATE, subproject=True)
         self.assertEqual(result.text, project)
         self.assertEqual(result.decisions, ())
@@ -246,7 +260,7 @@ class MainTest(unittest.TestCase):
         self.assertTrue(tomllib.loads(self.config.read_text())["modules"]["daily"])
 
     def test_subproject(self):
-        start = TEMPLATE.index("# Claude_Harness repository")
+        start = TEMPLATE.index("# Cloud sessions")  # a subproject has neither [cloud] nor [harness]
         self.config.write_text(TEMPLATE[:start])
         self.assertEqual(self.run_main("--subproject")[:2], (0, "changes: 0\n"))
         self.assertIn("harness.repo", self.run_main()[1])

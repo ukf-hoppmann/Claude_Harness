@@ -1,6 +1,6 @@
 ---
 name: init
-description: Set up Claude_Harness in the current project or in a subproject by creating .claude-harness/config.toml from the template.
+description: Set up Claude_Harness in the current project or in a subproject by creating .claude-harness/config.toml from the template, and optionally the copy of the plugin for cloud sessions.
 disable-model-invocation: true
 ---
 
@@ -42,7 +42,12 @@ are relative to it.
      this machine (`harness.repo`, optional; used to hand harness wishes over
      to its backlog). Propose the output of
      `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/harness_repo.py" --suggest`. A
-     subproject config must not contain `[harness]` or `[projects]`.
+     subproject config must not contain `[harness]` or `[projects]`;
+   - only for the project root: whether Claude Code cloud sessions
+     (claude.ai/code) work on this project (`cloud.export`, default `false`).
+     Explain that a cloud session loads the repository but not the plugin, so
+     with `true` the project holds a committed copy of the plugin (step 11).
+     A subproject config must not contain `[cloud]`.
 4. Before proposing a backlog folder, search the target folder for existing
    backlog files (e.g. `TODO.md`, `todo.md`, `BACKLOG.md`) and mention what
    you find.
@@ -74,13 +79,30 @@ are relative to it.
    if so, list them under `## Inherited rules`.
 10. If `semver` is enabled, set it up as described under "Setup" in skill
     `claude-harness:semver`.
-11. Ask whether the harness configs should stay out of Git (e.g. when
+11. If `cloud.export` is `true` (project root only), create the copy for cloud
+    sessions: run
+    `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/cloud_export.py" <target folder>`
+    and show the preview (one line per file, the diff of every update; files
+    marked `(edited)` are not what an earlier copy wrote). Run it again with
+    `--write` only after approval. Then tell the user:
+    - The copy consists of the skills `harness-*` in `.claude/skills/`, the
+      scripts and templates in `.claude-harness/runtime/`, the hooks in
+      `.claude/settings.json`, and the manifest
+      `.claude-harness/runtime/manifest.json`. It must be committed, best in
+      a commit of its own, so that `git revert` takes it out again.
+    - The hooks run only in cloud sessions with one repository; locally the
+      plugin applies. `/claude-harness:update` keeps the copy current and can
+      remove it again.
+    - A cloud session cannot reach the ToDo-Viewer API: the backlog there
+      needs `todo.backend = "files"` in the config.
+12. Ask whether the harness configs should stay out of Git (e.g. when
     colleagues should not see them): propose adding `.claude-harness/` to
-    `.gitignore` and change it only after approval. The documents under
-    `docs.root` are normally committed. Mention that the plugin can be
-    enabled in `.claude/settings.local.json` instead of the committed
-    `.claude/settings.json`.
-12. Validate the result:
+    `.gitignore` and change it only after approval. Do not propose it when
+    `cloud.export` is `true`: the copy and the config must be committed for
+    cloud sessions. The documents under `docs.root` are normally committed.
+    Mention that the plugin can be enabled in `.claude/settings.local.json`
+    instead of the committed `.claude/settings.json`.
+13. Validate the result:
     `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <target folder>/<docs.root>/<todo.path>`
     and report the outcome. For a subproject, the next session start lists it
     among the projects.
