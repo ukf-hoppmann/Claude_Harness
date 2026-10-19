@@ -29,9 +29,8 @@ to [SKILL.md](SKILL.md).
 ## Note, backlog item, or alarm
 
 - **Backlog item:** work with a completion definition. Use [SKILL.md](SKILL.md).
-- **Alarm:** a reminder for you in minutes or a few hours. Set it with the
-  scheduling tools of Claude Code and say that it only fires while this
-  session runs.
+- **Alarm:** a reminder at a fixed time ("at 3 pm", "Thursday at 10"),
+  ringing in the ToDo-Viewer. Rules and helper: [alarms.md](alarms.md).
 - **Note:** a longer horizon, a reminder for later, an open question to
   someone else, an observation ("check the performance when the database
   fills up"), or an idea without an assignment.
@@ -69,12 +68,14 @@ A due note means "look at it". Afterwards the user decides: wait again
   one only when none fits, and keep the tree shallow.
 - The viewer's default review period applies. Set `review_at` only when the
   user asks for another date. Never change the settings.
-- Triggers use concrete times or events only (a time, a status of a linked
-  item, a topic date). Resolve relative statements ("tomorrow morning",
-  "Thursday at 10") into a fixed time with the machine's local time zone as
-  ISO 8601 with offset (`2026-10-09T09:00:00+02:00`), and name the result
-  with weekday, date, and time in your answer. When the wording is ambiguous
-  ("early" can mean 6 or 9 o'clock), ask before creating.
+- Triggers are events only: a status of a linked item or the date of the
+  note's topic. A reminder at a fixed time is an alarm, bound to the note
+  ([alarms.md](alarms.md)). Resolve relative dates for `review_at` or a topic
+  date ("tomorrow morning", "Thursday at 10") into a fixed time with the
+  machine's local time zone as ISO 8601 with offset
+  (`2026-10-09T09:00:00+02:00`), and name the result with weekday, date, and
+  time in your answer. When the wording is ambiguous ("early" can mean 6 or 9
+  o'clock), ask before creating.
 - Links point to items, topics, or other notes, also in other registered
   projects. A link with role `trigger` exists only together with its event
   trigger.

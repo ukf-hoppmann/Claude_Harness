@@ -1,6 +1,6 @@
 ---
 name: todo
-description: Rules for the project backlog and for notes and topics (via the ToDo-Viewer API, or TODO.md, archive.md, per-item notes and specs in files mode). Use when reading, discussing, creating, updating, or archiving backlog items — epics, stories, tasks, their status, notes, or specs — and when the user asks to remember, remind, or note something for later or asks about due notes.
+description: Rules for the project backlog and for notes, topics, and alarms (via the ToDo-Viewer API, or TODO.md, archive.md, per-item notes and specs in files mode). Use when reading, discussing, creating, updating, or archiving backlog items — epics, stories, tasks, their status, notes, or specs — and when the user asks to remember, remind, or note something for later or asks about due notes.
 ---
 
 # Project backlog
@@ -112,6 +112,8 @@ with `[todo].backend = "api"`; read it when asked to remember, remind, or look
 at due notes). Turning a note into an item and an item back into a note runs
 through it. A backlog item's notes entries
 (`<ID>_notes.md`) are not those notes; when unclear which is meant, ask.
+A reminder at a fixed time is an alarm in the viewer ([alarms.md](alarms.md),
+only with `api`; read it when asked to remind at a time).
 
 ## Committing backlog changes
 

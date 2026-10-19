@@ -229,6 +229,26 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 - Exit-Code: wie bei `backlog_api.py`; Exit 2 auch bei abgeschaltetem Modul
   `todo` oder Backend `files`.
 
+## Skript `alarms_api.py`
+
+- Zweck: Wecker über die HTTP-API des ToDo-Viewers pflegen (Teil des Moduls
+  `todo`, nur mit Backend `api`). Ein Wecker meldet sich im Viewer zu seinem
+  Zeitpunkt; erledigte und erloschene räumt der Viewer nach 24 Stunden selbst
+  auf. Maßgeblich für die API ist die Doku des ToDo-Viewers
+  (`docs/techdocs/neubau-server.md`, Plugin `alarms`, Routen unter
+  `/alarms/…`).
+- Aufruf: `python3 plugin/scripts/alarms_api.py [--project <Name> | --source
+  <Name>] <befehl> [argumente]`; Projekt, `--source` und Exit-Codes wie bei
+  `backlog_api.py`.
+- Befehle: `list [--due] [--all-projects]`, `show <ALARM>`, `create` (stdin
+  `{at, text?, targets?}`), `update <ALARM> <version>` (stdin `{at?, text?,
+  targets?}`, `targets: []` löst alle), `snooze <ALARM> <version> [--until
+  T]`, `finish <ALARM> <version>`, `reopen <ALARM> <version>`, `delete
+  <ALARM> <version>` (Papierkorb über `workspace`), `restore <ALARM>`.
+- `targets`: Labels des eigenen Projekts gehen unverändert an den Server, der
+  sie auflöst; `Projekt:LABEL` eines anderen Viewer-Projekts löst das Skript
+  in die `uid` auf.
+
 ## Skript `viewer_api.py`
 
 Gemeinsamer Client von `backlog_api.py`, `notes_api.py` und `alarms_api.py`,
