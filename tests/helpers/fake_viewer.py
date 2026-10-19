@@ -16,7 +16,6 @@ class FakeViewer:
 
     def __init__(self):
         self.requests: list[dict] = []
-        self.sources: list[dict] = []
         self.projects: list[dict] = []
         # (project uid, label) -> element as resolve_label answers it.
         self.labels: dict[tuple[str, str], dict] = {}
@@ -61,12 +60,6 @@ class FakeViewer:
                                              "version": 1, "deleted": deleted}
 
     def answer(self, method, path, body):
-        if (method, path) == ("GET", f"{API}/sources"):
-            return 200, self.sources
-        if (method, path) == ("POST", f"{API}/sources"):
-            source = {"id": "new1", "project": body.get("project") or "p", "path": body["path"]}
-            self.sources.append(source)
-            return 200, source
         if (method, path) == ("GET", PROJECTS):
             return 200, self.projects
         if (method, path) == ("POST", PROJECTS):

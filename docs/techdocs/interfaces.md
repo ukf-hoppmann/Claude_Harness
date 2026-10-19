@@ -190,39 +190,58 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 - Zweck: Notes und Topics über die HTTP-API des ToDo-Viewers pflegen
   (Teil des Moduls `todo`). Die Notes liegen nur in der Datenbank des Viewers; das
   Skript hat keinen Dateizugriff darauf. Maßgeblich für die API selbst ist
-  `docs/techdocs/interfaces.md` im ToDo-Viewer (Abschnitt „HTTP-API v2:
-  Topics, Notes und Links“); das Notes-Modell beschreibt dessen Doku.
+  die Doku des ToDo-Viewers (`docs/techdocs/neubau-server.md`, Plugin
+  `notes`, Routen unter `/notes/…`).
 - Aufruf: `python3 plugin/scripts/notes_api.py [--project <Name>] <befehl>
   [argumente]` wie bei `backlog_api.py`: Projekt der Session, ohne
-  `--project` das Root-Projekt. URL (`todo.api_url`) und Projekt kommen aus der
-  Config; die Notes werden unter dem Namen angesprochen, unter dem der Viewer
-  den Backlog-Ordner (`todo.path`) kennt. Das Modul `todo` muss an sein und das Backend `api` haben (Notes gibt es nur im Viewer). `--source <Name>` wie bei `backlog_api.py` spricht die
-  Notes eines anderen Projekts des Viewers an (Freigabe: Skill `todo`).
+  `--project` das Root-Projekt, gefunden über den Spiegel-Ordner des
+  Backlog-Ordners (Exit 4, wenn nicht registriert; `register` gibt es nur in
+  `backlog_api.py`). Das Modul `todo` muss an sein und das Backend `api` haben
+  (Notes gibt es nur im Viewer). `--source <Name>` wie bei `backlog_api.py`
+  spricht die Notes eines anderen Projekts des Viewers an (Freigabe: Skill
+  `todo`).
+- Labels: Notes, Topics und Ziele von Ereignis-Auslösern im eigenen Projekt
+  löst der Server selbst auf. Für Verknüpfungen (`POST /workspace/links`),
+  Papierkorb und Auslöser-Ziele in anderen Projekten (`target_project`) löst
+  das Skript die Labels in `uid`s auf. Die alten Namen `topic_due` (Art) und
+  `target_status` (Feld) eines Auslösers werden als `topic_date` und `status`
+  weitergegeben; Zeit-Auslöser lehnt das Skript ab (Exit 2, Hinweis auf
+  `alarms_api.py`).
 - Befehle (vollständig: Aufruf ohne Argumente und `plugin/skills/todo/notes-api.md`):
-  Lesen: `health`, `sources` (Namen aller Projekte des Viewers), `index` (schlanker Index mit Filtern `--topic`, `--status`,
-  `--due`, `--archived`, `--linked-item`, `--all-projects`), `due`, `show`,
-  `topics`, `topic`, `links`, `backlinks`, `notes-of-item`, `notes-of-topic`,
-  `docs`, `doc`, `notices`, `trash`, `settings`. Schreiben (JSON auf stdin,
-  Notes mit `version`): `create`, `update`, `keep`, `snooze`, `finish`
-  (`done` oder `dropped`), `move`, `delete`, `restore`, `trigger-add`,
-  `trigger-remove`, `link-add`, `link-remove`, `put-doc`, `note-entry`,
-  `decide`, `promote`, `demote`, `topic-create`, `topic-update`,
-  `topic-move`, `topic-delete`, `topic-restore`.
-- Bewusst nicht vorhanden: endgültiges Löschen (auch die API bietet es für
-  Notes nicht an) und das Ändern der Einstellungen des Viewers
-  (`settings` liest nur).
+  Lesen: `health`, `sources`, `index` (kompakte Tabellen aus
+  `GET /notes/index/lines`, Filter `--status`, `--due`, `--archived`,
+  `--query`, `--all-projects`), `due` (alle Projekte), `show`, `topics`,
+  `topic` (Unter-Topics und Notes), `links`, `backlinks` (ausgehende bzw.
+  eingehende Verknüpfungen aus `GET /workspace/elements/{uid}/links`),
+  `notes-of-item`, `docs`, `doc`, `notices` (einer Note, mit `--side item`
+  eines Items), `trash` (Notes und Topics des Projekts), `settings`.
+  Schreiben (JSON auf stdin, `<version>` als Zahl): `create`, `update`,
+  `keep`, `snooze`, `finish` (`done` oder `dropped`), `move`, `delete`
+  (Papierkorb über `workspace`), `restore` (aus dem Papierkorb über
+  `workspace`, aus dem Archiv über `notes`), `trigger-add`, `trigger-remove`,
+  `link-add`, `link-remove`, `put-doc`, `note-entry`, `decide`, `promote`
+  (IDs in `parent` und `dependencies` wie bei `backlog_api.py`), `demote`,
+  `topic-create`, `topic-update`, `topic-move`, `topic-archive`,
+  `topic-reactivate`, `topic-delete` (mit der Wahl des Servers für den
+  Inhalt), `topic-restore`.
+- Bewusst nicht vorhanden: endgültiges Löschen und das Ändern der
+  Einstellungen des Viewers (`settings` liest nur).
 - Exit-Code: wie bei `backlog_api.py`; Exit 2 auch bei abgeschaltetem Modul
   `todo` oder Backend `files`.
 
 ## Skript `viewer_api.py`
 
-Gemeinsamer Client von `backlog_api.py` und `notes_api.py`, kein eigener
-Befehl: HTTP-Aufruf mit Zeitlimit, Fehlertext aus der Fehlerantwort des
-Servers (`code`, `message`, `details`, Hinweis bei `version_conflict`),
-Exit-Codes (1 Fehlerantwort, 2 falscher Aufruf, 3 Server nicht erreichbar),
-Auswahl des Projekts aus der Config (`--project`) oder einer Quelle nach
-exaktem Namen (`--source`, `sources`), Auffinden (und bei Bedarf Anlegen) der
-Viewer-Quelle zum Backlog-Ordner und Lesen von JSON auf stdin.
+Gemeinsamer Client von `backlog_api.py`, `notes_api.py` und `alarms_api.py`,
+kein eigener Befehl: HTTP-Aufruf mit Zeitlimit, Fehlertext aus der
+Fehlerantwort des Servers (`code`, `message`, `details`, Hinweis bei
+`version_conflict`), Exit-Codes (1 Fehlerantwort, 2 falscher Aufruf, 3 Server
+nicht erreichbar, 4 Backlog-Ordner nicht als Viewer-Projekt registriert),
+Auswahl des Projekts aus der Config (`--project`, Viewer-Projekt über den
+Spiegel-Ordner im Haupt-Checkout) oder eines Viewer-Projekts nach exaktem
+Namen (`--source`, `sources`), Registrieren nur auf ausdrücklichen Befehl,
+Auflösen von Labels in `uid`s, Umsetzen der Item-Felder (`parent`,
+`dependencies`, `required_for_parent`), Prüfen der Versionsnummer und Lesen von
+JSON auf stdin.
 
 ## Skript `daily.py`
 

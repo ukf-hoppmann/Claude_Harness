@@ -170,6 +170,23 @@ def print_projects(api: Api) -> None:
         print(f"{record.get('name')} | {record.get('mirror_folder') or '-'}")
 
 
+NO_PARENT = ("", "-", None)
+
+
+def item_fields(target: Target, fields: dict[str, Any]) -> dict[str, Any]:
+    """Backlog item fields as the server takes them: parent and dependencies by uid, required_for_parent as bool."""
+    out = dict(fields)
+    if "parent" in out:
+        out["parent"] = None if out["parent"] in NO_PARENT else target.resolve(out["parent"])
+    if "dependencies" in out:
+        out["dependencies"] = [target.resolve(label) for label in out["dependencies"] or []]
+    flag = out.get("required_for_parent")
+    if isinstance(flag, str):
+        # The backlog format writes Yes/No; the server wants true/false.
+        out["required_for_parent"] = {"yes": True, "no": False}.get(flag.lower(), flag)
+    return out
+
+
 def version_arg(value: str) -> int:
     try:
         return int(value)
@@ -177,30 +194,10 @@ def version_arg(value: str) -> int:
         raise ApiError(f"version must be the number from the last answer, got {value!r}", EXIT_USAGE) from None
 
 
-def source_record(api: Api, folder: Path, project: Project) -> dict[str, Any]:
-    """The ToDo-Viewer source of the project's backlog folder; registers it if missing."""
-    for source in api.call("GET", "/sources"):
-        # A database source has no path of its own; its Markdown folder is sync_path or markdown_path.
-        paths = (source.get("path"), source.get("markdown_path"), source.get("sync_path"))
-        if any(p and Path(p).resolve() == folder for p in paths):
-            return source
-    body = {"path": str(folder)}
-    if project.name != ROOT_PROJECT:
-        # Without a name the server uses the Git repository's, which subprojects share with the root.
-        body["project"] = project.name
-    source = api.call("POST", "/sources", body)
-    print(f"registered backlog {folder} as ToDo-Viewer source {source['id']}", file=sys.stderr)
-    return source
-
-
-def source_id(api: Api, folder: Path, project: Project) -> str:
-    return source_record(api, folder, project)["id"]
-
-
 def split_target(args: list[str]) -> tuple[str, str | None, list[str]]:
     """(project, source, remaining arguments) from the leading --project / --source options.
 
-    --source names a ToDo-Viewer source (see the sources command) outside the session's own backlogs.
+    --source names a viewer project (see the sources command) outside the session's own backlogs.
     """
     project_name, source_name = ROOT_PROJECT, None
     rest = list(args)
@@ -213,29 +210,6 @@ def split_target(args: list[str]) -> tuple[str, str | None, list[str]]:
     if source_name is not None and project_name != ROOT_PROJECT:
         raise ApiError("--source and --project exclude each other", EXIT_USAGE)
     return project_name, source_name, rest
-
-
-def _source_folder_of(source: dict[str, Any]) -> str | None:
-    return source.get("path") or source.get("markdown_path") or source.get("sync_path") or None
-
-
-def named_source(api: Api, name: str) -> dict[str, Any]:
-    """The viewer's source whose project name is exactly `name`; never registers a source."""
-    sources = api.call("GET", "/sources")
-    found = [s for s in sources if s.get("project") == name]
-    if not found:
-        known = ", ".join(str(s.get("project")) for s in sources)
-        raise ApiError(f"unknown source {name!r} (known: {known})", EXIT_USAGE)
-    if len(found) > 1:
-        raise ApiError(f"source name {name!r} is ambiguous ({len(found)} sources)", EXIT_USAGE)
-    return found[0]
-
-
-def print_sources(api: Api) -> None:
-    """One line per source the viewer knows: its project name and its Markdown folder, if any."""
-    print("Project | Folder")
-    for source in api.call("GET", "/sources"):
-        print(f"{source.get('project')} | {_source_folder_of(source) or '-'}")
 
 
 def stdin_json(required: bool = True) -> dict[str, Any]:

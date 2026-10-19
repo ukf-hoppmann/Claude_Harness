@@ -10,8 +10,8 @@ from typing import Any
 from urllib.parse import quote
 
 from viewer_api import (
-    EXIT_USAGE, Api, ApiError, Target, find_project, print_json, print_projects, register_project, split_target,
-    stdin_json, target_for, version_arg,
+    EXIT_USAGE, NO_PARENT, Api, ApiError, Target, find_project, item_fields, print_json, print_projects,
+    register_project, split_target, stdin_json, target_for, version_arg,
 )
 
 USAGE = """usage: backlog_api.py [--project <name> | --source <name>] <command> [arguments]
@@ -37,28 +37,10 @@ USAGE = """usage: backlog_api.py [--project <name> | --source <name>] <command> 
   restore <ID>                            restore an item (with the descendants deleted with it) from the trash"""
 
 BACKLOG_KINDS = ("epic", "story", "task")
-NO_PARENT = ("", "-", None)
 
 
 def _item(identifier: str, suffix: str = "") -> str:
     return f"/backlog/items/{quote(identifier)}{suffix}"
-
-
-def _flag(value: Any) -> Any:
-    """required_for_parent as the server wants it: the backlog format's Yes/No become true/false."""
-    return {"yes": True, "no": False}.get(value.lower(), value) if isinstance(value, str) else value
-
-
-def item_fields(target: Target, fields: dict[str, Any]) -> dict[str, Any]:
-    """Fields as the server takes them: parent and dependencies by uid instead of label."""
-    out = dict(fields)
-    if "parent" in out:
-        out["parent"] = None if out["parent"] in NO_PARENT else target.resolve(out["parent"])
-    if "dependencies" in out:
-        out["dependencies"] = [target.resolve(label) for label in out["dependencies"] or []]
-    if "required_for_parent" in out:
-        out["required_for_parent"] = _flag(out["required_for_parent"])
-    return out
 
 
 def _options(command: str, args: list[str]) -> tuple[list[str], dict[str, str | bool]]:

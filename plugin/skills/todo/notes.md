@@ -20,7 +20,8 @@ to [SKILL.md](SKILL.md).
    Notes of another project (`--source <name>`) follow the approval rule of
    the rules of [SKILL.md](SKILL.md) for other projects' backlogs, including `sources`.
 4. If the helper exits with code 3 (server not reachable), tell the user and
-   ask whether to start the server or stop.
+   ask whether to start the server or stop. Exit code 4 (project not
+   registered in the viewer) is handled as in [SKILL.md](SKILL.md).
 5. Notes are private as long as they live only in the database. Do not treat
    them as team knowledge and do not copy their content into checked-in files
    (backlog, daily reports, documentation, commit messages).
@@ -86,7 +87,8 @@ described; `keep`; `snooze`; `finish` as `done`; `restore`; decide notices
 with `keep`, `detach`, or `acknowledge`.
 
 Ask first: `finish` as `dropped`; deleting a note or topic (no question when
-the request clearly asks for it; a topic with content also needs `--cascade`);
+the request clearly asks for it; for a topic with content the user also
+chooses what happens to its notes, see `topic-delete` in [notes-api.md](notes-api.md));
 notice decisions `drop` and `promote`; `promote` and `demote`; `move` to
 another project.
 
@@ -96,12 +98,12 @@ look for another), or change the viewer's settings.
 ## Sprint reminders
 
 "Remember this for the next sprint" becomes a note in the topic that carries
-the sprint date, with a trigger of kind `topic_due`. If no such topic exists,
+the sprint date, with a trigger of kind `topic_date`. If no such topic exists,
 ask for its name and date.
 
 When the date has passed, the notes fire and the topic has no new date. Ask
 the user for the next date, then set it (`topic-update`) and `snooze` each
-affected note with a new `topic_due` trigger.
+affected note with a new `topic_date` trigger.
 
 ## Converting
 
@@ -117,6 +119,6 @@ affected note with a new `topic_due` trigger.
 
 When a linked item is completed, rejected, deleted, or retyped, the viewer
 leaves a notice on the note until someone decides. When the user asks about a
-note or you work on it, read its open notices (`notices <NOTE> --open`) and
+note or you work on it, read its open notices (`notices <NOTE>`) and
 offer the options keep, detach, drop, or promote. The reverse also exists: an
 item gets a notice when a note that points to it is dropped or promoted.
