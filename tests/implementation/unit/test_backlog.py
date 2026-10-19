@@ -46,33 +46,105 @@ class BacklogTest(unittest.TestCase):
     def test_invalid_priority(self):
         self.assertError(self.check([item("STORY-001", Priority="Wichtig")]), "Priority must be one of")
 
-    def test_notes_require_summary_and_existing_file(self):
-        report = self.check([item("STORY-001", Notes="`items/STORY-001/STORY-001_notes.md`")])
-        self.assertError(report, "file does not exist")
-        self.assertError(report, "requires Summary")
-
-    def test_notes_with_summary_and_file(self):
-        notes = self.dir / "items" / "STORY-001" / "STORY-001_notes.md"
-        notes.parent.mkdir(parents=True)
-        notes.write_text("# Notes\n")
+    def test_notes_and_spec_fields_are_unknown(self):
         report = self.check([item(
-            "STORY-001",
-            Summary="Kurz.",
-            Notes="`items/STORY-001/STORY-001_notes.md`",
+            "STORY-001", Summary="Kurz.",
+            Notes="`items/STORY-001/STORY-001_notes.md`", Spec="`items/STORY-001/STORY-001_spec.md`",
         )])
-        self.assertEqual(report.errors, [])
+        self.assertError(report, "STORY-001 has unknown fields: Notes, Spec")
 
-    def test_notes_path_must_stay_inside(self):
-        report = self.check([item("STORY-001", Summary="x", Notes="`../secret.md`")])
-        self.assertError(report, "must stay inside")
+    def test_format_line_is_required(self):
+        self.dir.mkdir(parents=True)
+        (self.dir / "TODO.md").write_text("# Backlog\n\n## Work items\n\nNo entries.\n")
+        self.assertError(validate_backlog(self.dir), "TODO.md has no format line")
+
+    def test_format_version_1_is_rejected(self):
+        self.dir.mkdir(parents=True)
+        (self.dir / "TODO.md").write_text(
+            "# Backlog\n\nFormat: Claude_Harness backlog format version 1. The rules are\n"
+            "defined elsewhere.\n\n## Work items\n\nNo entries.\n"
+        )
+        self.assertError(validate_backlog(self.dir), "TODO.md uses an unsupported backlog format")
+
+    def test_format_line_may_span_lines(self):
+        self.dir.mkdir(parents=True)
+        (self.dir / "TODO.md").write_text(
+            "# Backlog\n\nFormat: Claude_Harness backlog\nformat version 2. The rules are elsewhere.\n"
+            "\n## Work items\n\nNo entries.\n"
+        )
+        self.assertEqual(validate_backlog(self.dir).errors, [])
+
+    def test_archive_needs_format_version_2(self):
+        write_backlog(self.dir, [])
+        (self.dir / "archive.md").write_text("# Archive\n\n## Work items\n\nNo entries.\n")
+        self.assertError(validate_backlog(self.dir), "archive.md has no format line")
+
+    def test_uid_is_required(self):
+        self.assertError(self.check([item("STORY-001", Uid=None)]), "STORY-001 is missing required field: Uid")
+
+    def test_uid_must_be_a_uuid(self):
+        self.assertError(self.check([item("STORY-001", Uid="1234.")]), "STORY-001 Uid must be a UUID")
+
+    def test_uid_is_unique_across_files(self):
+        uid = "3f0c2a9e-6b1d-4c57-9a8e-2d4b7c1e5f60."
+        report = self.check(
+            [item("STORY-001", Uid=uid)],
+            [item("STORY-002", Status="Completed", Resolution="Confirmed.", Uid=uid)],
+        )
+        self.assertError(report, "STORY-002 uses the Uid of STORY-001")
+
+    def test_uid_is_stored(self):
+        report = self.check([item("STORY-001", Uid="3F0C2A9E-6B1D-4C57-9A8E-2D4B7C1E5F60.")])
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.items[0].uid, "3f0c2a9e-6b1d-4c57-9a8e-2d4b7c1e5f60")
+
+    def test_placeholder_without_uid_and_created(self):
+        report = self.check([
+            item("EPIC-001", Type="Epic"),
+            item("NEW-login-dialog", Type="Story", Parent="`EPIC-001`", Required_for_parent="Yes",
+                 Created=None),
+            item("NEW-2fa", Type="Task", Parent="`NEW-login-dialog`", Required_for_parent="No",
+                 Dependencies="`STORY-001`"),
+            item("STORY-001", Dependencies="None"),
+            item("STORY-002", Dependencies="`NEW-2fa`"),
+        ])
+        self.assertEqual(report.errors, [])
+        placeholder = next(i for i in report.items if i.identifier == "NEW-login-dialog")
+        self.assertIsNone(placeholder.uid)
+        self.assertIsNone(placeholder.created)
+
+    def test_placeholder_must_not_have_uid(self):
+        report = self.check([item("NEW-login", Uid="3f0c2a9e-6b1d-4c57-9a8e-2d4b7c1e5f60.")])
+        self.assertError(report, "NEW-login is a new entry and must not contain Uid")
+
+    def test_placeholder_name_rules(self):
+        report = self.check([item("NEW-Login_Dialog")])
+        self.assertError(report, "invalid placeholder: NEW-Login_Dialog")
+
+    def test_placeholder_is_unique(self):
+        self.assertError(self.check([item("NEW-login"), item("NEW-login")]), "NEW-login is defined twice")
+
+    def test_reference_to_missing_placeholder(self):
+        self.assertError(
+            self.check([item("STORY-001", Dependencies="`NEW-gibts-nicht`")]),
+            "references missing dependency: NEW-gibts-nicht",
+        )
+
+    def test_show_placeholder(self):
+        from backlog import main
+        write_backlog(self.dir, [item("NEW-login")])
+        self.assertEqual(main(["backlog.py", str(self.dir), "--show", "NEW-login"]), 0)
 
     def test_duplicate_id_across_files(self):
         closed = item("STORY-001", Status="Completed", Resolution="Confirmed.")
         report = self.check([item("STORY-001")], [closed])
         self.assertError(report, "defined twice")
 
-    def test_active_item_in_archive(self):
-        self.assertError(self.check([], [item("STORY-001")]), "must be Completed or Rejected")
+    def test_active_item_in_archive_is_notice(self):
+        # Format 2: the file an entry is in carries no information; the ToDo-Viewer moves it.
+        report = self.check([], [item("STORY-001")])
+        self.assertTrue(report.ok)
+        self.assertTrue(any("STORY-001 is Open; move it to TODO.md" in n for n in report.notices))
 
     def test_closed_item_in_todo_is_notice(self):
         report = self.check([item("STORY-001", Status="Completed", Resolution="Confirmed.")])
@@ -225,11 +297,10 @@ class BacklogTest(unittest.TestCase):
         self.assertEqual(report.errors, [])
         self.assertEqual(report.items[0].deleted.isoformat(), "2026-09-28")
 
-    def test_deleted_item_belongs_in_archive(self):
-        self.assertError(
-            self.check([item("STORY-001", Deleted="2026-09-28.")], []),
-            "STORY-001 is Deleted and belongs in archive.md",
-        )
+    def test_deleted_item_in_todo_is_notice(self):
+        report = self.check([item("STORY-001", Deleted="2026-09-28.")], [])
+        self.assertTrue(report.ok)
+        self.assertTrue(any("STORY-001 is Deleted; move it to archive.md" in n for n in report.notices))
 
     def test_deleted_requires_date(self):
         self.assertError(
@@ -282,11 +353,8 @@ class BacklogTest(unittest.TestCase):
         write_backlog(self.dir, [item("STORY-001", "Eins"), item("STORY-002", "Zwei")])
         output, missing = show_items(self.dir, ["STORY-001"])
         self.assertEqual(missing, [])
-        self.assertEqual(output.splitlines()[:3], [
-            "Source: TODO.md",
-            "- `STORY-001` **Eins**",
-            "  - Type: Story",
-        ])
+        self.assertEqual(output.splitlines()[:2], ["Source: TODO.md", "- `STORY-001` **Eins**"])
+        self.assertIn("  - Type: Story", output.splitlines())
         self.assertNotIn("STORY-002", output)
 
     def test_show_archived_item_with_continuation_lines(self):

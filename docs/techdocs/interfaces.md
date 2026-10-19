@@ -110,6 +110,14 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 ## Skript `backlog.py`
 
 - Aufruf: `python3 plugin/scripts/backlog.py <backlog-ordner> [--index | --show <ID> [<ID> ...]]`
+- Prüft das Backlog-Format Version 2 (wie der Markdown-Spiegel des
+  ToDo-Viewers): `TODO.md` und `archive.md` brauchen vor `## Work items`
+  einen Absatz `Format: … backlog format version 2 …`; fehlt er oder nennt er
+  eine andere Version, ist das ein Fehler. Jeder Eintrag braucht eine `Uid`
+  (UUID, eindeutig); neue Einträge mit Platzhalter `NEW-<kurzname>` haben
+  keine `Uid` und dürfen `Created` weglassen. `Notes` und `Spec` sind
+  unbekannte Felder. Ein Eintrag in der falschen Datei ist ein Hinweis, kein
+  Fehler.
 - Ohne Option: listet Fehler und Hinweise und eine Zusammenfassung.
 - Mit `--index`: eine Zeile pro Eintrag über `TODO.md` und `archive.md`
   (`ID | Type | Status | Area | Title | Parent`); Einträge im Papierkorb tragen

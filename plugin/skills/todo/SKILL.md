@@ -39,8 +39,8 @@ description: Rules for the project backlog and for notes, topics, and alarms (vi
 Read only what the task needs:
 
 - By default: the overview — API: `index`; files: `TODO.md`.
-- Discussing or deciding something about an item: also its `Notes`.
-- Planning its implementation or asked about its spec: also its `Spec`.
+- Discussing or deciding something about an item: also its notes.
+- Planning its implementation or asked about its spec: also its spec.
   The spec is the input for a plan; do not write step-by-step plans into it.
 - Overview across `TODO.md` and `archive.md` (e.g. to place new work or to
   look for earlier work): API: `index`; files: run
@@ -53,7 +53,7 @@ Read only what the task needs:
 
 - Refer to items as `Type ID`, e.g. `Story STORY-017`.
 - You may change without asking: notes and specs (add and revise whatever is
-  relevant), `Summary`/`Notes`/`Spec` fields, status up to
+  relevant), the `Summary` field, status up to
   `Awaiting confirmation` and back, wording fixes, archiving closed items.
 - Moving an item to the trash (deleting) needs no extra confirmation when the
   user's request clearly asks for it; otherwise propose it first. Only the
@@ -67,9 +67,9 @@ Read only what the task needs:
 - Only the project owner confirms `Completed` or `Rejected`. Record it in
   `Resolution`; the item then moves unchanged to `archive.md` (API: the
   server moves it).
-- When an item gets notes, it needs a plain-language `Summary` (required with
-  `Notes`). Files: create `items/<ID>/<ID>_notes.md` and add the `Notes`
-  path; API: the first notes entry does both.
+- When an item gets notes, it needs a plain-language `Summary`. Files:
+  create `items/<ID>/<ID>_notes.md` (no field points to it); API: the first
+  notes entry creates it.
 - Record decisions in the item's notes as they happen, dated, under
   `Discussed` / `Decided` / `Open`.
 - Before rejecting a required child, ask in the same question whether it
