@@ -61,3 +61,13 @@
 ### Decided
 
 - Der Health-Check im Session-Start entfällt: Hooks dürfen das Netzwerk nicht nutzen (Architekturregel 2); die Erreichbarkeit meldet weiter Exit 3 des Helfers.
+
+## 2026-10-19 — Umgesetzt und geprüft (v0.11.0)
+
+### Decided
+
+- Gemerged als 40b1e25, Release v0.11.0. Alle Abschlusskriterien erfüllt: Befehle von backlog_api.py und notes_api.py laufen gegen den neuen Viewer, IDs in parent und dependencies, Exit 4 statt stillem Registrieren, register nur auf Befehl, Wecker über alarms_api.py, Config-Standard ohne /api/v2, Skills und Techdocs aktualisiert, Integrationstests grün, Lese-, Schreib- und Notizfluss live geprüft.
+
+### Open
+
+- Bestätigung durch den Projektverantwortlichen.
