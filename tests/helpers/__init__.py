@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+import uuid
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -8,11 +9,14 @@ SCRIPTS = REPO_ROOT / "plugin" / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-HEADER = "# Backlog\n\n## Work items\n\n"
+HEADER = "# Backlog\n\nFormat: Claude_Harness backlog format version 2.\n\n## Work items\n\n"
 
 
 def item(identifier: str, title: str = "Title", **fields: str) -> str:
+    # Placeholders (NEW-...) are new entries without a Uid; every other entry gets a stable one.
+    uid = None if identifier.startswith("NEW-") else f"{uuid.uuid5(uuid.NAMESPACE_URL, identifier)}."
     defaults = {
+        "Uid": uid,
         "Type": "Story",
         "Parent": "None",
         "Status": "Open",

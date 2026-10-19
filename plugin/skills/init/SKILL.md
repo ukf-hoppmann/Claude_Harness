@@ -63,7 +63,7 @@ are relative to it.
    separately whether to create `TODO.md` and `archive.md` from
    `${CLAUDE_PLUGIN_ROOT}/templates/todo/`. Translate the prose into
    `docs.language`, but keep the `## Work items` heading, the format line
-   (`Claude_Harness backlog format version 1`), `No entries.`, and all field
+   (`Claude_Harness backlog format version 2`), `No entries.`, and all field
    names in English; the backlog check and the ToDo-Viewer need them. Never convert or overwrite an
    existing backlog without explicit approval.
 8. If `techdocs` is enabled, look for existing documentation (README,

@@ -1,4 +1,4 @@
-# Claude_Harness backlog format, version 1
+# Claude_Harness backlog format, version 2
 
 The backlog lives in the folder configured as `[todo].path` below `[docs].root` in
 `.claude-harness/config.toml` (default `docs/todo`). With `[todo].backend =
@@ -14,9 +14,22 @@ them and the server may keep the backlog in a database instead.
  └─ items/<ID>/      optional notes and spec per item
 ```
 
+Both files contain a paragraph before `## Work items` that starts with
+`Format:` and contains `backlog format version 2`, e.g.
+
+```
+Format: Claude_Harness backlog format version 2. The rules are defined in the
+`todo` skill of the claude-harness plugin (`skills/todo/format.md`).
+```
+
+Version 2 is the only valid format; it matches the ToDo-Viewer's Markdown
+mirror. A backlog with another or no format line (e.g. version 1, which had
+`Notes`/`Spec` fields and no `Uid`) is outdated and fails the check: ask the
+owner how to convert it to version 2 (e.g. through the ToDo-Viewer) before
+working with it.
+
 Both files contain exactly one `## Work items` section. An empty section
-contains the line `No entries.` (always in English, like the format line near
-the top of `TODO.md`). `TODO.md` and `archive.md` form one backlog:
+contains the line `No entries.` (always in English, like the format line). `TODO.md` and `archive.md` form one backlog:
 identifiers are unique across both, and references may cross between them.
 Position and ordering do not determine status or hierarchy.
 
@@ -31,6 +44,7 @@ working language.
 
 ```markdown
 - `STORY-001` **Concise title**
+  - Uid: 3f0c2a9e-6b1d-4c57-9a8e-2d4b7c1e5f60.
   - Type: Story.
   - Parent: `EPIC-001`.
   - Required for parent: Yes.
@@ -42,14 +56,25 @@ working language.
   - Goal: Describe the result. Continuation lines are indented
     by four spaces.
   - Completion criteria: State how the result is verified.
+  - Summary: Short summary for the project owner.
 ```
+
+Fields, in this order: `Uid`, `Type`, `Parent`, `Required for parent`,
+`Status`, `Created`, `Area`, `Priority`, `Dependencies`, `Goal`,
+`Completion criteria`, `Summary`, `Resolution`, `Deleted`. Other fields are
+errors. The order is how the ToDo-Viewer writes entries; any order is read.
+
+`Uid` is the item's permanent internal identity, assigned by the ToDo-Viewer.
+Never create, change, or copy a `Uid`, and never invent a label; new entries
+use a [placeholder](#new-entries) instead.
 
 Identifiers use the pattern `PREFIX-NNN` (`EPIC-001`, `STORY-001`,
 `TASK-001`), counted per type. They never change — not when an item changes
 status, priority, parent, or scope. The one exception is a type change through
 the API (`retype`): the prefix is the type, so the item gets a new ID and all
-references follow; in files mode an item keeps its ID. References are written in backticks;
-several references are comma-separated; no reference is `None`.
+references follow; in files mode an item keeps its ID. References are written in backticks,
+always with the label (never the `Uid`); several references are
+comma-separated; no reference is `None`.
 
 ## Status model
 
@@ -83,8 +108,9 @@ contain cycles.
 
 ## Required fields
 
-Every entry contains `Type`, `Status`, `Created`, `Area`, `Priority`,
-`Dependencies`, `Goal`, and `Completion criteria`.
+Every entry contains `Uid`, `Type`, `Status`, `Created`, `Area`, `Priority`,
+`Dependencies`, `Goal`, and `Completion criteria`. A [new entry](#new-entries)
+has no `Uid` and may omit `Created`.
 
 A story or task additionally contains `Parent`. A parented story or task
 contains `Required for parent` (`Yes` or `No`). Optional children never block
@@ -135,22 +161,42 @@ new area is introduced only when no existing one fits.
 
 ## Optional fields
 
-- `Summary`: Short, non-technical summary for the project owner. Required as
-  soon as the item has `Notes`.
-- `Notes`: Path to the item's notes file, relative to the backlog folder.
-- `Spec`: Path to the item's spec file, relative to the backlog folder.
-
+- `Summary`: Short, non-technical summary for the project owner. Give an
+  item one as soon as it has notes.
 - `Deleted`: Date (`YYYY-MM-DD`) the item was moved to the trash; see
   [Trash](#trash).
 
-`Notes` and `Spec` appear only when the file exists. For now they contain
-exactly one path; multiple comma-separated paths are allowed.
+Notes and specs are not referenced from the entry; they are found through the
+item's folder (see [Item files](#item-files)).
+
+## New entries
+
+Without the ToDo-Viewer (files mode), a new entry gets a placeholder instead
+of a label and no `Uid`:
+
+```markdown
+- `NEW-login-dialog` **Simplify the login dialog**
+  - Type: Task.
+  - Parent: `STORY-012`.
+  - …
+```
+
+- A placeholder is `NEW-` followed by a short name of `a-z`, `0-9`, and `-`,
+  unique in the backlog.
+- `Parent`, `Dependencies`, and other entries may reference placeholders. Its
+  documents go into `items/NEW-<name>/` (`NEW-<name>_notes.md`, …).
+- The ToDo-Viewer's sync assigns `Uid` and the next free label, replaces the
+  placeholder in all references, renames folder and documents, and sets
+  `Created` if it is missing.
 
 ## Item files
 
 Items that need discussion or planning get a folder `items/<ID>/` whose name is
 exactly the item ID. Small items need no folder. The folder does not depend on
 the parent, so reparenting never moves files.
+
+A notes or spec file belongs to the item through its folder and file name
+alone; the entry has no field for it.
 
 - `<ID>_notes.md`: Discussions and decisions. One file that grows over time;
   entries are dated (`## YYYY-MM-DD — Topic`) and use the headings
@@ -171,11 +217,12 @@ Daily development reports do not belong in the backlog folder.
 Once an item is `Completed` or `Rejected` and has its `Resolution`, it moves
 unchanged from `TODO.md` to `archive.md`. Its item folder stays in `items/`.
 References to archived IDs remain valid. `archive.md` never contains active
-items, except deleted ones in the [trash](#trash).
+items, except deleted ones in the [trash](#trash). The check reports a
+misplaced entry as a notice; the ToDo-Viewer's sync also moves it.
 
 Reopening an archived item moves it back to `TODO.md` with status `Open` or
 `In progress` and without `Resolution`. The reason is recorded in the item's
-notes (create them, with `Summary`, if the item has none).
+notes (create them, and a `Summary`, if the item has none).
 
 ## Trash
 
@@ -214,7 +261,7 @@ It prints each entry exactly as written, after a line `Source: TODO.md` or
 The agent may change without asking:
 
 - notes and spec files: add, revise, or restructure whatever is relevant;
-- the `Summary`, `Notes`, and `Spec` fields;
+- the `Summary` field;
 - status transitions `Open` → `In progress`, `In progress` →
   `Awaiting confirmation`, and back to `In progress`;
 - wording fixes that do not change meaning;
