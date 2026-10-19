@@ -98,3 +98,13 @@
 - Regel für fremde Projekte unter MCP (bisher --source mit Freigabe).
 - Verhalten bei nicht erreichbarem Server ohne Exit-Code 3.
 - Ob die Wecker (alarms_*) eigene Harness-Regeln brauchen.
+
+## 2026-10-19 — Abschluss nach STORY-049
+
+### Discussed
+
+- Alle Pflicht-Kinder sind abgeschlossen, die Abschlusskriterien des Epics sind erfüllt. Offen ist nur STORY-050 (MCP-Anbindung, nicht Pflicht), das den Abschluss blockiert.
+
+### Decided
+
+- EPIC-008 bleibt offen, bis STORY-050 erledigt ist (Entscheidung des Projektverantwortlichen); kein Umhängen.
