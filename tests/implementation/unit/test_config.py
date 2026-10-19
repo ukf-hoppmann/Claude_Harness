@@ -53,12 +53,18 @@ class ParseConfigTest(unittest.TestCase):
     def test_todo_backend(self):
         config = parse_config({"version": 1})
         self.assertEqual(config.todo_backend, "api")
-        self.assertEqual(config.todo_api_url, "http://localhost:5411/api/v2")
+        self.assertEqual(config.todo_api_url, "http://localhost:5411/api")
         config = parse_config({
-            "version": 1, "todo": {"backend": "files", "api_url": "http://todo.localhost:6000/api/v2/"},
+            "version": 1, "todo": {"backend": "files", "api_url": "http://todo.localhost:6000/api/"},
         })
         self.assertEqual(config.todo_backend, "files")
-        self.assertEqual(config.todo_api_url, "http://todo.localhost:6000/api/v2")
+        self.assertEqual(config.todo_api_url, "http://todo.localhost:6000/api")
+
+    def test_todo_api_url_of_the_old_viewer_is_read_as_the_new_one(self):
+        # The rebuilt ToDo-Viewer dropped /api/v2; existing configs keep working without an edit.
+        for old in ("http://localhost:5411/api/v2", "http://localhost:5411/api/v2/"):
+            config = parse_config({"version": 1, "todo": {"api_url": old}})
+            self.assertEqual(config.todo_api_url, "http://localhost:5411/api")
 
     def test_techdocs_documents(self):
         config = parse_config({"version": 1, "techdocs": {"path": "tech", "documents": ["operations"]}})

@@ -133,85 +133,135 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Ohne `--project` gilt das Root-Projekt, sonst das eingetragene
   Teilprojekt. Backlog-Ordner (`todo.path`) und URL (`todo.api_url`) kommen
   aus dessen Config; einen Pfad nimmt das Skript nicht entgegen.
-- Quelle: Das Skript sucht in `GET /sources` den Eintrag, dessen `path` der
-  Backlog-Ordner ist, und legt ihn sonst mit `POST /sources` an (Meldung auf
-  stderr); für ein Teilprojekt mit dessen Namen als `project`, für das
-  Root-Projekt ohne (der Server nimmt den Namen des Git-Repos). Liegt der
-  Ordner in einem Git-Worktree, gilt derselbe Ordner im Haupt-Checkout: Der
-  Server schreibt immer dort.
+- Projekt: Das Skript sucht in `GET /workspace/projects` das Viewer-Projekt,
+  dessen `mirror_folder` der Backlog-Ordner ist, und schickt dessen `uid` bei
+  jedem Aufruf mit (`projects`/`project`). Liegt der Ordner in einem
+  Git-Worktree, gilt derselbe Ordner im Haupt-Checkout: Der Server schreibt
+  immer dort. Gibt es kein solches Projekt, bricht das Skript mit Exit 4 ab
+  und legt nichts an; registriert wird nur mit dem eigenen Befehl `register`.
+- Labels: Die KI nennt Items mit ihren IDs. Wo der Server interne `uid`s
+  verlangt (`parent`, `dependencies`, Papierkorb), löst das Skript die IDs
+  über `GET /workspace/projects/{uid}/labels/{ID}` auf; eine unbekannte ID
+  bricht vor dem Schreiben ab (Exit 1, `not_found`). `required_for_parent`
+  nimmt `Yes`/`No` oder `true`/`false`.
 - Fremdes Backlog: `--source <Name>` (statt `--project`; beide zusammen sind
-  ein Aufruffehler, Exit 2) spricht die Quelle des Viewers an, deren
-  `project` genau dem Namen entspricht, auch eine reine Datenbank-Quelle ohne
-  Ordner wie `Misc`. Die URL kommt weiter aus der Config des Session-Projekts,
-  dessen Modul `todo` an sein muss. Ein unbekannter Name (Exit 2, mit Liste
-  der bekannten) oder ein mehrdeutiger Name bricht ab; es wird nie eine Quelle
-  angelegt. Wann die KI das nutzen darf, regelt der Skill `todo`
+  ein Aufruffehler, Exit 2) spricht das Viewer-Projekt mit genau diesem Namen
+  an, auch eines ohne Spiegel-Ordner wie `Allgemein`. Die URL kommt weiter aus
+  der Config des Session-Projekts, dessen Modul `todo` an sein muss. Ein
+  unbekannter Name bricht ab (Exit 2, mit Liste der bekannten); es wird nie
+  ein Projekt angelegt. Wann die KI das nutzen darf, regelt der Skill `todo`
   (ausdrückliche Freigabe des Owners); das Skript prüft das nicht.
-- Befehle:
+- Befehle (Routen unter `todo.api_url`):
 
   | Befehl | Wirkung |
   |---|---|
-  | `health` | Erreichbarkeit (`GET /health`) |
-  | `sources` | `Project \| Folder` jeder Quelle, die der Viewer kennt (die Namen für `--source`; `-` ohne Ordner) |
-  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` |
+  | `health` | Erreichbarkeit (`GET /core/health`) |
+  | `sources` | `Project \| Folder` jedes Viewer-Projekts (die Namen für `--source`; `-` ohne Spiegel-Ordner) |
+  | `register` | Backlog-Ordner als Viewer-Projekt anlegen (`POST /workspace/projects`, Spiegel und Auto-Sync an); Name beim Root-Projekt der Ordnername des Haupt-Checkouts, sonst der Name des Teilprojekts. Abgelehnt (Exit 2), wenn der Ordner schon registriert ist oder mit `--source` |
+  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` (`GET /backlog/index`) |
   | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte |
-  | `create` | Neuer Eintrag; stdin: JSON-Felder ohne `source_id`; die ID vergibt der Server |
-  | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` |
+  | `areas` | Benutzte Bereiche, einer pro Zeile |
+  | `create` | Neuer Eintrag; stdin: flaches JSON mit `type` und den Feldern; die ID vergibt der Server |
+  | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` (`PUT /backlog/items/{ID}`) |
+  | `move <ID> <version> <parent\|-> [--position N]` | Neuer Parent (`-` = keiner) und Position unter den Geschwistern |
+  | `reopen <ID>` | Eintrag und geschlossene Vorfahren auf `In progress`, von oben nach unten |
   | `note <ID>` | Notes-Eintrag anhängen; stdin: `{topic, discussed, decided, open, summary?}` |
   | `doc <ID> <name>` | Notes oder Spec ausgeben: `version: <v>`, Leerzeile, Inhalt |
   | `put-doc <ID> <name> <version\|new> [--summary TEXT]` | Dokument mit dem Text von stdin ersetzen oder neu anlegen |
-  | `retype <ID> <version> <type>` | Typ ändern (`Epic`, `Story`, `Task`; `POST /items/{source}/{ID}/retype`); der Eintrag erhält die nächste freie ID des neuen Typs, alle Verweise ziehen mit; Antwort: Eintrag mit neuer ID |
-  | `delete <ID> <version> [--cascade]` | In den Papierkorb, mit `--cascade` samt Nachfahren |
-  | `trash` | Einträge im Papierkorb als JSON |
-  | `restore <ID> <version>` | Aus dem Papierkorb zurückholen |
+  | `retype <ID> <version> <type>` | Typ ändern (`Epic`, `Story`, `Task`); der Eintrag erhält die nächste freie ID des neuen Typs, Verweise in den Texten des Projekts ziehen mit; Antwort mit `old_label` und `new_label` |
+  | `delete <ID> <version> [--cascade]` | In den Papierkorb (`DELETE /workspace/elements/{uid}`), mit `--cascade` samt Nachfahren |
+  | `trash` | Backlog-Einträge des Projekts im Papierkorb als JSON |
+  | `restore <ID>` | Aus dem Papierkorb zurückholen, samt der mit ihm gelöschten Nachfahren |
 
-  Endgültiges Löschen aus dem Papierkorb bietet das Skript bewusst nicht an;
-  das macht nur der Projektverantwortliche.
+  Eine `version` ist eine Zahl (Revision des Registers); eine andere Angabe
+  ist ein Aufruffehler (Exit 2), bevor etwas an den Server geht. Endgültiges
+  Löschen aus dem Papierkorb bietet das Skript bewusst nicht an; das macht nur
+  der Projektverantwortliche.
 - Exit-Code: 0 bei Erfolg; 1 bei einer Fehlerantwort des Servers (stderr:
   `HTTP <Status> <code>: <message>`, dazu `details`; bei `version_conflict`
   der Hinweis, neu zu lesen statt blind zu wiederholen); 2 bei falschem
-  Aufruf, ungültigem JSON auf stdin, fehlender oder ungültiger Config,
-  unbekanntem Projekt oder abgeschaltetem Modul `todo`; 3, wenn der Server nicht
-  erreichbar ist.
+  Aufruf, ungültigem JSON auf stdin, ungültiger Version, fehlender oder
+  ungültiger Config, unbekanntem Projekt oder abgeschaltetem Modul `todo`; 3,
+  wenn der Server nicht erreichbar ist; 4, wenn der Backlog-Ordner nicht als
+  Viewer-Projekt registriert ist.
 
 ## Skript `notes_api.py`
 
 - Zweck: Notes und Topics über die HTTP-API des ToDo-Viewers pflegen
   (Teil des Moduls `todo`). Die Notes liegen nur in der Datenbank des Viewers; das
   Skript hat keinen Dateizugriff darauf. Maßgeblich für die API selbst ist
-  `docs/techdocs/interfaces.md` im ToDo-Viewer (Abschnitt „HTTP-API v2:
-  Topics, Notes und Links“); das Notes-Modell beschreibt dessen Doku.
+  die Doku des ToDo-Viewers (`docs/techdocs/neubau-server.md`, Plugin
+  `notes`, Routen unter `/notes/…`).
 - Aufruf: `python3 plugin/scripts/notes_api.py [--project <Name>] <befehl>
   [argumente]` wie bei `backlog_api.py`: Projekt der Session, ohne
-  `--project` das Root-Projekt. URL (`todo.api_url`) und Projekt kommen aus der
-  Config; die Notes werden unter dem Namen angesprochen, unter dem der Viewer
-  den Backlog-Ordner (`todo.path`) kennt. Das Modul `todo` muss an sein und das Backend `api` haben (Notes gibt es nur im Viewer). `--source <Name>` wie bei `backlog_api.py` spricht die
-  Notes eines anderen Projekts des Viewers an (Freigabe: Skill `todo`).
+  `--project` das Root-Projekt, gefunden über den Spiegel-Ordner des
+  Backlog-Ordners (Exit 4, wenn nicht registriert; `register` gibt es nur in
+  `backlog_api.py`). Das Modul `todo` muss an sein und das Backend `api` haben
+  (Notes gibt es nur im Viewer). `--source <Name>` wie bei `backlog_api.py`
+  spricht die Notes eines anderen Projekts des Viewers an (Freigabe: Skill
+  `todo`).
+- Labels: Notes, Topics und Ziele von Ereignis-Auslösern im eigenen Projekt
+  löst der Server selbst auf. Für Verknüpfungen (`POST /workspace/links`),
+  Papierkorb und Auslöser-Ziele in anderen Projekten (`target_project`) löst
+  das Skript die Labels in `uid`s auf. Die alten Namen `topic_due` (Art) und
+  `target_status` (Feld) eines Auslösers werden als `topic_date` und `status`
+  weitergegeben; Zeit-Auslöser lehnt das Skript ab (Exit 2, Hinweis auf
+  `alarms_api.py`).
 - Befehle (vollständig: Aufruf ohne Argumente und `plugin/skills/todo/notes-api.md`):
-  Lesen: `health`, `sources` (Namen aller Projekte des Viewers), `index` (schlanker Index mit Filtern `--topic`, `--status`,
-  `--due`, `--archived`, `--linked-item`, `--all-projects`), `due`, `show`,
-  `topics`, `topic`, `links`, `backlinks`, `notes-of-item`, `notes-of-topic`,
-  `docs`, `doc`, `notices`, `trash`, `settings`. Schreiben (JSON auf stdin,
-  Notes mit `version`): `create`, `update`, `keep`, `snooze`, `finish`
-  (`done` oder `dropped`), `move`, `delete`, `restore`, `trigger-add`,
-  `trigger-remove`, `link-add`, `link-remove`, `put-doc`, `note-entry`,
-  `decide`, `promote`, `demote`, `topic-create`, `topic-update`,
-  `topic-move`, `topic-delete`, `topic-restore`.
-- Bewusst nicht vorhanden: endgültiges Löschen (auch die API bietet es für
-  Notes nicht an) und das Ändern der Einstellungen des Viewers
-  (`settings` liest nur).
+  Lesen: `health`, `sources`, `index` (kompakte Tabellen aus
+  `GET /notes/index/lines`, Filter `--status`, `--due`, `--archived`,
+  `--query`, `--all-projects`), `due` (alle Projekte), `show`, `topics`,
+  `topic` (Unter-Topics und Notes), `links`, `backlinks` (ausgehende bzw.
+  eingehende Verknüpfungen aus `GET /workspace/elements/{uid}/links`),
+  `notes-of-item`, `docs`, `doc`, `notices` (einer Note, mit `--side item`
+  eines Items), `trash` (Notes und Topics des Projekts), `settings`.
+  Schreiben (JSON auf stdin, `<version>` als Zahl): `create`, `update`,
+  `keep`, `snooze`, `finish` (`done` oder `dropped`), `move`, `delete`
+  (Papierkorb über `workspace`), `restore` (aus dem Papierkorb über
+  `workspace`, aus dem Archiv über `notes`), `trigger-add`, `trigger-remove`,
+  `link-add`, `link-remove`, `put-doc`, `note-entry`, `decide`, `promote`
+  (IDs in `parent` und `dependencies` wie bei `backlog_api.py`), `demote`,
+  `topic-create`, `topic-update`, `topic-move`, `topic-archive`,
+  `topic-reactivate`, `topic-delete` (mit der Wahl des Servers für den
+  Inhalt), `topic-restore`.
+- Bewusst nicht vorhanden: endgültiges Löschen und das Ändern der
+  Einstellungen des Viewers (`settings` liest nur).
 - Exit-Code: wie bei `backlog_api.py`; Exit 2 auch bei abgeschaltetem Modul
   `todo` oder Backend `files`.
 
+## Skript `alarms_api.py`
+
+- Zweck: Wecker über die HTTP-API des ToDo-Viewers pflegen (Teil des Moduls
+  `todo`, nur mit Backend `api`). Ein Wecker meldet sich im Viewer zu seinem
+  Zeitpunkt; erledigte und erloschene räumt der Viewer nach 24 Stunden selbst
+  auf. Maßgeblich für die API ist die Doku des ToDo-Viewers
+  (`docs/techdocs/neubau-server.md`, Plugin `alarms`, Routen unter
+  `/alarms/…`).
+- Aufruf: `python3 plugin/scripts/alarms_api.py [--project <Name> | --source
+  <Name>] <befehl> [argumente]`; Projekt, `--source` und Exit-Codes wie bei
+  `backlog_api.py`.
+- Befehle: `list [--due] [--all-projects]`, `show <ALARM>`, `create` (stdin
+  `{at, text?, targets?}`), `update <ALARM> <version>` (stdin `{at?, text?,
+  targets?}`, `targets: []` löst alle), `snooze <ALARM> <version> [--until
+  T]`, `finish <ALARM> <version>`, `reopen <ALARM> <version>`, `delete
+  <ALARM> <version>` (Papierkorb über `workspace`), `restore <ALARM>`.
+- `targets`: Labels des eigenen Projekts gehen unverändert an den Server, der
+  sie auflöst; `Projekt:LABEL` eines anderen Viewer-Projekts löst das Skript
+  in die `uid` auf.
+
 ## Skript `viewer_api.py`
 
-Gemeinsamer Client von `backlog_api.py` und `notes_api.py`, kein eigener
-Befehl: HTTP-Aufruf mit Zeitlimit, Fehlertext aus der Fehlerantwort des
-Servers (`code`, `message`, `details`, Hinweis bei `version_conflict`),
-Exit-Codes (1 Fehlerantwort, 2 falscher Aufruf, 3 Server nicht erreichbar),
-Auswahl des Projekts aus der Config (`--project`) oder einer Quelle nach
-exaktem Namen (`--source`, `sources`), Auffinden (und bei Bedarf Anlegen) der
-Viewer-Quelle zum Backlog-Ordner und Lesen von JSON auf stdin.
+Gemeinsamer Client von `backlog_api.py`, `notes_api.py` und `alarms_api.py`,
+kein eigener Befehl: HTTP-Aufruf mit Zeitlimit, Fehlertext aus der
+Fehlerantwort des Servers (`code`, `message`, `details`, Hinweis bei
+`version_conflict`), Exit-Codes (1 Fehlerantwort, 2 falscher Aufruf, 3 Server
+nicht erreichbar, 4 Backlog-Ordner nicht als Viewer-Projekt registriert),
+Auswahl des Projekts aus der Config (`--project`, Viewer-Projekt über den
+Spiegel-Ordner im Haupt-Checkout) oder eines Viewer-Projekts nach exaktem
+Namen (`--source`, `sources`), Registrieren nur auf ausdrücklichen Befehl,
+Auflösen von Labels in `uid`s, Umsetzen der Item-Felder (`parent`,
+`dependencies`, `required_for_parent`), Prüfen der Versionsnummer und Lesen von
+JSON auf stdin.
 
 ## Skript `daily.py`
 
