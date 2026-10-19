@@ -12,3 +12,11 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Status: Done.
   - Done at: 2026-10-18T18:48:53Z.
   - Created: 2026-10-17.
+
+- `ALARM-002`
+  - Uid: 6c5b4a99-4137-4ea7-8580-4f9ac9ac7a9b.
+  - At: 2026-12-31T08:00:00Z.
+  - Target: `NOTE-003`.
+  - Status: Done.
+  - Done at: 2026-10-19T10:26:57.065736Z.
+  - Created: 2026-10-19.

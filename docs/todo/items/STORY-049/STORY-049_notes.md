@@ -51,3 +51,13 @@
 - Projekte im Viewer werden nur auf ausdrücklichen Befehl nach Rückfrage registriert; das stille Registrieren in viewer_api.py entfällt.
 - Fremde Projekte: keine technische Sperre, nur auf Aufforderung des Eigners (Regel im Skill bleibt).
 - Wecker kommen als Befehle und in den Skill; Sync nicht, er läuft automatisch.
+
+## 2026-10-19 — Umsetzung im Worktree: Helfer auf der neuen API
+
+### Discussed
+
+- backlog_api.py, notes_api.py und das neue alarms_api.py sprechen die neuen Routen an; Live-Prüfung gegen den laufenden Viewer.
+
+### Decided
+
+- Der Health-Check im Session-Start entfällt: Hooks dürfen das Netzwerk nicht nutzen (Architekturregel 2); die Erreichbarkeit meldet weiter Exit 3 des Helfers.
