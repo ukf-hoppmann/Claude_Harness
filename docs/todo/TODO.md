@@ -294,3 +294,24 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Spätere Umstellung von den Helfer-Skripten auf die nativen
     MCP-Tools des Viewers. Sie wartet auf STORY-049 und auf den Umbau des
     MCP-Servers im ToDo-Viewer.
+
+- `TASK-020` **todo-Skill: Ort und Inhalt der Diskussionsprotokolle (Notes) festlegen**
+  - Uid: 3b18df8f-3832-4a6b-a090-51a845d0cabd.
+  - Type: Task.
+  - Parent: None.
+  - Status: Open.
+  - Created: 2026-10-19.
+  - Area: Dokumentation.
+  - Priority: Urgent.
+  - Dependencies: None.
+  - Goal: Der todo-Skill legt fest, in welches Item (Story oder Task)
+    Diskussionen und Entscheidungen protokolliert werden, was ein
+    Notes-Eintrag mindestens enthält und wann er geschrieben wird; wo
+    sinnvoll, prüft der Harness die Einhaltung mechanisch.
+  - Completion criteria: Der Owner hat die Vorschläge bewertet; die
+    beschlossenen Regeln stehen im todo-Skill (und ggf. format.md);
+    beschlossene Prüfungen (Warnung im Helfer bzw. Hook) sind umgesetzt und
+    getestet.
+  - Summary: Claude schreibt Besprechungen bisher teils ins falsche Item und
+    zu knapp mit. Der Harness soll klar regeln, wo und wie ausführlich
+    protokolliert wird, und das wo möglich prüfen.
