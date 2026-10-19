@@ -17,3 +17,23 @@
 - Alte Helfer: ganz entfernen oder als Rückfall (z. B. für Hooks) auf die neuen HTTP-Routen umstellen?
 - Wecker (alarms_*) und Sync (core_sync_*): in den Skill aufnehmen oder vorerst weglassen?
 - Berechtigungen: welche MCP-Tools ohne Rückfrage erlaubt sein sollen (Lese-Tools sind als readOnly markiert).
+
+## 2026-10-19 — Entscheidungen zu den offenen Fragen
+
+### Discussed
+
+- Bisherige Berechtigungen: Weder Plugin noch Projekt noch Nutzer-Settings enthalten Regeln für die Helfer. Jeder Helfer-Aufruf war ein Bash-Befehl, über den der Berechtigungsmodus der Session entschied.
+- Bisherige Projektzuordnung: viewer_api.py fand die Quelle über den Backlog-Ordner der Hauptarbeitskopie (auch aus einem Worktree) und registrierte sie, wenn sie fehlte. Unter MCP gibt es kein Tool zum Anlegen eines Projekts.
+
+### Decided
+
+- Einbindung: .mcp.json im Plugin mit der festen Adresse http://localhost:5411/mcp (Empfehlung angenommen).
+- Fremde Projekte: wie bisher keine technische Sperre. Jede Session ändert nur ihr eigenes Projekt, auf ausdrückliche Aufforderung des Eigners aber auch fremde Backlogs. Die bisherige Freigaberegel im Skill gilt sinngemäß weiter (Projekt über workspace_list_projects statt sources).
+- Alte Helfer bleiben als Rückfall und werden auf die neuen HTTP-Routen umgestellt.
+- Wecker (alarms_*) kommen in den Skill; Sync (core_sync_*) nicht, er läuft automatisch.
+
+### Open
+
+- Projekt-uid im Session-Start ausgeben (Vorschlag liegt vor).
+- Verhalten bei nicht erreichbarem Server (Vorschlag: Health-Check im Session-Start und Regel im Skill).
+- Berechtigungen für die MCP-Tools (Vorschlag: Lese-Tools freigeben, Schreib-Tools folgen dem Berechtigungsmodus).
