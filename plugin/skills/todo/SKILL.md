@@ -26,7 +26,9 @@ description: Rules for the project backlog and for notes and topics (via the ToD
      describes.
 4. API mode: if the helper exits with code 3 (server not reachable), tell the
    user and ask whether to start the server, work on the files this time, or
-   stop. Do not fall back to the files on your own.
+   stop. Do not fall back to the files on your own. Exit code 4 means the
+   backlog is not registered in the viewer: ask whether to register it and
+   run `register` only after a yes ([api.md](api.md)).
 5. Files mode only (API mode needs no `TODO.md`): if `TODO.md` is missing, tell the user and ask for permission before
    creating anything. The backlog may just live elsewhere — look for it and
    ask. Only after approval, create `TODO.md` and `archive.md` from

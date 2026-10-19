@@ -8,7 +8,9 @@ import unittest
 from pathlib import Path
 
 from helpers import SCRIPTS
-from helpers.fake_viewer import API, FakeViewer
+from helpers.fake_viewer import API, PROJECTS, FakeViewer
+
+ITEMS = f"{API}/backlog/items"
 
 
 class BacklogApiTest(unittest.TestCase):
@@ -20,7 +22,7 @@ class BacklogApiTest(unittest.TestCase):
         (self.todo / "TODO.md").write_text("x\n")
         self.viewer = FakeViewer()
         self.write_config(self.viewer.url)
-        self.viewer.sources.append({"id": "src1", "project": "project", "path": str(self.todo)})
+        self.viewer.add_project("p1", "project", self.todo)
 
     def tearDown(self):
         self.viewer.close()
@@ -46,8 +48,14 @@ class BacklogApiTest(unittest.TestCase):
             input=stdin, capture_output=True, text=True, timeout=30, cwd=cwd or self.project, env=env,
         )
 
+    def last(self, method):
+        return self.viewer.calls(method)[-1]
+
+    def writes(self):
+        return [r for r in self.viewer.requests if r["method"] != "GET"]
+
     def test_health(self):
-        self.viewer.routes[("GET", f"{API}/health")] = (200, {"status": "ok", "api": "2"})
+        self.viewer.routes[("GET", f"{API}/core/health")] = (200, {"status": "ok"})
         result = self.run_api("health")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn('"status": "ok"', result.stdout)
@@ -61,87 +69,76 @@ class BacklogApiTest(unittest.TestCase):
         self.assertEqual(result.returncode, 3)
         self.assertIn("not reachable", result.stderr)
 
-    def test_index_uses_the_source_of_the_configured_backlog(self):
-        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": [
-            {"source_id": "src1", "id": "EPIC-001", "type": "Epic", "status": "Open", "title": "Ä", "parent": None,
-             "area": "Kern"},
-            {"source_id": "src1", "id": "STORY-001", "type": "Story", "status": "Open", "title": "B",
-             "parent": "EPIC-001", "area": "Rand"},
-        ]})
+    def test_index_uses_the_project_of_the_configured_backlog(self):
+        text = "ID | Type | Status | Area | Title | Parent\nEPIC-001 | Epic | Open | Kern | Ä | -"
+        self.viewer.routes[("GET", f"{API}/backlog/index")] = (200, {"text": text, "count": 1})
         result = self.run_api("index")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout.splitlines(), [
-            "ID | Type | Status | Area | Title | Parent",
-            "EPIC-001 | Epic | Open | Kern | Ä | -",
-            "STORY-001 | Story | Open | Rand | B | EPIC-001",
-        ])
-        self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["src1"]})
-        self.assertEqual(self.viewer.calls("POST"), [])
+        self.assertEqual(result.stdout.splitlines(), text.splitlines())
+        self.assertEqual(self.last("GET")["query"], {"projects": ["p1"]})
+        self.assertEqual(self.writes(), [])
 
-    def test_missing_source_is_registered(self):
-        self.viewer.sources.clear()
-        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
+    def test_unregistered_backlog_has_own_exit_code_and_registers_nothing(self):
+        self.viewer.projects.clear()
+        self.viewer.add_project("other", "Other", self.project / "elsewhere")
         result = self.run_api("index")
+        self.assertEqual(result.returncode, 4)
+        self.assertIn("not registered", result.stderr)
+        self.assertIn("register", result.stderr)
+        self.assertEqual(self.writes(), [])
+
+    def test_register_creates_the_project_with_a_mirror(self):
+        self.viewer.projects.clear()
+        result = self.run_api("register")
         self.assertEqual(result.returncode, 0, result.stderr)
-        # The root project keeps the server's default name (the Git repository).
-        self.assertEqual(self.viewer.calls("POST")[0]["body"], {"path": str(self.todo)})
-        self.assertIn("registered", result.stderr)
-        self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["new1"]})
+        # The root project is named after the folder of its main checkout.
+        self.assertEqual(self.last("POST")["body"], {
+            "name": "project", "mirror_folder": str(self.todo), "mirror_enabled": True, "auto_sync": True,
+        })
+        self.assertIn("project", result.stdout)
+
+    def test_register_refuses_an_already_registered_backlog(self):
+        result = self.run_api("register")
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("already registered as 'project'", result.stderr)
+        self.assertEqual(self.writes(), [])
+
+    def test_register_names_a_subproject_by_its_project_name(self):
+        sub_todo = self.write_subproject()
+        result = self.run_api("--project", "VariantFilter", "register")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("POST")["body"]["name"], "VariantFilter")
+        self.assertEqual(self.last("POST")["body"]["mirror_folder"], str(sub_todo))
 
     def test_subproject_backlog_by_project_name(self):
         sub_todo = self.write_subproject()
-        self.viewer.sources.append({"id": "src2", "project": "VariantFilter", "path": str(sub_todo)})
-        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
+        self.viewer.add_project("p2", "VariantFilter", sub_todo)
+        self.viewer.routes[("GET", f"{API}/backlog/index")] = (200, {"text": "ID", "count": 0})
         result = self.run_api("--project", "VariantFilter", "index")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["src2"]})
-
-    def test_new_subproject_source_carries_the_project_name(self):
-        sub_todo = self.write_subproject()
-        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
-        result = self.run_api("--project", "VariantFilter", "index")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(
-            self.viewer.calls("POST")[0]["body"], {"path": str(sub_todo), "project": "VariantFilter"}
-        )
-
-    def add_misc_source(self):
-        # A database source without any folder, like the ToDo-Viewer's Misc.
-        self.viewer.sources.append({"id": "misc1", "project": "Misc", "path": "", "backend": "database",
-                                    "sync_path": None, "markdown_path": None, "mirror": "none"})
+        self.assertEqual(self.last("GET")["query"], {"projects": ["p2"]})
 
     def test_sources_lists_the_names_the_viewer_knows(self):
-        self.add_misc_source()
+        self.viewer.add_project("misc", "Allgemein")
         result = self.run_api("sources")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stdout.splitlines(), [
-            "Project | Folder",
-            f"project | {self.todo}",
-            "Misc | -",
-        ])
-        self.assertEqual(self.viewer.calls("POST"), [])
+        self.assertEqual(result.stdout.splitlines(), ["Project | Folder", f"project | {self.todo}", "Allgemein | -"])
+        self.assertEqual(self.writes(), [])
 
-    def test_source_option_addresses_a_source_by_its_exact_name(self):
-        self.add_misc_source()
-        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
-        result = self.run_api("--source", "Misc", "index")
+    def test_source_option_addresses_a_project_by_its_exact_name(self):
+        self.viewer.add_project("misc", "Allgemein")
+        self.viewer.routes[("GET", f"{API}/backlog/index")] = (200, {"text": "ID", "count": 0})
+        result = self.run_api("--source", "Allgemein", "index")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["misc1"]})
-        self.assertEqual(self.viewer.calls("POST"), [])
+        self.assertEqual(self.last("GET")["query"], {"projects": ["misc"]})
+        self.assertEqual(self.writes(), [])
 
     def test_unknown_source_names_the_known_ones_and_registers_nothing(self):
-        self.add_misc_source()
-        result = self.run_api("--source", "misc", "index")
+        self.viewer.add_project("misc", "Allgemein")
+        result = self.run_api("--source", "allgemein", "index")
         self.assertEqual(result.returncode, 2)
-        self.assertIn("unknown source 'misc' (known: project, Misc)", result.stderr)
-        self.assertEqual(self.viewer.calls("POST"), [])
-        self.assertEqual([r["path"] for r in self.viewer.requests], [f"{API}/sources"])
-
-    def test_ambiguous_source_name_is_refused(self):
-        self.viewer.sources.append({"id": "dup", "project": "project", "path": "/elsewhere"})
-        result = self.run_api("--source", "project", "index")
-        self.assertEqual(result.returncode, 2)
-        self.assertIn("ambiguous", result.stderr)
+        self.assertIn("unknown source 'allgemein' (known: project, Allgemein)", result.stderr)
+        self.assertEqual([r["path"] for r in self.viewer.requests], [PROJECTS])
 
     def test_source_and_project_exclude_each_other(self):
         self.write_subproject()
@@ -172,18 +169,9 @@ class BacklogApiTest(unittest.TestCase):
 
     def test_missing_todo_file_is_fine(self):
         (self.todo / "TODO.md").unlink()
-        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
+        self.viewer.routes[("GET", f"{API}/backlog/index")] = (200, {"text": "ID", "count": 0})
         result = self.run_api("index")
         self.assertEqual(result.returncode, 0, result.stderr)
-
-    def test_database_source_is_found_by_its_markdown_folder(self):
-        self.viewer.sources.clear()
-        self.viewer.sources.append({"id": "db1", "project": "project", "path": "", "backend": "database",
-                                    "sync_path": str(self.todo), "markdown_path": str(self.todo)})
-        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
-        result = self.run_api("index")
-        self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.viewer.calls("POST"), [])
 
     def test_without_config(self):
         (self.project / ".claude-harness" / "config.toml").unlink()
@@ -192,77 +180,142 @@ class BacklogApiTest(unittest.TestCase):
         self.assertIn("no .claude-harness/config.toml", result.stderr)
 
     def test_show(self):
-        self.viewer.routes[("GET", f"{API}/items/src1/STORY-001")] = (200, {"id": "STORY-001", "version": "v1"})
+        self.viewer.routes[("GET", f"{ITEMS}/STORY-001")] = (200, {"label": "STORY-001", "version": 3})
         result = self.run_api("show", "STORY-001")
-        self.assertEqual(json.loads(result.stdout), {"id": "STORY-001", "version": "v1"})
+        self.assertEqual(json.loads(result.stdout), {"label": "STORY-001", "version": 3})
+        self.assertEqual(self.last("GET")["query"], {"project": ["p1"]})
 
-    def test_create_adds_source_id(self):
-        self.viewer.routes[("POST", f"{API}/items")] = (201, {"id": "STORY-002", "version": "v1"})
-        payload = {"type": "Story", "title": "Neu „x“", "area": "A", "goal": "G", "completion_criteria": "C"}
+    def test_create_sends_project_type_and_fields_with_labels_resolved(self):
+        self.viewer.add_label("p1", "EPIC-001", "u-epic")
+        self.viewer.add_label("p1", "STORY-007", "u-dep")
+        self.viewer.routes[("POST", ITEMS)] = (201, {"label": "STORY-002", "version": 1})
+        payload = {"type": "Story", "title": "Neu „x“", "area": "A", "goal": "G", "completion_criteria": "C",
+                   "parent": "EPIC-001", "required_for_parent": "Yes", "dependencies": ["STORY-007"]}
         result = self.run_api("create", stdin=json.dumps(payload, ensure_ascii=False))
         self.assertEqual(result.returncode, 0, result.stderr)
-        body = [r for r in self.viewer.calls("POST") if r["path"] == f"{API}/items"][0]["body"]
-        self.assertEqual(body, {**payload, "source_id": "src1"})
+        self.assertEqual(self.last("POST")["body"], {"project": "p1", "type": "Story", "fields": {
+            "title": "Neu „x“", "area": "A", "goal": "G", "completion_criteria": "C",
+            "parent": "u-epic", "required_for_parent": True, "dependencies": ["u-dep"],
+        }})
 
-    def test_update_sends_version_and_reports_conflict(self):
-        self.viewer.routes[("PATCH", f"{API}/items/src1/STORY-001")] = (
-            409, {"code": "version_conflict", "message": "Item changed.", "details": {"id": "STORY-001"}},
+    def test_create_with_an_unknown_parent_label_writes_nothing(self):
+        payload = {"type": "Story", "title": "T", "area": "A", "goal": "G", "completion_criteria": "C",
+                   "parent": "EPIC-404"}
+        result = self.run_api("create", stdin=json.dumps(payload))
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("EPIC-404", result.stderr)
+        self.assertEqual(self.writes(), [])
+
+    def test_update_sends_integer_version_and_reports_conflict(self):
+        self.viewer.routes[("PUT", f"{ITEMS}/STORY-001")] = (
+            409, {"code": "version_conflict", "message": "Item changed.", "details": {"expected": 3}},
         )
-        result = self.run_api("update", "STORY-001", "v1", stdin='{"fields": {"status": "In progress"}}')
+        result = self.run_api("update", "STORY-001", "3", stdin='{"fields": {"status": "In progress"}}')
         self.assertEqual(result.returncode, 1)
         self.assertIn("HTTP 409 version_conflict: Item changed.", result.stderr)
         self.assertIn("read the item again", result.stderr)
-        self.assertEqual(
-            self.viewer.calls("PATCH")[0]["body"], {"version": "v1", "fields": {"status": "In progress"}}
-        )
+        self.assertEqual(self.last("PUT")["body"], {"project": "p1", "version": 3,
+                                                    "fields": {"status": "In progress"}})
+
+    def test_update_resolves_labels_and_passes_resolution(self):
+        self.viewer.add_label("p1", "EPIC-002", "u-epic2")
+        self.viewer.routes[("PUT", f"{ITEMS}/STORY-001")] = (200, {"label": "STORY-001"})
+        stdin = '{"fields": {"parent": "EPIC-002", "required_for_parent": "No", "dependencies": []}, "resolution": "R"}'
+        result = self.run_api("update", "STORY-001", "3", stdin=stdin)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("PUT")["body"], {"project": "p1", "version": 3, "resolution": "R", "fields": {
+            "parent": "u-epic2", "required_for_parent": False, "dependencies": []}})
+
+    def test_version_must_be_a_number(self):
+        result = self.run_api("update", "STORY-001", "v1", stdin='{"fields": {}}')
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("version", result.stderr)
+        self.assertEqual(self.viewer.requests, [])
 
     def test_invalid_json_input(self):
-        result = self.run_api("update", "STORY-001", "v1", stdin="{kaputt")
+        result = self.run_api("update", "STORY-001", "1", stdin="{kaputt")
         self.assertEqual(result.returncode, 2)
         self.assertIn("JSON", result.stderr)
-        self.assertEqual(self.viewer.calls("PATCH"), [])
+        self.assertEqual(self.writes(), [])
 
     def test_note(self):
-        self.viewer.routes[("POST", f"{API}/items/src1/STORY-001/notes")] = (200, {"name": "n", "version": "v2"})
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n", "version": 2})
         entry = {"topic": "T", "decided": ["x"]}
         self.run_api("note", "STORY-001", stdin=json.dumps(entry))
-        self.assertEqual(self.viewer.calls("POST")[-1]["body"], entry)
+        self.assertEqual(self.last("POST")["body"], {**entry, "project": "p1"})
 
     def test_doc_prints_version_and_content(self):
-        self.viewer.routes[("GET", f"{API}/items/src1/STORY-001/documents/STORY-001_notes.md")] = (
-            200, {"name": "STORY-001_notes.md", "kind": "notes", "content": "# Notizen\n\nText\n", "version": "v7"},
+        self.viewer.routes[("GET", f"{ITEMS}/STORY-001/documents/STORY-001_notes.md")] = (
+            200, {"name": "STORY-001_notes.md", "kind": "notes", "content": "# Notizen\n\nText\n", "version": 7},
         )
         result = self.run_api("doc", "STORY-001", "STORY-001_notes.md")
-        self.assertEqual(result.stdout, "version: v7\n\n# Notizen\n\nText\n")
+        self.assertEqual(result.stdout, "version: 7\n\n# Notizen\n\nText\n")
+        self.assertEqual(self.last("GET")["query"], {"project": ["p1"]})
 
     def test_put_doc_sends_raw_content(self):
-        path = f"{API}/items/src1/STORY-001/documents/STORY-001_spec.md"
-        self.viewer.routes[("PUT", path)] = (200, {"name": "STORY-001_spec.md", "version": "v1"})
+        path = f"{ITEMS}/STORY-001/documents/STORY-001_spec.md"
+        self.viewer.routes[("PUT", path)] = (200, {"name": "STORY-001_spec.md", "version": 1})
         self.run_api("put-doc", "STORY-001", "STORY-001_spec.md", "new", stdin="# Spec\n\n„Text“\n")
-        self.assertEqual(self.viewer.calls("PUT")[0]["body"], {"content": "# Spec\n\n„Text“\n", "version": None})
-        self.run_api("put-doc", "STORY-001", "STORY-001_spec.md", "v1", "--summary", "Kurz.", stdin="x")
-        self.assertEqual(self.viewer.calls("PUT")[1]["body"], {"content": "x", "version": "v1", "summary": "Kurz."})
+        self.assertEqual(self.viewer.calls("PUT")[0]["body"],
+                         {"project": "p1", "content": "# Spec\n\n„Text“\n", "version": None})
+        self.run_api("put-doc", "STORY-001", "STORY-001_spec.md", "1", "--summary", "Kurz.", stdin="x")
+        self.assertEqual(self.viewer.calls("PUT")[1]["body"],
+                         {"project": "p1", "content": "x", "version": 1, "summary": "Kurz."})
 
-    def test_delete_and_restore(self):
-        self.viewer.routes[("DELETE", f"{API}/items/src1/EPIC-001")] = (200, [])
-        self.viewer.routes[("POST", f"{API}/trash/src1/EPIC-001/restore")] = (200, [])
-        self.run_api("delete", "EPIC-001", "v3", "--cascade")
-        self.assertEqual(self.viewer.calls("DELETE")[0]["query"], {"version": ["v3"], "cascade": ["true"]})
-        self.run_api("restore", "EPIC-001", "v4")
-        self.assertEqual(self.viewer.calls("POST")[-1]["body"], {"version": "v4"})
+    def test_delete_goes_to_the_trash_by_uid(self):
+        self.viewer.add_label("p1", "EPIC-001", "u-epic")
+        self.viewer.routes[("DELETE", f"{API}/workspace/elements/u-epic")] = (200, {"deleted": ["u-epic"]})
+        result = self.run_api("delete", "EPIC-001", "3", "--cascade")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("DELETE")["query"], {"version": ["3"], "cascade": ["true"]})
+
+    def test_restore_from_the_trash_by_uid(self):
+        self.viewer.add_label("p1", "EPIC-001", "u-epic", deleted=True)
+        self.viewer.routes[("POST", f"{API}/workspace/trash/restore")] = (200, {"restored": ["u-epic"]})
+        result = self.run_api("restore", "EPIC-001")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("POST")["body"], {"uids": ["u-epic"]})
+
+    def test_trash_lists_only_backlog_items_of_the_project(self):
+        self.viewer.routes[("GET", f"{API}/workspace/trash")] = (200, [
+            {"label": "STORY-003", "kind": "story"}, {"label": "NOTE-001", "kind": "note"},
+        ])
+        result = self.run_api("trash")
+        self.assertEqual(json.loads(result.stdout), [{"label": "STORY-003", "kind": "story"}])
+        self.assertEqual(self.last("GET")["query"], {"projects": ["p1"]})
 
     def test_retype_posts_version_and_type(self):
-        self.viewer.routes[("POST", f"{API}/items/src1/TASK-004/retype")] = (200, {"id": "STORY-009"})
-        result = self.run_api("retype", "TASK-004", "v2", "Story")
-        self.assertEqual(self.viewer.calls("POST")[-1]["body"], {"version": "v2", "type": "Story"})
+        self.viewer.routes[("POST", f"{ITEMS}/TASK-004/retype")] = (200, {"new_label": "STORY-009"})
+        result = self.run_api("retype", "TASK-004", "2", "Story")
+        self.assertEqual(self.last("POST")["body"], {"project": "p1", "version": 2, "type": "Story"})
         self.assertIn("STORY-009", result.stdout)
 
-    def test_no_purge_command(self):
-        result = self.run_api("purge", "EPIC-001", "v1")
-        self.assertEqual(result.returncode, 2)
-        self.assertEqual(self.viewer.calls("DELETE"), [])
+    def test_move_resolves_the_parent_and_moves_to_the_top_with_a_dash(self):
+        self.viewer.add_label("p1", "EPIC-002", "u-epic2")
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/move")] = (200, {"label": "STORY-001"})
+        self.run_api("move", "STORY-001", "4", "EPIC-002", "--position", "0")
+        self.assertEqual(self.last("POST")["body"], {"project": "p1", "version": 4, "parent": "u-epic2",
+                                                     "position": 0})
+        self.run_api("move", "STORY-001", "5", "-")
+        self.assertEqual(self.last("POST")["body"], {"project": "p1", "version": 5, "parent": None})
 
-    def test_worktree_uses_the_main_checkout_source(self):
+    def test_reopen_reopens_the_item_and_its_closed_ancestors(self):
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/reopen")] = (200, {"reopened": ["EPIC-001", "STORY-001"]})
+        result = self.run_api("reopen", "STORY-001")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("POST")["body"], {"project": "p1"})
+
+    def test_areas(self):
+        self.viewer.routes[("GET", f"{API}/backlog/areas")] = (200, {"areas": ["A", "B"]})
+        result = self.run_api("areas")
+        self.assertEqual(result.stdout.splitlines(), ["A", "B"])
+
+    def test_no_purge_command(self):
+        result = self.run_api("purge", "EPIC-001", "1")
+        self.assertEqual(result.returncode, 2)
+        self.assertEqual(self.writes(), [])
+
+    def test_worktree_uses_the_project_of_the_main_checkout(self):
         def git(*args, cwd=self.project):
             subprocess.run(["git", *args], cwd=cwd, check=True, capture_output=True)
 
@@ -271,11 +324,11 @@ class BacklogApiTest(unittest.TestCase):
         git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
         worktree = self.project / ".claude" / "worktrees" / "w1"
         git("worktree", "add", "-q", "-b", "w1", str(worktree))
-        self.viewer.routes[("GET", f"{API}/index")] = (200, {"items": []})
+        self.viewer.routes[("GET", f"{API}/backlog/index")] = (200, {"text": "ID", "count": 0})
         result = self.run_api("index", cwd=worktree)
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.viewer.calls("POST"), [])
-        self.assertEqual(self.viewer.calls("GET")[-1]["query"], {"source_id": ["src1"]})
+        self.assertEqual(self.writes(), [])
+        self.assertEqual(self.last("GET")["query"], {"projects": ["p1"]})
 
 
 if __name__ == "__main__":

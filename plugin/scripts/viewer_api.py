@@ -9,15 +9,16 @@ import os
 import sys
 import urllib.error
 import urllib.request
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlencode
+from urllib.parse import quote, urlencode
 
 from harness_config import CONFIG_RELATIVE_PATH, ROOT_PROJECT, ConfigError, project_root
 from projects import Project, load_projects
 from worktree import WorktreeError, in_main_checkout
 
-EXIT_ERROR, EXIT_USAGE, EXIT_UNREACHABLE = 1, 2, 3
+EXIT_ERROR, EXIT_USAGE, EXIT_UNREACHABLE, EXIT_NOT_REGISTERED = 1, 2, 3, 4
 TIMEOUT_SECONDS = 15
 CONFLICT_HINT = "read the item again and check the change before retrying; never retry blindly"
 
@@ -95,6 +96,85 @@ def source_folder(project: Project) -> Path:
     except (WorktreeError, OSError):
         # Not in a Git repository: the folder is its own source.
         return folder.resolve()
+
+
+@dataclass
+class Target:
+    """The viewer project a command works on: its uid goes into every call, labels resolve within it."""
+
+    api: Api
+    uid: str
+    name: str
+
+    def resolve(self, label: str) -> str:
+        """The uid of an element of this project by its label (archived and deleted ones included)."""
+        return self.api.call("GET", f"/workspace/projects/{quote(self.uid)}/labels/{quote(label)}")["uid"]
+
+
+def _mirror_matches(project: dict[str, Any], folder: Path) -> bool:
+    mirror = project.get("mirror_folder")
+    return bool(mirror) and Path(mirror).resolve() == folder
+
+
+def own_target(api: Api, project: Project) -> Target:
+    """The viewer project whose mirror folder is the project's backlog folder; never registers one."""
+    folder = source_folder(project)
+    for record in api.call("GET", "/workspace/projects"):
+        if _mirror_matches(record, folder):
+            return Target(api, record["uid"], record["name"])
+    option = "" if project.name == ROOT_PROJECT else f" --project {project.name}"
+    raise ApiError(
+        f"backlog {folder} is not registered as a project in the ToDo-Viewer. Tell the user and ask whether to "
+        f"register it; only after a yes run: backlog_api.py{option} register",
+        EXIT_NOT_REGISTERED,
+    )
+
+
+def register_project(api: Api, project: Project) -> dict[str, Any]:
+    """Register the project's backlog folder as a viewer project with a mirror; refused if it already is one."""
+    folder = source_folder(project)
+    for record in api.call("GET", "/workspace/projects"):
+        if _mirror_matches(record, folder):
+            raise ApiError(f"backlog {folder} is already registered as {record['name']!r}", EXIT_USAGE)
+    # The root project is named after its main checkout (not a worktree); subprojects keep their own names.
+    name = folder_name(project.root) if project.name == ROOT_PROJECT else project.name
+    body = {"name": name, "mirror_folder": str(folder), "mirror_enabled": True, "auto_sync": True}
+    return api.call("POST", "/workspace/projects", body)
+
+
+def folder_name(root: Path) -> str:
+    try:
+        return in_main_checkout(root).name
+    except (WorktreeError, OSError):
+        return root.resolve().name
+
+
+def named_target(api: Api, name: str) -> Target:
+    """The viewer project with exactly this name (another project's backlog); never registers one."""
+    records = api.call("GET", "/workspace/projects")
+    found = [r for r in records if r.get("name") == name]
+    if not found:
+        known = ", ".join(str(r.get("name")) for r in records)
+        raise ApiError(f"unknown source {name!r} (known: {known})", EXIT_USAGE)
+    return Target(api, found[0]["uid"], found[0]["name"])
+
+
+def target_for(api: Api, project: Project, source_name: str | None) -> Target:
+    return own_target(api, project) if source_name is None else named_target(api, source_name)
+
+
+def print_projects(api: Api) -> None:
+    """One line per viewer project: its name and its mirror folder, if any."""
+    print("Project | Folder")
+    for record in api.call("GET", "/workspace/projects"):
+        print(f"{record.get('name')} | {record.get('mirror_folder') or '-'}")
+
+
+def version_arg(value: str) -> int:
+    try:
+        return int(value)
+    except ValueError:
+        raise ApiError(f"version must be the number from the last answer, got {value!r}", EXIT_USAGE) from None
 
 
 def source_record(api: Api, folder: Path, project: Project) -> dict[str, Any]:

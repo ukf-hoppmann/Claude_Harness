@@ -133,46 +133,57 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Ohne `--project` gilt das Root-Projekt, sonst das eingetragene
   Teilprojekt. Backlog-Ordner (`todo.path`) und URL (`todo.api_url`) kommen
   aus dessen Config; einen Pfad nimmt das Skript nicht entgegen.
-- Quelle: Das Skript sucht in `GET /sources` den Eintrag, dessen `path` der
-  Backlog-Ordner ist, und legt ihn sonst mit `POST /sources` an (Meldung auf
-  stderr); für ein Teilprojekt mit dessen Namen als `project`, für das
-  Root-Projekt ohne (der Server nimmt den Namen des Git-Repos). Liegt der
-  Ordner in einem Git-Worktree, gilt derselbe Ordner im Haupt-Checkout: Der
-  Server schreibt immer dort.
+- Projekt: Das Skript sucht in `GET /workspace/projects` das Viewer-Projekt,
+  dessen `mirror_folder` der Backlog-Ordner ist, und schickt dessen `uid` bei
+  jedem Aufruf mit (`projects`/`project`). Liegt der Ordner in einem
+  Git-Worktree, gilt derselbe Ordner im Haupt-Checkout: Der Server schreibt
+  immer dort. Gibt es kein solches Projekt, bricht das Skript mit Exit 4 ab
+  und legt nichts an; registriert wird nur mit dem eigenen Befehl `register`.
+- Labels: Die KI nennt Items mit ihren IDs. Wo der Server interne `uid`s
+  verlangt (`parent`, `dependencies`, Papierkorb), löst das Skript die IDs
+  über `GET /workspace/projects/{uid}/labels/{ID}` auf; eine unbekannte ID
+  bricht vor dem Schreiben ab (Exit 1, `not_found`). `required_for_parent`
+  nimmt `Yes`/`No` oder `true`/`false`.
 - Fremdes Backlog: `--source <Name>` (statt `--project`; beide zusammen sind
-  ein Aufruffehler, Exit 2) spricht die Quelle des Viewers an, deren
-  `project` genau dem Namen entspricht, auch eine reine Datenbank-Quelle ohne
-  Ordner wie `Misc`. Die URL kommt weiter aus der Config des Session-Projekts,
-  dessen Modul `todo` an sein muss. Ein unbekannter Name (Exit 2, mit Liste
-  der bekannten) oder ein mehrdeutiger Name bricht ab; es wird nie eine Quelle
-  angelegt. Wann die KI das nutzen darf, regelt der Skill `todo`
+  ein Aufruffehler, Exit 2) spricht das Viewer-Projekt mit genau diesem Namen
+  an, auch eines ohne Spiegel-Ordner wie `Allgemein`. Die URL kommt weiter aus
+  der Config des Session-Projekts, dessen Modul `todo` an sein muss. Ein
+  unbekannter Name bricht ab (Exit 2, mit Liste der bekannten); es wird nie
+  ein Projekt angelegt. Wann die KI das nutzen darf, regelt der Skill `todo`
   (ausdrückliche Freigabe des Owners); das Skript prüft das nicht.
-- Befehle:
+- Befehle (Routen unter `todo.api_url`):
 
   | Befehl | Wirkung |
   |---|---|
-  | `health` | Erreichbarkeit (`GET /health`) |
-  | `sources` | `Project \| Folder` jeder Quelle, die der Viewer kennt (die Namen für `--source`; `-` ohne Ordner) |
-  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` |
+  | `health` | Erreichbarkeit (`GET /core/health`) |
+  | `sources` | `Project \| Folder` jedes Viewer-Projekts (die Namen für `--source`; `-` ohne Spiegel-Ordner) |
+  | `register` | Backlog-Ordner als Viewer-Projekt anlegen (`POST /workspace/projects`, Spiegel und Auto-Sync an); Name beim Root-Projekt der Ordnername des Haupt-Checkouts, sonst der Name des Teilprojekts. Abgelehnt (Exit 2), wenn der Ordner schon registriert ist oder mit `--source` |
+  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` (`GET /backlog/index`) |
   | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte |
-  | `create` | Neuer Eintrag; stdin: JSON-Felder ohne `source_id`; die ID vergibt der Server |
-  | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` |
+  | `areas` | Benutzte Bereiche, einer pro Zeile |
+  | `create` | Neuer Eintrag; stdin: flaches JSON mit `type` und den Feldern; die ID vergibt der Server |
+  | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` (`PUT /backlog/items/{ID}`) |
+  | `move <ID> <version> <parent\|-> [--position N]` | Neuer Parent (`-` = keiner) und Position unter den Geschwistern |
+  | `reopen <ID>` | Eintrag und geschlossene Vorfahren auf `In progress`, von oben nach unten |
   | `note <ID>` | Notes-Eintrag anhängen; stdin: `{topic, discussed, decided, open, summary?}` |
   | `doc <ID> <name>` | Notes oder Spec ausgeben: `version: <v>`, Leerzeile, Inhalt |
   | `put-doc <ID> <name> <version\|new> [--summary TEXT]` | Dokument mit dem Text von stdin ersetzen oder neu anlegen |
-  | `retype <ID> <version> <type>` | Typ ändern (`Epic`, `Story`, `Task`; `POST /items/{source}/{ID}/retype`); der Eintrag erhält die nächste freie ID des neuen Typs, alle Verweise ziehen mit; Antwort: Eintrag mit neuer ID |
-  | `delete <ID> <version> [--cascade]` | In den Papierkorb, mit `--cascade` samt Nachfahren |
-  | `trash` | Einträge im Papierkorb als JSON |
-  | `restore <ID> <version>` | Aus dem Papierkorb zurückholen |
+  | `retype <ID> <version> <type>` | Typ ändern (`Epic`, `Story`, `Task`); der Eintrag erhält die nächste freie ID des neuen Typs, Verweise in den Texten des Projekts ziehen mit; Antwort mit `old_label` und `new_label` |
+  | `delete <ID> <version> [--cascade]` | In den Papierkorb (`DELETE /workspace/elements/{uid}`), mit `--cascade` samt Nachfahren |
+  | `trash` | Backlog-Einträge des Projekts im Papierkorb als JSON |
+  | `restore <ID>` | Aus dem Papierkorb zurückholen, samt der mit ihm gelöschten Nachfahren |
 
-  Endgültiges Löschen aus dem Papierkorb bietet das Skript bewusst nicht an;
-  das macht nur der Projektverantwortliche.
+  Eine `version` ist eine Zahl (Revision des Registers); eine andere Angabe
+  ist ein Aufruffehler (Exit 2), bevor etwas an den Server geht. Endgültiges
+  Löschen aus dem Papierkorb bietet das Skript bewusst nicht an; das macht nur
+  der Projektverantwortliche.
 - Exit-Code: 0 bei Erfolg; 1 bei einer Fehlerantwort des Servers (stderr:
   `HTTP <Status> <code>: <message>`, dazu `details`; bei `version_conflict`
   der Hinweis, neu zu lesen statt blind zu wiederholen); 2 bei falschem
-  Aufruf, ungültigem JSON auf stdin, fehlender oder ungültiger Config,
-  unbekanntem Projekt oder abgeschaltetem Modul `todo`; 3, wenn der Server nicht
-  erreichbar ist.
+  Aufruf, ungültigem JSON auf stdin, ungültiger Version, fehlender oder
+  ungültiger Config, unbekanntem Projekt oder abgeschaltetem Modul `todo`; 3,
+  wenn der Server nicht erreichbar ist; 4, wenn der Backlog-Ordner nicht als
+  Viewer-Projekt registriert ist.
 
 ## Skript `notes_api.py`
 
