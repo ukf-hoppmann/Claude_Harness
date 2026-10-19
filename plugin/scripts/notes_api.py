@@ -65,6 +65,7 @@ Writing (JSON on stdin; <version> is the number you read last):
 
 NOTES_KINDS = ("note", "topic")
 ARCHIVED = "done,dropped,promoted"
+OPEN = "waiting,due,snoozed"
 # Older names of trigger kinds and fields, still accepted.
 TRIGGER_KIND_ALIASES = {"topic_due": "topic_date"}
 
@@ -122,8 +123,8 @@ def _index(ctx: Context) -> None:
         statuses.append("due")
     if ctx.options.get("--archived"):
         statuses.append(ARCHIVED)
-    if statuses:
-        query["statuses"] = ",".join(statuses)
+    # Without a filter the server lists every status; the lean index shows open notes only.
+    query["statuses"] = ",".join(statuses) if statuses else OPEN
     if "--query" in ctx.options:
         query["query"] = str(ctx.options["--query"])
     index = ctx.api.call("GET", "/notes/index/lines", query=query)

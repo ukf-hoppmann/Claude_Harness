@@ -106,7 +106,8 @@ class NotesApiTest(unittest.TestCase):
             "Notes: Label | Status | Reason | Review at | Topic | Summary",
             "NOTE-001 | due | review_expired | x | - | S",
         ])
-        self.assertEqual(self.last()["query"], {"projects": ["p1"]})
+        # Without a filter only open notes: the archive is read with --archived.
+        self.assertEqual(self.last()["query"], {"projects": ["p1"], "statuses": ["waiting,due,snoozed"]})
 
     def test_index_filters_and_all_projects(self):
         self.route("GET", f"{N}/index/lines", {"topics": "Label", "notes": "Label"})
@@ -115,7 +116,9 @@ class NotesApiTest(unittest.TestCase):
             "projects": ["p1"], "statuses": ["snoozed,due,done,dropped,promoted"], "query": ["DB"],
         })
         self.run_api("index", "--all-projects")
-        self.assertEqual(self.last()["query"], {})
+        self.assertEqual(self.last()["query"], {"statuses": ["waiting,due,snoozed"]})
+        self.run_api("index", "--archived")
+        self.assertEqual(self.last()["query"], {"projects": ["p1"], "statuses": ["done,dropped,promoted"]})
 
     def test_due_lists_all_projects(self):
         self.route("GET", f"{N}/due", {"count": 1, "notes": [{"label": "NOTE-001"}]})
