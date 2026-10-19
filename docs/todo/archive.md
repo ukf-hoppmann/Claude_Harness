@@ -449,27 +449,6 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Resolution: Rejected by the project owner on 2026-09-24: folded into the
     spec of `STORY-022`; the native worktree tools cover the rest.
 
-- `EPIC-008` **Backlog über die API des ToDo-Viewers**
-  - Uid: 6da1ed5f-d947-48b4-b198-8bd2e96ef709.
-  - Type: Epic.
-  - Status: Completed.
-  - Created: 2026-09-28.
-  - Area: Konfiguration.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Agenten pflegen Backlogs standardmäßig über die HTTP-API des
-    ToDo-Viewers statt die Markdown-Dateien direkt zu schreiben; der direkte
-    Dateizugriff bleibt als wählbarer Modus und als Rückfall erhalten. Das
-    Backlog-Format in `format.md` ist verbindlich, der Viewer setzt es um.
-  - Completion criteria: Alle Pflicht-Stories sind abgeschlossen; ein
-    Projekt mit Standard-Config arbeitet über die API, ein Projekt mit
-    `backend = "files"` wie bisher; ist der Server nicht erreichbar, weist
-    der Agent darauf hin und fragt, wie er vorgehen soll.
-  - Summary: Der Backlog wird künftig über den ToDo-Viewer gepflegt. Der
-    Server prüft Format und Regeln und vergibt IDs; direkter Dateizugriff
-    bleibt als Rückfall.
-  - Resolution: Vom Projektverantwortlichen am 2026-09-28 bestätigt.
-
 - `TASK-018` **todo-Skill: Lücken beim Wiedereröffnen und bei geschlossenen Parents**
   - Uid: 6e935c76-1ddb-4ff5-ba81-ec7564f1462c.
   - Type: Task.

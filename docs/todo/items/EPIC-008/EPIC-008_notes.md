@@ -82,3 +82,19 @@
 
 - Vom Projektverantwortlichen freigegeben: EPIC-008 wieder öffnen, `TASK-016` darunter.
 - Der Helfer liest den Backlog-Ordner aus der Config (Root oder `--project <Name>`), wie `daily.py`; beim Anlegen einer Quelle wird der Projektname mitgegeben.
+
+## 2026-10-19 — Wiedereröffnung: Umstellung auf den MCP-Server des Viewers
+
+### Discussed
+
+- Der Neubau des ToDo-Viewers hat /api/v2 entfernt; backlog_api.py und notes_api.py laufen gegen 404. Die neue Schnittstelle bietet HTTP-Routen unter /api/<plugin>/… und einen MCP-Server unter /mcp (63 Tools, live geprüft).
+
+### Decided
+
+- EPIC-008 wird wieder geöffnet (Freigabe des Projektverantwortlichen). Eine neue Pflicht-Story stellt die Skills todo und notes auf die MCP-Tools des Viewers um; MCP ist für die lokale Arbeit besser geeignet als ein eigener HTTP-Helfer.
+
+### Open
+
+- Regel für fremde Projekte unter MCP (bisher --source mit Freigabe).
+- Verhalten bei nicht erreichbarem Server ohne Exit-Code 3.
+- Ob die Wecker (alarms_*) eigene Harness-Regeln brauchen.

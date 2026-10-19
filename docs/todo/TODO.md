@@ -247,3 +247,47 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Klare Schritte, wie der Stand zwischen Cloud und dem lokalen
     ToDo-Viewer hin und her wandert, damit nichts verloren geht und lokal
     weiter nur die API genutzt wird.
+
+- `EPIC-008` **Backlog über die API des ToDo-Viewers**
+  - Uid: 6da1ed5f-d947-48b4-b198-8bd2e96ef709.
+  - Type: Epic.
+  - Status: In progress.
+  - Created: 2026-09-28.
+  - Area: Konfiguration.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Agenten pflegen Backlogs standardmäßig über die HTTP-API des
+    ToDo-Viewers statt die Markdown-Dateien direkt zu schreiben; der direkte
+    Dateizugriff bleibt als wählbarer Modus und als Rückfall erhalten. Das
+    Backlog-Format in `format.md` ist verbindlich, der Viewer setzt es um.
+  - Completion criteria: Alle Pflicht-Stories sind abgeschlossen; ein
+    Projekt mit Standard-Config arbeitet über die API, ein Projekt mit
+    `backend = "files"` wie bisher; ist der Server nicht erreichbar, weist
+    der Agent darauf hin und fragt, wie er vorgehen soll.
+  - Summary: Der Backlog wird künftig über den ToDo-Viewer gepflegt. Der
+    Server prüft Format und Regeln und vergibt IDs; direkter Dateizugriff
+    bleibt als Rückfall.
+
+- `STORY-049` **todo- und notes-Skill auf den MCP-Server des ToDo-Viewers umstellen**
+  - Uid: 2ce085bd-4cec-4365-b046-a19fd2ccd8d6.
+  - Type: Story.
+  - Parent: `EPIC-008`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-10-19.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Claude arbeitet im API-Modus über die MCP-Tools des Viewers (/mcp)
+    an Backlog und Notes statt über backlog_api.py und notes_api.py. Das
+    Plugin bringt die MCP-Verbindung mit; die Skills todo und notes
+    beschreiben die Tools statt der Helfer-Befehle.
+  - Completion criteria: Das Plugin registriert den MCP-Server des Viewers;
+    todo/api.md und notes.md beschreiben die Tool-Abläufe (Projekt-uid
+    ermitteln, version, Fehlercodes, nicht erreichbarer Server); die Regel
+    für fremde Projekte (bisher --source mit Freigabe) ist für MCP neu
+    gefasst; Session-Start und Config nennen die MCP-Adresse statt /api/v2;
+    die alten Helfer und ihre Tests sind entfernt oder umgestellt; Lese-,
+    Schreib- und Notizfluss sind gegen den laufenden Viewer geprüft.
+  - Summary: Der Viewer-Neubau hat /api/v2 entfernt; Claude soll künftig
+    direkt die MCP-Tools des Viewers nutzen statt eigener Helfer-Skripte.

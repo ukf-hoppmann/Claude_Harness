@@ -9,5 +9,6 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Uid: 4cbd0b53-8ec9-5ab4-9fcf-b052e0cbbc27.
   - At: 2026-10-09T07:00:00Z.
   - Target: `NOTE-001`.
-  - Status: Due.
+  - Status: Done.
+  - Done at: 2026-10-18T18:48:53Z.
   - Created: 2026-10-17.
