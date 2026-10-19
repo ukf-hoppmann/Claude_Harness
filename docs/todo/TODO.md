@@ -268,38 +268,6 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     Server prüft Format und Regeln und vergibt IDs; direkter Dateizugriff
     bleibt als Rückfall.
 
-- `STORY-049` **Helfer für Backlog, Notes und Wecker auf die neue Viewer-API umstellen**
-  - Uid: 2ce085bd-4cec-4365-b046-a19fd2ccd8d6.
-  - Type: Story.
-  - Parent: `EPIC-008`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-10-19.
-  - Area: Entwicklung.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: backlog_api.py und notes_api.py arbeiten wieder: Sie sprechen die
-    neuen HTTP-Routen des Viewers (/api/backlog, /api/notes, /api/workspace,
-    /api/alarms) an. Das Projekt kommt weiter deterministisch aus Config und
-    Hauptarbeitskopie, Claude gibt es nie selbst an. Der Helfer gleicht
-    Schwächen der Schnittstelle aus (Labels statt uids in parent und
-    dependencies, Yes/No, unbekanntes Projekt als Fehler) und legt Projekte
-    im Viewer nur auf ausdrücklichen Befehl an. Wecker kommen als neue
-    Befehle und im Skill dazu.
-  - Completion criteria: Alle bisherigen Befehle von backlog_api.py und
-    notes_api.py laufen gegen den neuen Viewer; parent und dependencies
-    nehmen Labels; ein unbekanntes oder nicht registriertes Projekt bricht
-    mit klarer Meldung ab, statt still leer zu antworten oder ein Projekt
-    anzulegen; Projekte werden nur mit einem eigenen Befehl nach Rückfrage
-    registriert; Wecker lassen sich lesen, stellen, ändern, zurückstellen
-    und erledigen; Session-Start, Config-Vorlage (api_url ohne /api/v2),
-    Skills todo/notes und Techdocs beschreiben den neuen Stand; die
-    Integrationstests sind umgestellt und grün; Lese-, Schreib- und
-    Notizfluss sind gegen den laufenden Viewer geprüft.
-  - Summary: Der Viewer-Neubau hat /api/v2 entfernt. Die Helfer werden auf
-    die neue HTTP-API umgestellt; die Anbindung über MCP folgt später, wenn
-    der MCP-Server im Viewer überarbeitet ist.
-
 - `STORY-050` **Skills auf den MCP-Server des ToDo-Viewers umstellen**
   - Uid: 4846f8a8-2123-46a5-b63f-8fe463446f92.
   - Type: Story.
