@@ -156,13 +156,13 @@ class HookTest(unittest.TestCase):
         self.write_config(backend="api")
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
         out = self.run_hook("session_start.py", {}).stdout
-        self.assertIn("Backlog: docs/todo via ToDo-Viewer API (http://localhost:5411/api/v2);", out)
+        self.assertIn("Backlog: docs/todo via ToDo-Viewer API (http://localhost:5411/api);", out)
         self.assertNotIn("errors", out)
 
     def test_session_start_names_notes_module_without_network(self):
         self.write_config(backend="api")
         out = self.run_hook("session_start.py", {}).stdout
-        self.assertIn("Notes: via ToDo-Viewer API (http://localhost:5411/api/v2); rules in skill claude-harness:todo", out)
+        self.assertIn("Notes: via ToDo-Viewer API (http://localhost:5411/api); rules in skill claude-harness:todo", out)
         self.write_config(backend="files")
         out = self.run_hook("session_start.py", {}).stdout
         self.assertNotIn("Notes:", out)

@@ -19,7 +19,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `modules.semver` | Boolean | `false` | nein | Schaltet die Versionierung nach SemVer ein (Skill `claude-harness:semver`) |
 | `todo.path` | Pfad | `"todo"` | nein | Backlog-Ordner, relativ zu `docs.root` |
 | `todo.backend` | Text | `"api"` | nein | Wie die AI den Backlog pflegt: `api` über die HTTP-API des ToDo-Viewers (der Server prüft Format und Regeln, kein Backlog-Check am Turn-Ende), `files` direkt in den Markdown-Dateien (mit Backlog-Check). Ist der Server nicht erreichbar, fragt die AI, ob er gestartet oder auf Dateien ausgewichen wird |
-| `todo.api_url` | URL | `"http://localhost:5411/api/v2"` | nein | Basis-URL der ToDo-Viewer-API; nur für `todo.backend = "api"` |
+| `todo.api_url` | URL | `"http://localhost:5411/api"` | nein | Basis-URL der HTTP-API des ToDo-Viewers (darunter `/backlog`, `/notes`, `/alarms`, `/workspace`, `/core`); nur für `todo.backend = "api"`. Die Adresse des alten Viewers (`…/api/v2`) wird als `…/api` gelesen, alte Configs laufen ohne Änderung weiter |
 | `daily.path` | Pfad | `"daily"` | nein | Ordner der Tagesberichte, relativ zu `docs.root` |
 | `techdocs.path` | Pfad | `"techdocs"` | nein | Ordner der Systemdoku, relativ zu `docs.root` |
 | `development.path` | Pfad | `"development"` | nein | Ordner der Regeln der Suite, relativ zu `docs.root` |
@@ -81,7 +81,7 @@ development = true
 [todo]
 path = "todo"
 backend = "api"
-api_url = "http://localhost:5411/api/v2"
+api_url = "http://localhost:5411/api"
 
 [daily]
 path = "daily"

@@ -26,7 +26,7 @@ are relative to it.
      `development`, `semver`; `semver` is off unless the user wants it);
    - for `todo`: the backlog folder relative to `docs.root` (default `todo`),
      and whether the AI works through the ToDo-Viewer API (`backend = "api"`,
-     default; `api_url` defaults to `http://localhost:5411/api/v2`) or on
+     default; `api_url` defaults to `http://localhost:5411/api`) or on
      the files directly (`backend = "files"`; notes need the API);
    - for `daily`: the report folder relative to `docs.root` (default
      `daily`);

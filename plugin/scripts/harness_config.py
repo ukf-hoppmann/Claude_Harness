@@ -21,7 +21,9 @@ DEFAULT_TODO_PATH = PurePosixPath("todo")
 TODO_BACKENDS = ("api", "files")
 DEFAULT_TODO_BACKEND = "api"
 # Default address of the ToDo-Viewer container (bound to localhost only); todo.api_url overrides it.
-DEFAULT_TODO_API_URL = "http://localhost:5411/api/v2"
+DEFAULT_TODO_API_URL = "http://localhost:5411/api"
+# The old viewer served /api/v2; the rebuilt one serves /api/<plugin>/... Old configs are read as the new address.
+_OLD_API_SUFFIX = "/api/v2"
 DEFAULT_DAILY_PATH = PurePosixPath("daily")
 DEFAULT_TECHDOCS_PATH = PurePosixPath("techdocs")
 DEFAULT_DEVELOPMENT_PATH = PurePosixPath("development")
@@ -231,6 +233,11 @@ def load_config(root: Path, *, subproject: bool = False) -> HarnessConfig | None
     return parse_config(data, subproject=subproject)
 
 
+def _api_base(url: str) -> str:
+    url = url.rstrip("/")
+    return url[: -len("/v2")] if url.endswith(_OLD_API_SUFFIX) else url
+
+
 def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessConfig:
     errors: list[str] = []
 
@@ -334,7 +341,7 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
         semver_sync=semver_sync,
         semver_paths=semver_paths,
         todo_backend=todo_backend,
-        todo_api_url=todo_api_url.rstrip("/"),
+        todo_api_url=_api_base(todo_api_url),
         cloud_export=cloud_export,
     )
 
