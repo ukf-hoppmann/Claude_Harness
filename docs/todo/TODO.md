@@ -268,7 +268,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     Server prüft Format und Regeln und vergibt IDs; direkter Dateizugriff
     bleibt als Rückfall.
 
-- `STORY-049` **todo- und notes-Skill auf den MCP-Server des ToDo-Viewers umstellen**
+- `STORY-049` **Helfer für Backlog, Notes und Wecker auf die neue Viewer-API umstellen**
   - Uid: 2ce085bd-4cec-4365-b046-a19fd2ccd8d6.
   - Type: Story.
   - Parent: `EPIC-008`.
@@ -278,16 +278,51 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Area: Entwicklung.
   - Priority: Important.
   - Dependencies: None.
-  - Goal: Claude arbeitet im API-Modus über die MCP-Tools des Viewers (/mcp)
-    an Backlog und Notes statt über backlog_api.py und notes_api.py. Das
-    Plugin bringt die MCP-Verbindung mit; die Skills todo und notes
-    beschreiben die Tools statt der Helfer-Befehle.
-  - Completion criteria: Das Plugin registriert den MCP-Server des Viewers;
-    todo/api.md und notes.md beschreiben die Tool-Abläufe (Projekt-uid
-    ermitteln, version, Fehlercodes, nicht erreichbarer Server); die Regel
-    für fremde Projekte (bisher --source mit Freigabe) ist für MCP neu
-    gefasst; Session-Start und Config nennen die MCP-Adresse statt /api/v2;
-    die alten Helfer und ihre Tests sind entfernt oder umgestellt; Lese-,
-    Schreib- und Notizfluss sind gegen den laufenden Viewer geprüft.
-  - Summary: Der Viewer-Neubau hat /api/v2 entfernt; Claude soll künftig
-    direkt die MCP-Tools des Viewers nutzen statt eigener Helfer-Skripte.
+  - Goal: backlog_api.py und notes_api.py arbeiten wieder: Sie sprechen die
+    neuen HTTP-Routen des Viewers (/api/backlog, /api/notes, /api/workspace,
+    /api/alarms) an. Das Projekt kommt weiter deterministisch aus Config und
+    Hauptarbeitskopie, Claude gibt es nie selbst an. Der Helfer gleicht
+    Schwächen der Schnittstelle aus (Labels statt uids in parent und
+    dependencies, Yes/No, unbekanntes Projekt als Fehler) und legt Projekte
+    im Viewer nur auf ausdrücklichen Befehl an. Wecker kommen als neue
+    Befehle und im Skill dazu.
+  - Completion criteria: Alle bisherigen Befehle von backlog_api.py und
+    notes_api.py laufen gegen den neuen Viewer; parent und dependencies
+    nehmen Labels; ein unbekanntes oder nicht registriertes Projekt bricht
+    mit klarer Meldung ab, statt still leer zu antworten oder ein Projekt
+    anzulegen; Projekte werden nur mit einem eigenen Befehl nach Rückfrage
+    registriert; Wecker lassen sich lesen, stellen, ändern, zurückstellen
+    und erledigen; Session-Start, Config-Vorlage (api_url ohne /api/v2),
+    Skills todo/notes und Techdocs beschreiben den neuen Stand; die
+    Integrationstests sind umgestellt und grün; Lese-, Schreib- und
+    Notizfluss sind gegen den laufenden Viewer geprüft.
+  - Summary: Der Viewer-Neubau hat /api/v2 entfernt. Die Helfer werden auf
+    die neue HTTP-API umgestellt; die Anbindung über MCP folgt später, wenn
+    der MCP-Server im Viewer überarbeitet ist.
+
+- `STORY-050` **Skills auf den MCP-Server des ToDo-Viewers umstellen**
+  - Uid: 4846f8a8-2123-46a5-b63f-8fe463446f92.
+  - Type: Story.
+  - Parent: `EPIC-008`.
+  - Required for parent: No.
+  - Status: Open.
+  - Created: 2026-10-19.
+  - Area: Entwicklung.
+  - Priority: Normal.
+  - Dependencies: `STORY-049`.
+  - Goal: Claude arbeitet im API-Modus über die MCP-Tools des Viewers an
+    Backlog, Notes und Weckern, sobald der MCP-Server im Viewer überarbeitet
+    ist. Das Projekt gibt Claude dabei nicht selbst an: Ein PreToolUse-Hook
+    des Harness setzt das eigene Projekt deterministisch ein und fragt bei
+    einem fremden Projekt nach.
+  - Completion criteria: Das Plugin bringt eine .mcp.json mit
+    http://localhost:5411/mcp mit; ein PreToolUse-Hook setzt das eigene
+    Projekt ein (aus Config und Hauptarbeitskopie) und fragt bei fremdem
+    Projekt nach; der Session-Start meldet Projekt und Erreichbarkeit des
+    Viewers; die Skills todo und notes beschreiben die Tools, die Helfer
+    bleiben als Rückfall; Lese-Tools lassen sich über init/update in den
+    Projekt-Settings freigeben; Lese-, Schreib- und Notizfluss sind über MCP
+    gegen den laufenden Viewer geprüft.
+  - Summary: Spätere Umstellung von den Helfer-Skripten auf die nativen
+    MCP-Tools des Viewers. Sie wartet auf STORY-049 und auf den Umbau des
+    MCP-Servers im ToDo-Viewer.

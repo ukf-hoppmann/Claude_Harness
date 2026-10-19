@@ -37,3 +37,17 @@
 - Projekt-uid im Session-Start ausgeben (Vorschlag liegt vor).
 - Verhalten bei nicht erreichbarem Server (Vorschlag: Health-Check im Session-Start und Regel im Skill).
 - Berechtigungen für die MCP-Tools (Vorschlag: Lese-Tools freigeben, Schreib-Tools folgen dem Berechtigungsmodus).
+
+## 2026-10-19 — Neuausrichtung: erst die HTTP-API, MCP später
+
+### Discussed
+
+- MCP verlangt das Projekt bei jedem Aufruf; die API funktionierte gut, weil der Helfer das Projekt deterministisch aus Config und Hauptarbeitskopie nahm und Claude es nie angab.
+- Eine falsche Projekt-uid legt per MCP kein Projekt an; backlog_index_lines liefert dann aber still eine leere Liste.
+
+### Decided
+
+- Die Story stellt nur die Helfer auf die neue HTTP-API um (Titel, Ziel und Abschlusskriterien angepasst). Die MCP-Anbindung ist STORY-050 und wartet auf den Umbau des MCP-Servers im ToDo-Viewer (dort STORY-092).
+- Projekte im Viewer werden nur auf ausdrücklichen Befehl nach Rückfrage registriert; das stille Registrieren in viewer_api.py entfällt.
+- Fremde Projekte: keine technische Sperre, nur auf Aufforderung des Eigners (Regel im Skill bleibt).
+- Wecker kommen als Befehle und in den Skill; Sync nicht, er läuft automatisch.
