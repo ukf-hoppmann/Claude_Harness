@@ -334,6 +334,8 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Completion criteria: Bestätigungsbefehl und Prüfung sind umgesetzt und
     mit Unit-Tests abgedeckt (Kopf aktuell, veraltet, fehlend, Stempel ohne
     Kopfänderung gesetzt); Doku in format.md bzw. Techdocs aktualisiert.
+  - Summary: Im Dateimodus kann der Harness die Übersicht einer Notes-Datei
+    bestätigen und meldet, wenn sie veraltet ist.
 
 - `TASK-021` **Notes-Regeln und Format im todo-Skill**
   - Uid: 5a3e2a33-b822-45e7-86c8-4678f5be0e3e.
@@ -352,6 +354,8 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Completion criteria: Die Texte entsprechen der Spec von STORY-051;
     offene Regelpunkte sind vom Owner entschieden und eingearbeitet;
     funktionale Tests zu den Skill-Texten (falls vorhanden) laufen.
+  - Summary: Die beschlossenen Regeln zum Protokollieren und zum Aufbau der
+    Notes werden in die Anleitung des Harness geschrieben.
 
 - `TASK-024` **Hooks für aktuellen Notes-Kopf und Protokoll-Reminder**
   - Uid: 93bf2558-2beb-4088-9d63-c4e980a0fac4.
@@ -372,6 +376,8 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     Plugin-Konfiguration registriert, in der Doku beschrieben und getestet
     (Unit-Tests; Endlosschleife ausgeschlossen, weil Bestätigen den Hook
     auflöst).
+  - Summary: Ein Hook sorgt dafür, dass die Übersicht nach jeder Änderung
+    der Notes geprüft wird, und erinnert ans Protokollieren.
 
 - `TASK-023` **Kopf-Befehle im API-Helfer**
   - Uid: a62d3a80-a788-4d27-8a5f-e693881bc93f.
@@ -390,3 +396,26 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Completion criteria: Befehle sind umgesetzt, in api.md beschrieben und
     mit Unit-Tests gegen einen Test-Server bzw. Mock abgedeckt; die
     Schnittstelle stimmt mit der Umsetzung im ToDo-Viewer überein.
+  - Summary: Im API-Modus kann der Harness die Übersicht einer Notes-Datei
+    getrennt lesen, ersetzen und bestätigen.
+
+- `TASK-025` **Nachfrage bei Notes an eine Story mit Kind in Arbeit**
+  - Uid: 45d14f50-cb70-43f8-911c-57dd9c710f0e.
+  - Type: Task.
+  - Parent: `STORY-051`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-10-20.
+  - Area: Entwicklung.
+  - Priority: Urgent.
+  - Dependencies: `TASK-021`.
+  - Goal: Schreibt die LLM einen Notes-Eintrag an eine Story, während eines
+    ihrer Kinder In progress ist, gibt der Helfer einen Hinweis aus ('TASK-x
+    ist in Arbeit, gehört das dorthin?'). Der Eintrag wird trotzdem
+    geschrieben (Prüfidee A, nur Nachfrage).
+  - Completion criteria: Hinweis in backlog_api.py (note, put-doc auf Notes)
+    und im Files-Modus in der Backlog-Prüfung umgesetzt; Unit-Tests für
+    Story mit/ohne Kind in Arbeit und für Tasks (kein Hinweis); der Eintrag
+    wird nie abgelehnt; Doku in api.md bzw. format.md.
+  - Summary: Schreibt Claude Protokolle an eine Story, während einer ihrer
+    Tasks in Arbeit ist, fragt der Harness nach, ob das dorthin gehört.

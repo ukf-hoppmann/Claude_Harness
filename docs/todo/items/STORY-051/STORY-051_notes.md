@@ -3,9 +3,8 @@
 ## Stand
 
 - Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
-- Nächster Schritt: Task für Prüfidee A anlegen (Owner-Freigabe), dann TASK-021 umsetzen; im ToDo-Viewer zuerst die abwärtskompatible Erweiterung.
-- Offen:
-  - Eigener Task für Prüfidee A (2026-10-20)
+- Nächster Schritt: TASK-021 umsetzen; danach TASK-022 und TASK-025, TASK-023 sobald der ToDo-Viewer erweitert ist, TASK-024 zuletzt.
+- Offen: nichts
 - Beschlossen:
   - Notes: Kopf „Stand“ oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Reihenfolge Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
   - Protokollregeln: spezifischstes Item, Kernfrage/Optionen/Entscheidung mit Begründung/Verworfenes, nach jeder geklärten Frage schreiben (2026-10-20)
@@ -16,9 +15,9 @@
   - Prüfidee A nur als Nachfrage, B als Reminder; C und D nicht (2026-10-20)
   - Langer Kopf nur Hinweis (ab 15 Beschlüssen); Umschreiben älterer Einträge nur Hinweis (2026-10-20)
   - Umstellung: Viewer zuerst abwärtskompatibel, dann Harness; alte Notes bekommen den Kopf beim nächsten Bearbeiten (2026-10-20)
-- Verweise: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
+- Verweise: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-Stand bestätigt nach Eintrag 2026-10-20 — Entscheidungen zu Prüfideen, Protokollregeln, Plan, Umstellung (Prüfsumme folgt, Mechanismus noch nicht gebaut)
+Stand bestätigt nach Eintrag 2026-10-20 — TASK-025 angelegt, Specs für alle Tasks (Prüfsumme folgt, Mechanismus noch nicht gebaut)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -253,3 +252,14 @@ Stand bestätigt nach Eintrag 2026-10-20 — Entscheidungen zu Prüfideen, Proto
 ### Open
 
 - Prüfidee A braucht einen eigenen Task (Vorschlag folgt).
+
+## 2026-10-20 — TASK-025 angelegt, Specs für alle Tasks
+
+### Discussed
+
+- Owner möchte nur noch 'umsetzen' sagen können. Dafür hat jeder Task TASK-021 bis TASK-025 eine eigene Spec bekommen, die auf die Story-Spec verweist und Umfang, Abgrenzung und Abnahme festlegt.
+- Reihenfolge: TASK-021 zuerst; danach TASK-022 und TASK-025 (unabhängig vom ToDo-Viewer); TASK-023 braucht die Erweiterung im ToDo-Viewer (sonst gegen Mock); TASK-024 zuletzt. Die Abhängigkeit von TASK-023 zum ToDo-Viewer-Item ist projektübergreifend und nur in der Spec vermerkt.
+
+### Decided
+
+- Owner: TASK-025 (Nachfrage bei Notes an eine Story mit Kind in Arbeit) angelegt, abhängig von TASK-021, für die Story erforderlich. Open vom 2026-10-20 (Task für Prüfidee A) erledigt.
