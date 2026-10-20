@@ -107,3 +107,21 @@
 
 - Ob E in der geschärften Form (E1–E3) umgesetzt wird.
 - Plan speichern oder mit der Spec enden; Maßstab des Längenhinweises; Umgang mit bestehenden Notes-Dateien; Regeln 1–4 und Prüfideen A, C, D.
+
+## 2026-10-20 — Kopf-Absicherung: Stempel plus Hook statt Pflicht-Kopf
+
+### Discussed
+
+- Owner-Vorschlag: Nicht bei jedem Eintrag muss ein neuer Kopf mit. Wurden die Notes angefasst, muss der Kopf entweder geändert oder bewusst unverändert bestätigt werden. Umsetzung: Kopf trägt einen Stempel (wie E1); weicht der Stempel vom letzten Stand der Notes ab, fragt ein Hook, ob der Kopf aktuell ist; die LLM prüft den Kopf und passt ihn an oder bestätigt ihn, womit der Stempel nachgezogen wird.
+- Ergänzungen Claude: (1) Den Stempel setzt der Server, nicht die LLM per Hand: ein neuer Befehl, z. B. 'confirm-state <ID>' (Kopf unverändert bestätigt) bzw. ein optionales 'state' bei note/put-doc (Kopf geändert); beides setzt den Stempel. Vermeidet falsch abgetippte Zeitstempel. (2) Der Stempel verweist auf die Version bzw. den Eintrag, gegen den bestätigt wurde, damit das Setzen des Stempels selbst die Notes nicht wieder 'veraltet' erscheinen lässt. (3) Hook am Stop statt direkt nach dem Schreiben, weil Eintrag und Kopf oft in zwei Aufrufen kommen; geprüft werden nur Items, deren Notes in dieser Session geändert wurden. (4) Der Stop-Hook kann das Turn-Ende blockieren, bis Kopf geändert oder bestätigt ist; Endlosschleife ausgeschlossen, weil Bestätigen ihn immer auflöst.
+- Damit entfallen E2 (Pflicht-Kopf bei note) und die Kopf-Warnung aus E3; die Warnung beim Umschreiben älterer Protokolleinträge (E3) bleibt als eigener Vorschlag.
+
+### Decided
+
+- Kein Pflicht-Kopf bei jedem Eintrag. Nach jeder Änderung der Notes wird der Kopf entweder angepasst oder bewusst als aktuell bestätigt; abgesichert über einen Stempel im Kopf und einen Hook, der bei veraltetem Stempel nachfragt.
+
+### Open
+
+- Ergänzungen (1)–(4) bestätigen, insbesondere ob der Hook das Turn-Ende blockiert oder nur erinnert.
+- Warnung beim Umschreiben älterer Protokolleinträge (Rest von E3).
+- Plan speichern oder mit der Spec enden; Maßstab des Längenhinweises; Umgang mit bestehenden Notes-Dateien; Regeln 1–4 und Prüfideen A, C, D.
