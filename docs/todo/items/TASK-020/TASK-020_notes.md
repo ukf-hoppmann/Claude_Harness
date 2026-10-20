@@ -145,3 +145,18 @@
 - Stempel als Prüfsumme in beiden Modi (statt vom Server gesetzter Zeit).
 - Kopf und Protokoll in der API getrennt speichern und lesen, nach außen eine Datei; Abstimmung mit dem ToDo-Viewer.
 - Warnung beim Umschreiben älterer Protokolleinträge; Plan speichern oder mit der Spec enden; Maßstab des Längenhinweises; Umgang mit bestehenden Notes-Dateien; Regeln 1–4 und Prüfideen A, C, D.
+
+## 2026-10-20 — Prüfsumme und Trennung beschlossen
+
+### Decided
+
+- Stempel als Prüfsumme des Protokolls in beiden Modi (API: Server berechnet; Files: Bestätigungsbefehl in backlog.py, Meldung über die Backlog-Prüfung am Turn-Ende). Open vom 2026-10-20 (Prüfsumme) erledigt.
+- In der API werden Kopf und Protokoll getrennt gespeichert (Kopf 1:1, Einträge 1:n) mit eigenen Befehlen zum Lesen, Ersetzen und Bestätigen des Kopfs; nach außen bleibt es eine Markdown-Datei. Die Umsetzung im ToDo-Viewer ist eigene Arbeit dort; TASK-020 beschreibt die erwartete Schnittstelle. Open vom 2026-10-20 (Trennung) erledigt.
+
+### Open
+
+- Plan speichern oder mit der Spec enden (Empfehlung Claude: mit der Spec enden, Zerlegung über Kinder-Items).
+- Maßstab des Längenhinweises (Empfehlung Claude: Anzahl Punkte unter Beschlossen) und Schwellwert.
+- Warnung beim Umschreiben älterer Protokolleinträge.
+- Umgang mit bestehenden Notes-Dateien (Kopf nachträglich oder beim nächsten Eintrag).
+- Regeln 1–4 und Prüfideen A, C, D.
