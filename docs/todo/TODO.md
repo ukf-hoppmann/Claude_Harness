@@ -304,14 +304,89 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Area: Dokumentation.
   - Priority: Urgent.
   - Dependencies: None.
-  - Goal: Der todo-Skill legt fest, in welches Item (Story oder Task)
-    Diskussionen und Entscheidungen protokolliert werden, was ein
-    Notes-Eintrag mindestens enthält und wann er geschrieben wird; wo
-    sinnvoll, prüft der Harness die Einhaltung mechanisch.
-  - Completion criteria: Der Owner hat die Vorschläge bewertet; die
-    beschlossenen Regeln stehen im todo-Skill (und ggf. format.md);
-    beschlossene Prüfungen (Warnung im Helfer bzw. Hook) sind umgesetzt und
-    getestet.
-  - Summary: Claude schreibt Besprechungen bisher teils ins falsche Item und
-    zu knapp mit. Der Harness soll klar regeln, wo und wie ausführlich
-    protokolliert wird, und das wo möglich prüfen.
+  - Goal: Der todo-Skill legt Ort, Inhalt, Zeitpunkt und Aufbau der
+    Item-Notes fest: Kopf mit dem geltenden Stand, darunter das Protokoll;
+    die Spec wird fortlaufend geschrieben. Der Harness stellt mechanisch
+    sicher, dass der Kopf nach jeder Änderung der Notes geprüft wird.
+  - Completion criteria: Die beschlossenen Regeln stehen im todo-Skill und
+    in format.md; die Prüfsumme des Kopfs wird in API- und Files-Modus
+    gesetzt und geprüft; der Hook am Turn-Ende und der Reminder B sind
+    umgesetzt und getestet; die Schnittstelle zum ToDo-Viewer ist
+    beschrieben und dort umgesetzt.
+  - Summary: Claude schreibt Besprechungen bisher teils ins falsche Item, zu
+    knapp, und lange Notes sind unübersichtlich. Künftig regelt der Harness,
+    wo und wie protokolliert wird; jede Notes-Datei bekommt oben eine
+    Übersicht über den aktuellen Stand, deren Aktualität der Harness prüft.
+
+- `TASK-022` **Kopf-Prüfsumme im Files-Modus**
+  - Uid: 3d2a5e66-74c1-459a-8b7a-2b493a3c1995.
+  - Type: Task.
+  - Parent: `STORY-051`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-10-20.
+  - Area: Entwicklung.
+  - Priority: Urgent.
+  - Dependencies: `TASK-021`.
+  - Goal: backlog.py kann den Kopf einer Notes-Datei bestätigen und schreibt
+    dabei den Stempel mit der Prüfsumme des Protokolls; die Backlog-Prüfung
+    am Turn-Ende meldet Notes, deren Stempel nicht zum Protokoll passt.
+  - Completion criteria: Bestätigungsbefehl und Prüfung sind umgesetzt und
+    mit Unit-Tests abgedeckt (Kopf aktuell, veraltet, fehlend, Stempel ohne
+    Kopfänderung gesetzt); Doku in format.md bzw. Techdocs aktualisiert.
+
+- `TASK-021` **Notes-Regeln und Format im todo-Skill**
+  - Uid: 5a3e2a33-b822-45e7-86c8-4678f5be0e3e.
+  - Type: Task.
+  - Parent: `STORY-051`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-10-20.
+  - Area: Dokumentation.
+  - Priority: Urgent.
+  - Dependencies: None.
+  - Goal: SKILL.md, format.md und api.md beschreiben den Aufbau der Notes
+    (Kopf 'Stand' mit Stempel, darunter das Protokoll), die Rollen von Notes
+    und Spec (Spec fortlaufend, am Ende geprüft) sowie die vom Owner
+    beschlossenen Regeln 1–4 zu Ort, Inhalt und Zeitpunkt.
+  - Completion criteria: Die Texte entsprechen der Spec von STORY-051;
+    offene Regelpunkte sind vom Owner entschieden und eingearbeitet;
+    funktionale Tests zu den Skill-Texten (falls vorhanden) laufen.
+
+- `TASK-024` **Hooks für aktuellen Notes-Kopf und Protokoll-Reminder**
+  - Uid: 93bf2558-2beb-4088-9d63-c4e980a0fac4.
+  - Type: Task.
+  - Parent: `STORY-051`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-10-20.
+  - Area: Entwicklung.
+  - Priority: Urgent.
+  - Dependencies: `TASK-022`, `TASK-023`.
+  - Goal: Ein Hook am Turn-Ende blockiert, solange Notes, die in der Session
+    geändert wurden, einen veralteten Kopf haben, bis der Kopf angepasst
+    oder bestätigt ist (API- und Files-Modus). Ein Reminder (Prüfidee B)
+    erinnert, wenn ein aktives Item seit mehreren Turns keinen Notes-Eintrag
+    bekam.
+  - Completion criteria: Beide Hooks sind umgesetzt, in der
+    Plugin-Konfiguration registriert, in der Doku beschrieben und getestet
+    (Unit-Tests; Endlosschleife ausgeschlossen, weil Bestätigen den Hook
+    auflöst).
+
+- `TASK-023` **Kopf-Befehle im API-Helfer**
+  - Uid: a62d3a80-a788-4d27-8a5f-e693881bc93f.
+  - Type: Task.
+  - Parent: `STORY-051`.
+  - Required for parent: Yes.
+  - Status: Open.
+  - Created: 2026-10-20.
+  - Area: Entwicklung.
+  - Priority: Urgent.
+  - Dependencies: `TASK-021`.
+  - Goal: backlog_api.py bietet Befehle zum Lesen des Kopfs (ohne
+    Protokoll), zum Ersetzen und zum Bestätigen; note nimmt optional einen
+    neuen Kopf mit; veraltete Köpfe meldet der Helfer. Voraussetzung ist die
+    Umsetzung im ToDo-Viewer.
+  - Completion criteria: Befehle sind umgesetzt, in api.md beschrieben und
+    mit Unit-Tests gegen einen Test-Server bzw. Mock abgedeckt; die
+    Schnittstelle stimmt mit der Umsetzung im ToDo-Viewer überein.
