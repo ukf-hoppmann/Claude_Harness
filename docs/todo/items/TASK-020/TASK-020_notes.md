@@ -87,3 +87,23 @@
 - Plan speichern oder mit der Spec enden (Empfehlung Claude: mit der Spec enden, Zerlegung über Kinder-Items).
 - Absicherung des Kopfs: E und B wie empfohlen oder ein anderer Hook.
 - Maßstab des Längenhinweises; Umgang mit bestehenden Notes-Dateien; Regeln 1–4 und Prüfideen A, C, D.
+
+## 2026-10-20 — Prüfidee E geschärft
+
+### Discussed
+
+- Einwand des Owners: E in der bisherigen Form prüft nur, ob ein Kopf vorhanden ist. Eine bestehende Notes-Datei kann per put-doc geändert werden, ohne dass der Kopf angepasst wird; auch bei note könnte der alte Kopf unverändert mitgeschickt werden.
+- Grenze: Ob der Kopf inhaltlich stimmt, lässt sich mechanisch nicht prüfen (das wäre Prüfidee D, verworfen wegen Kosten und Unzuverlässigkeit). Mechanisch prüfbar ist, ob der Kopf nach der letzten Änderung bewusst neu geschrieben wurde.
+- Vorschlag E1 – Stempel: Der Server schreibt in den Kopf selbst eine Zeile 'Stand nach Eintrag <Datum> — <Thema>'. Ist der neueste Protokolleintrag jünger als der Stempel, ist der Kopf veraltet; Helfer, Check und Viewer melden das.
+- Vorschlag E2 – note: 'state' ist Pflicht, der Server ersetzt den Kopf und setzt den Stempel. Ist der neue Kopf identisch mit dem alten, gibt es eine Warnung ('Kopf unverändert, stimmt das?').
+- Vorschlag E3 – put-doc auf Notes: Der Server vergleicht alt und neu. Protokoll geändert, Kopf aber nicht: Warnung. Ältere Protokolleinträge geändert: Warnung, weil das Protokoll nur angehängt wird (Korrekturen ausgenommen, aber bewusst).
+- Empfehlung Claude: E1 bis E3 zusammen umsetzen; zusammen mit B ergibt das: Kopf wird bei jedem Schreiben erzwungen und gestempelt, Veralten ist sichtbar, und B erinnert, wenn gar nicht geschrieben wird.
+
+### Decided
+
+- Prüfidee B (Reminder bei aktivem Item ohne aktuellen Notes-Eintrag) wird umgesetzt.
+
+### Open
+
+- Ob E in der geschärften Form (E1–E3) umgesetzt wird.
+- Plan speichern oder mit der Spec enden; Maßstab des Längenhinweises; Umgang mit bestehenden Notes-Dateien; Regeln 1–4 und Prüfideen A, C, D.
