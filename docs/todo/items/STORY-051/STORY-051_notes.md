@@ -3,13 +3,15 @@
 ## Stand
 
 - Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern; Klärung läuft, Spec wird fortlaufend geschrieben. Am 2026-10-20 von TASK-020 zur Story STORY-051 umgewandelt.
-- Nächster Schritt: offene Regelpunkte klären, dann TASK-021 umsetzen; Item im ToDo-Viewer-Backlog nach Freigabe anlegen.
+- Nächster Schritt: offene Regelpunkte klären, dann TASK-021 umsetzen; Umstellung mit dem ToDo-Viewer abstimmen.
 - Offen:
-  - Item im Backlog des ToDo-Viewers anlegen; braucht Freigabe für dieses Projekt (2026-10-20)
+  - Reihenfolge und Kompatibilität der Umstellung; Empfehlung: Viewer zuerst abwärtskompatibel, Harness danach mit Fähigkeitsprüfung (2026-10-20)
+  - Bestehende Notes; Empfehlung: Kopf beim nächsten Anfassen, erzwungen durch den Hook, kein Massenlauf (2026-10-20)
+  - Format der Stempelzeile und Prüfsumme; Empfehlung: SHA-256, 12 Hex-Zeichen (2026-10-20)
+  - Reminder B: aktives Item und Anzahl Turns (2026-10-20)
   - Plan speichern oder mit der Spec enden; Empfehlung: mit der Spec enden, Zerlegung über Kinder-Items (2026-10-20)
   - Maßstab und Schwellwert des Längenhinweises; Empfehlung: Anzahl Punkte unter Beschlossen (2026-10-20)
   - Warnung beim Umschreiben älterer Protokolleinträge (2026-10-20)
-  - Umgang mit bestehenden Notes-Dateien: Kopf nachträglich oder beim nächsten Eintrag (2026-10-20)
   - Regeln 1–4 (Ort, Inhalt, Zeitpunkt, Spec/Notes) und Prüfideen A, C, D; Empfehlung: 1–4 und A umsetzen, C schwach, D nicht (2026-10-19)
 - Beschlossen:
   - Notes bekommen einen Kopf „Stand“ über dem Protokoll; der Kopf wird ersetzt, das Protokoll nur angehängt (2026-10-20)
@@ -21,9 +23,9 @@
   - Kopf und Protokoll in der API getrennt gespeichert, nach außen eine Markdown-Datei (2026-10-20)
   - Reminder B bei aktivem Item ohne aktuellen Notes-Eintrag (2026-10-20)
   - Goal, Completion criteria und Summary erweitert; Zerlegung in TASK-021 bis TASK-024 (2026-10-20)
-- Verweise: Spec STORY-051_spec.md (mit Liste für den ToDo-Viewer); TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks; ToDo-Viewer (separates Projekt)
+- Verweise: Spec STORY-051_spec.md (mit Liste für den ToDo-Viewer); TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-Stand bestätigt nach Eintrag 2026-10-20 — Goal angepasst, Zerlegung in Tasks, Liste für den ToDo-Viewer (Prüfsumme folgt, Mechanismus noch nicht gebaut)
+Stand bestätigt nach Eintrag 2026-10-20 — ToDo-Viewer-Item angelegt, Umstellung synchron (Prüfsumme folgt, Mechanismus noch nicht gebaut)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -217,3 +219,21 @@ Stand bestätigt nach Eintrag 2026-10-20 — Goal angepasst, Zerlegung in Tasks,
 ### Open
 
 - Item im Backlog des ToDo-Viewers anlegen (braucht ausdrückliche Freigabe für dieses Projekt).
+
+## 2026-10-20 — ToDo-Viewer-Item angelegt, Umstellung synchron
+
+### Discussed
+
+- Owner: Die Umstellung muss weitgehend synchron erfolgen, damit alle Projekte wissen, wie sie mit der neuen Struktur umgehen.
+- Vorschlag Claude zur Reihenfolge: ToDo-Viewer zuerst und abwärtskompatibel (neue Endpunkte zusätzlich, alte unverändert, fehlender Kopf ist Zustand 'missing', kein Fehler). Danach Harness-Release, das die neuen Befehle nutzt; der Helfer prüft beim Start, ob der Viewer Köpfe unterstützt (Fähigkeit oder Mindestversion), und der Hook greift nur dann; sonst ein klarer Hinweis statt Blockade. So muss nicht auf die Minute synchron umgestellt werden, und kein Projekt bricht.
+- Bestehende Notes: Kopf erst beim nächsten Anfassen anlegen, erzwungen durch den Hook (Zustand 'missing' zählt wie 'stale'); kein Massenlauf über alle Items, archivierte bleiben ohne Kopf.
+
+### Decided
+
+- Owner hat das Item im Backlog des ToDo-Viewers selbst angelegt. Open vom 2026-10-20 (Item im ToDo-Viewer anlegen) erledigt.
+
+### Open
+
+- Reihenfolge und Kompatibilität der Umstellung (Vorschlag oben).
+- Format der Stempelzeile und Definition der Prüfsumme (Vorschlag: SHA-256, erste 12 Hex-Zeichen).
+- Reminder B: was als aktives Item gilt und nach wie vielen Turns er erinnert.
