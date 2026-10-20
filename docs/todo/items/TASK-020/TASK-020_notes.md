@@ -45,3 +45,24 @@
 - Reihenfolge der Kopf-Abschnitte (Vorschlag Claude: Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise).
 - Ob Prüfidee E umgesetzt wird und wie bestehende Notes-Dateien einen Kopf bekommen (nachträglich oder erst beim nächsten Eintrag).
 - Weiterhin offen: Entscheidung des Owners zu Regeln 1–4 und Prüfideen A–D.
+
+## 2026-10-20 — Kopf: Reihenfolge, Längenhinweis, Abgrenzung zur Spec
+
+### Discussed
+
+- Abgrenzung Notes/Spec: Laut format.md ist die Spec eine technische Zusammenfassung (Was und Warum, Randbedingungen, Schnittstellen, betroffene Dateien, Abnahmekriterien), aus der ohne weiteres Zutun des Owners ein Plan entstehen kann; sie enthält selbst keinen Schritt-für-Schritt-Plan. Nicht geregelt ist, wann sie geschrieben wird (am Ende oder fortlaufend). Owner-Verständnis: Notes sind das Gesprächsprotokoll, in dem auch technisch entschieden wird; die Spec entsteht am Ende.
+- Klarstellung zum Kopf: 'Technische Details in die Spec' heißt nicht, dass die Spec eine Sammlung von Details ist. Gemeint: Der Kopf nennt jede Entscheidung in einer Zeile; die vollständige, planfähige Beschreibung steht in der Spec, sobald es sie gibt. Vorher stehen die Einzelheiten im Protokoll.
+- Empfehlung Claude: Spec fortlaufend schreiben, sobald Entscheidungen stabil sind (wie Regelvorschlag 4), damit bei langen Items der Kopf nicht alles tragen muss und am Ende kein großer Übertragungsschritt nötig ist.
+- Längenhinweis: nach Zeilen (misst Kontextkosten, aber umgehbar durch lange Zeilen) oder nach Anzahl beschlossener Punkte (misst, ob das Item zu groß ist oder in Spec bzw. Kinder gehört). Empfehlung Claude: Anzahl der Punkte unter Beschlossen, Hinweis mit Vorschlag 'Spec schreiben oder Item teilen'. Owner nennt als Beispiel Task 6 in ezf-ui, wo alle Elemente geplant und später getrennt umgesetzt werden; so ein langer Kopf kann sinnvoll sein.
+
+### Decided
+
+- Reihenfolge des Kopfs: Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise.
+- Ein langer Kopf ergibt nur einen Hinweis, nie eine Ablehnung, weil manche Items bewusst lang werden.
+- Open vom 2026-10-20 (Reihenfolge der Kopf-Abschnitte) damit erledigt; Open (weiche Längengrenze) teilweise erledigt: nur Hinweis, Maßstab noch offen.
+
+### Open
+
+- Maßstab des Hinweises: Zeilen oder Anzahl beschlossener Punkte, und ab welchem Wert.
+- Wann die Spec geschrieben wird: am Ende der Klärung oder fortlaufend.
+- Prüfidee E und Umgang mit bestehenden Notes-Dateien weiterhin offen.
