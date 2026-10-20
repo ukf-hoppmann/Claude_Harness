@@ -1,4 +1,27 @@
-# TASK-020 — todo-Skill: Ort und Inhalt der Diskussionsprotokolle (Notes) festlegen
+# STORY-051 — todo-Skill: Ort und Inhalt der Diskussionsprotokolle (Notes) festlegen
+
+## Stand
+
+- Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern; Klärung läuft, Spec wird fortlaufend geschrieben. Am 2026-10-20 von TASK-020 zur Story STORY-051 umgewandelt.
+- Nächster Schritt: Zerlegung in Tasks mit dem Owner abstimmen; offene Punkte klären.
+- Offen:
+  - Plan speichern oder mit der Spec enden; Empfehlung: mit der Spec enden, Zerlegung über Kinder-Items (2026-10-20)
+  - Maßstab und Schwellwert des Längenhinweises; Empfehlung: Anzahl Punkte unter Beschlossen (2026-10-20)
+  - Warnung beim Umschreiben älterer Protokolleinträge (2026-10-20)
+  - Umgang mit bestehenden Notes-Dateien: Kopf nachträglich oder beim nächsten Eintrag (2026-10-20)
+  - Regeln 1–4 (Ort, Inhalt, Zeitpunkt, Spec/Notes) und Prüfideen A, C, D; Empfehlung: 1–4 und A umsetzen, C schwach, D nicht (2026-10-19)
+- Beschlossen:
+  - Notes bekommen einen Kopf „Stand“ über dem Protokoll; der Kopf wird ersetzt, das Protokoll nur angehängt (2026-10-20)
+  - Reihenfolge des Kopfs: Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
+  - Keine feste Längengrenze, ein langer Kopf ergibt nur einen Hinweis (2026-10-20)
+  - Spec wird fortlaufend geschrieben und am Ende geprüft (2026-10-20)
+  - Nach jeder Änderung der Notes wird der Kopf angepasst oder bewusst bestätigt; Hook am Turn-Ende blockiert bis dahin (2026-10-20)
+  - Stempel als Prüfsumme des Protokolls, in API und Files-Modus; gesetzt vom Server bzw. von backlog.py, nie von Hand (2026-10-20)
+  - Kopf und Protokoll in der API getrennt gespeichert, nach außen eine Markdown-Datei (2026-10-20)
+  - Reminder B bei aktivem Item ohne aktuellen Notes-Eintrag (2026-10-20)
+- Verweise: Spec STORY-051_spec.md; ToDo-Viewer (separates Projekt) für die Schnittstelle
+
+Stand bestätigt nach Eintrag 2026-10-20 — Prüfsumme und Trennung beschlossen (Prüfsumme folgt, Mechanismus noch nicht gebaut)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 

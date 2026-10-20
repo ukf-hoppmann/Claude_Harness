@@ -295,9 +295,9 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     MCP-Tools des Viewers. Sie wartet auf STORY-049 und auf den Umbau des
     MCP-Servers im ToDo-Viewer.
 
-- `TASK-020` **todo-Skill: Ort und Inhalt der Diskussionsprotokolle (Notes) festlegen**
+- `STORY-051` **todo-Skill: Ort und Inhalt der Diskussionsprotokolle (Notes) festlegen**
   - Uid: 3b18df8f-3832-4a6b-a090-51a845d0cabd.
-  - Type: Task.
+  - Type: Story.
   - Parent: None.
   - Status: Open.
   - Created: 2026-10-19.
