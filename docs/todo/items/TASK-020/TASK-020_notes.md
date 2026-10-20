@@ -125,3 +125,23 @@
 - Ergänzungen (1)–(4) bestätigen, insbesondere ob der Hook das Turn-Ende blockiert oder nur erinnert.
 - Warnung beim Umschreiben älterer Protokolleinträge (Rest von E3).
 - Plan speichern oder mit der Spec enden; Maßstab des Längenhinweises; Umgang mit bestehenden Notes-Dateien; Regeln 1–4 und Prüfideen A, C, D.
+
+## 2026-10-20 — Stempel im Files-Modus, Kopf und Protokoll in der API getrennt
+
+### Discussed
+
+- Owner: Ergänzung 1 (Server setzt den Stempel) gilt nur für die API. Im Files-Modus, relevant für das Arbeiten online (Cloud), gibt es keinen Server.
+- Vorschlag Claude: Stempel als Prüfsumme des Protokolls statt Zeitstempel, z. B. 'Stand bestätigt nach Eintrag <Datum> — <Thema> (<Hash>)'. Veraltet heißt: Prüfsumme des aktuellen Protokolls weicht vom Stempel ab. Funktioniert in beiden Modi gleich, ist unabhängig von Dateizeiten (git checkout, Kopieren) und löst Ergänzung 2 von selbst, weil das Setzen des Stempels das Protokoll nicht ändert. Files-Modus: backlog.py bekommt einen Befehl zum Bestätigen, der den Stempel schreibt; die vorhandene Backlog-Prüfung am Turn-Ende meldet veraltete Köpfe. API-Modus: der Server rechnet und setzt ihn.
+- Kopf und Protokoll in der API getrennt oder am Stück? Empfehlung Claude: in der API getrennt (Kopf 1:1 zum Item, Protokolleinträge 1:n), mit eigenen Befehlen zum Lesen des Kopfs, zum Ersetzen und zum Bestätigen. Hauptnutzen: Die LLM liest zuerst nur den Kopf, das Protokoll nur bei Bedarf; spart Kontext. Veraltet ist im Datenmodell direkt ablesbar (Kopf bestätigt gegen Eintrag X, neuester Eintrag Y). Nach außen bleibt es eine Markdown-Datei (Kopf oben, Protokoll darunter), damit Files-Modus, Spiegel und Git gleich aussehen; der Server zerlegt und setzt beim Sync zusammen.
+- Betroffen ist dann auch der ToDo-Viewer (eigenes Projekt, nicht in diesem Repo): Datenmodell, Endpunkte, Sync. Das ist eigene Arbeit dort; dieser Task beschreibt die Schnittstelle, die der Harness erwartet.
+- Der Hook soll die LLM zwingen, den Kopf anzusehen und ihn bewusst zu lassen oder zu ändern; er blockiert also das Turn-Ende (Ergänzung 4).
+
+### Decided
+
+- Ergänzungen 2–4 übernommen: Stempel verweist auf den bestätigten Stand; Hook am Turn-Ende, nur für in der Session geänderte Notes; Hook blockiert, bis der Kopf angepasst oder bewusst bestätigt ist. Open vom 2026-10-20 (Ergänzungen 1–4) damit bis auf 1 erledigt.
+
+### Open
+
+- Stempel als Prüfsumme in beiden Modi (statt vom Server gesetzter Zeit).
+- Kopf und Protokoll in der API getrennt speichern und lesen, nach außen eine Datei; Abstimmung mit dem ToDo-Viewer.
+- Warnung beim Umschreiben älterer Protokolleinträge; Plan speichern oder mit der Spec enden; Maßstab des Längenhinweises; Umgang mit bestehenden Notes-Dateien; Regeln 1–4 und Prüfideen A, C, D.
