@@ -66,3 +66,24 @@
 - Maßstab des Hinweises: Zeilen oder Anzahl beschlossener Punkte, und ab welchem Wert.
 - Wann die Spec geschrieben wird: am Ende der Klärung oder fortlaufend.
 - Prüfidee E und Umgang mit bestehenden Notes-Dateien weiterhin offen.
+
+## 2026-10-20 — Spec fortlaufend, Plan speichern, Absicherung des Kopfs
+
+### Discussed
+
+- Plan speichern? Ist-Stand: Die decomposition-Regeln trennen zwei Ebenen. Grob: Stories und Tasks im Backlog, ein Task passt in eine Session. Fein: Abschnitte des Umsetzungsplans, die in Plan Mode oder im Chat entstehen; die Spec bleibt ohne Schrittfolge. Nach Freigabe des Plans läuft die Umsetzung im Worktree ohne Rückfragen.
+- Empfehlung Claude: Den Feinplan nicht im Backlog speichern. Er hängt vom Codestand beim Start der Umsetzung ab, veraltet schnell und ist aus Spec, Architekturregeln und decomposition-Regeln jederzeit neu ableitbar. Der dauerhafte Plan ist die Zerlegung in Kinder-Items (jedes mit eigener Spec bzw. eigenem Ziel), die eine neue Session ohne Rückfragen umsetzen kann. In die Notes kommt nur eine Zeile, dass der Plan freigegeben wurde, sowie Abweichungen vom Plan, die sich bei der Umsetzung ergeben.
+- Prüfstein für eine fertige Spec: Eine neue Session ohne den Kontext der Diskussion kann daraus ohne Rückfragen einen Plan erstellen.
+- Hook für den Kopf: Ein Hook, der in jedem Turn nachfragt, ob der Kopf angepasst wurde, wäre Rauschen und würde bald ignoriert. Zwei gezielte Absicherungen decken die beiden Fehlerfälle ab: (1) Notes geschrieben, Kopf nicht angepasst: Prüfidee E im Helfer, deterministisch beim Schreiben (note ohne 'state' ergibt eine Warnung; put-doc auf Notes ohne Abschnitt Stand ebenso). (2) Diskutiert, aber gar nichts notiert: Prüfidee B, Stop-Hook-Reminder nur, wenn ein aktives Item existiert und seit N Turns kein Notes-Eintrag erfolgte.
+- Empfehlung Claude: E umsetzen (billig, verlässlich), B als Reminder dazu; einen Hook bei jedem Turn nicht.
+
+### Decided
+
+- Die Spec wird fortlaufend geschrieben, sobald Entscheidungen stabil sind; sie ist die geregelte technische Darstellung und wird am Ende der Klärung noch einmal geprüft, statt erst am Ende zu entstehen. Open vom 2026-10-20 (Zeitpunkt der Spec) damit erledigt.
+- Owner: Die Absicherung, dass der Kopf aktuell ist, ist sehr wichtig.
+
+### Open
+
+- Plan speichern oder mit der Spec enden (Empfehlung Claude: mit der Spec enden, Zerlegung über Kinder-Items).
+- Absicherung des Kopfs: E und B wie empfohlen oder ein anderer Hook.
+- Maßstab des Längenhinweises; Umgang mit bestehenden Notes-Dateien; Regeln 1–4 und Prüfideen A, C, D.
