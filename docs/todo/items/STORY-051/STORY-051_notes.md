@@ -5,6 +5,7 @@
 - Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern; Klärung läuft, Spec wird fortlaufend geschrieben. Am 2026-10-20 von TASK-020 zur Story STORY-051 umgewandelt.
 - Nächster Schritt: Zerlegung in Tasks mit dem Owner abstimmen; offene Punkte klären.
 - Offen:
+  - Goal und Completion criteria an Aufbau und Absicherung der Notes anpassen (Owner-Freigabe) (2026-10-20)
   - Plan speichern oder mit der Spec enden; Empfehlung: mit der Spec enden, Zerlegung über Kinder-Items (2026-10-20)
   - Maßstab und Schwellwert des Längenhinweises; Empfehlung: Anzahl Punkte unter Beschlossen (2026-10-20)
   - Warnung beim Umschreiben älterer Protokolleinträge (2026-10-20)
@@ -21,7 +22,7 @@
   - Reminder B bei aktivem Item ohne aktuellen Notes-Eintrag (2026-10-20)
 - Verweise: Spec STORY-051_spec.md; ToDo-Viewer (separates Projekt) für die Schnittstelle
 
-Stand bestätigt nach Eintrag 2026-10-20 — Prüfsumme und Trennung beschlossen (Prüfsumme folgt, Mechanismus noch nicht gebaut)
+Stand bestätigt nach Eintrag 2026-10-20 — Umwandlung in Story, Kopf ergänzt (Prüfsumme folgt, Mechanismus noch nicht gebaut)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -183,3 +184,19 @@ Stand bestätigt nach Eintrag 2026-10-20 — Prüfsumme und Trennung beschlossen
 - Warnung beim Umschreiben älterer Protokolleinträge.
 - Umgang mit bestehenden Notes-Dateien (Kopf nachträglich oder beim nächsten Eintrag).
 - Regeln 1–4 und Prüfideen A, C, D.
+
+## 2026-10-20 — Umwandlung in Story, Kopf ergänzt
+
+### Discussed
+
+- Der Umfang reicht inzwischen über eine Session hinaus: Skill-Regeln und Format, Helfer und Prüfung, Hooks, Schnittstelle zum ToDo-Viewer. Nach den Zerlegungsregeln ist das eine Story mit Tasks.
+
+### Decided
+
+- Owner: TASK-020 wird zur Story; neue ID STORY-051 (retype). Überschriften von Notes und Spec auf STORY-051 angepasst; ältere Protokolleinträge nennen weiter TASK-020.
+- Owner: Diese Notes bekommen schon jetzt einen Kopf nach dem beschlossenen Aufbau, von Hand und ohne Prüfsumme, bis der Mechanismus gebaut ist.
+
+### Open
+
+- Zerlegung in Tasks (Vorschlag folgt).
+- Goal und Completion criteria der Story decken Aufbau und Absicherung der Notes noch nicht ab; Anpassung braucht Owner-Freigabe.

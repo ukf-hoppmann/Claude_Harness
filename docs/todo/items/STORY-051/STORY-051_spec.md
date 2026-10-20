@@ -1,4 +1,4 @@
-# TASK-020 — Spec: Aufbau und Absicherung der Item-Notes
+# STORY-051 — Spec: Aufbau und Absicherung der Item-Notes
 
 Stand: fortlaufend; enthält nur Beschlossenes. Offene Punkte stehen am Ende
 und in den Notes.
