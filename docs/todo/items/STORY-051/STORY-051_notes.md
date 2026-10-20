@@ -2,30 +2,23 @@
 
 ## Stand
 
-- Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern; Klärung läuft, Spec wird fortlaufend geschrieben. Am 2026-10-20 von TASK-020 zur Story STORY-051 umgewandelt.
-- Nächster Schritt: offene Regelpunkte klären, dann TASK-021 umsetzen; Umstellung mit dem ToDo-Viewer abstimmen.
+- Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
+- Nächster Schritt: Task für Prüfidee A anlegen (Owner-Freigabe), dann TASK-021 umsetzen; im ToDo-Viewer zuerst die abwärtskompatible Erweiterung.
 - Offen:
-  - Reihenfolge und Kompatibilität der Umstellung; Empfehlung: Viewer zuerst abwärtskompatibel, Harness danach mit Fähigkeitsprüfung (2026-10-20)
-  - Bestehende Notes; Empfehlung: Kopf beim nächsten Anfassen, erzwungen durch den Hook, kein Massenlauf (2026-10-20)
-  - Format der Stempelzeile und Prüfsumme; Empfehlung: SHA-256, 12 Hex-Zeichen (2026-10-20)
-  - Reminder B: aktives Item und Anzahl Turns (2026-10-20)
-  - Plan speichern oder mit der Spec enden; Empfehlung: mit der Spec enden, Zerlegung über Kinder-Items (2026-10-20)
-  - Maßstab und Schwellwert des Längenhinweises; Empfehlung: Anzahl Punkte unter Beschlossen (2026-10-20)
-  - Warnung beim Umschreiben älterer Protokolleinträge (2026-10-20)
-  - Regeln 1–4 (Ort, Inhalt, Zeitpunkt, Spec/Notes) und Prüfideen A, C, D; Empfehlung: 1–4 und A umsetzen, C schwach, D nicht (2026-10-19)
+  - Eigener Task für Prüfidee A (2026-10-20)
 - Beschlossen:
-  - Notes bekommen einen Kopf „Stand“ über dem Protokoll; der Kopf wird ersetzt, das Protokoll nur angehängt (2026-10-20)
-  - Reihenfolge des Kopfs: Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
-  - Keine feste Längengrenze, ein langer Kopf ergibt nur einen Hinweis (2026-10-20)
-  - Spec wird fortlaufend geschrieben und am Ende geprüft (2026-10-20)
-  - Nach jeder Änderung der Notes wird der Kopf angepasst oder bewusst bestätigt; Hook am Turn-Ende blockiert bis dahin (2026-10-20)
-  - Stempel als Prüfsumme des Protokolls, in API und Files-Modus; gesetzt vom Server bzw. von backlog.py, nie von Hand (2026-10-20)
-  - Kopf und Protokoll in der API getrennt gespeichert, nach außen eine Markdown-Datei (2026-10-20)
-  - Reminder B bei aktivem Item ohne aktuellen Notes-Eintrag (2026-10-20)
-  - Goal, Completion criteria und Summary erweitert; Zerlegung in TASK-021 bis TASK-024 (2026-10-20)
-- Verweise: Spec STORY-051_spec.md (mit Liste für den ToDo-Viewer); TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
+  - Notes: Kopf „Stand“ oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Reihenfolge Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
+  - Protokollregeln: spezifischstes Item, Kernfrage/Optionen/Entscheidung mit Begründung/Verworfenes, nach jeder geklärten Frage schreiben (2026-10-20)
+  - Spec ist immer der aktuelle Stand, wird fortlaufend aktualisiert; die Entscheidungsfindung steht in den Notes (2026-10-20)
+  - Besprechung endet mit der Spec; Umsetzungsplan erst beim Start, nicht gespeichert (2026-10-20)
+  - Kopf wird nach jeder Änderung der Notes angepasst oder bewusst bestätigt; Stempel mit Prüfsumme, gesetzt von Server bzw. backlog.py; Hook am Turn-Ende blockiert bis dahin (2026-10-20)
+  - Kopf und Protokoll in der API getrennt gespeichert, nach außen eine Datei (2026-10-20)
+  - Prüfidee A nur als Nachfrage, B als Reminder; C und D nicht (2026-10-20)
+  - Langer Kopf nur Hinweis (ab 15 Beschlüssen); Umschreiben älterer Einträge nur Hinweis (2026-10-20)
+  - Umstellung: Viewer zuerst abwärtskompatibel, dann Harness; alte Notes bekommen den Kopf beim nächsten Bearbeiten (2026-10-20)
+- Verweise: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-Stand bestätigt nach Eintrag 2026-10-20 — ToDo-Viewer-Item angelegt, Umstellung synchron (Prüfsumme folgt, Mechanismus noch nicht gebaut)
+Stand bestätigt nach Eintrag 2026-10-20 — Entscheidungen zu Prüfideen, Protokollregeln, Plan, Umstellung (Prüfsumme folgt, Mechanismus noch nicht gebaut)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -237,3 +230,26 @@ Stand bestätigt nach Eintrag 2026-10-20 — ToDo-Viewer-Item angelegt, Umstellu
 - Reihenfolge und Kompatibilität der Umstellung (Vorschlag oben).
 - Format der Stempelzeile und Definition der Prüfsumme (Vorschlag: SHA-256, erste 12 Hex-Zeichen).
 - Reminder B: was als aktives Item gilt und nach wie vielen Turns er erinnert.
+
+## 2026-10-20 — Entscheidungen zu Prüfideen, Protokollregeln, Plan, Umstellung
+
+### Discussed
+
+- Claude hat die Prüfideen und den Reminder B in einfacher Sprache erklärt und die offenen Fragen auf vier Owner-Entscheidungen reduziert; rein technische Punkte entscheidet Claude selbst.
+- Owner zu A: Es gibt berechtigte Fälle, in denen etwas im Rahmen eines Tasks besprochen, aber in der Story oder einem anderen Task protokolliert wird. A darf deshalb nur nachfragen, nie verhindern.
+- Owner zu Plan und Spec: Die Spec wird regelmäßig aktualisiert, sobald Neues dazukommt. Sie ist immer der aktuelle Stand und kein Element der Entscheidungsfindung; die Entscheidungsfindung steht in den Notes.
+
+### Decided
+
+- Prüfidee A umsetzen, nur als Nachfrage (Hinweis), nie als Blockade.
+- Prüfidee B umsetzen (bestätigt).
+- Prüfideen C und D werden nicht umgesetzt.
+- Regeln 1–4 vom 2026-10-19 übernommen: Ort (spezifischstes Item), Inhalt (Kernfrage, Optionen, Entscheidung mit Begründung, Verworfenes), Zeitpunkt (nach jeder geklärten Frage), Spec und Notes getrennt.
+- Die Besprechung endet mit der Spec; der Umsetzungsplan entsteht erst beim Start der Umsetzung, wird zur Freigabe vorgelegt und nicht dauerhaft gespeichert. Die Spec ist immer der aktuelle Stand.
+- Umstellung: zuerst ToDo-Viewer abwärtskompatibel, danach das Harness-Release; bestehende Notes bekommen den Kopf beim nächsten Bearbeiten, kein Massenlauf.
+- Technisch von Claude festgelegt (Owner: muss nicht entscheiden): Prüfsumme SHA-256, erste 12 Hex-Zeichen; Stempelzeile 'Stand bestätigt nach Eintrag <Datum> — <Thema> (<Prüfsumme>)'; Längenhinweis ab 15 Punkten unter Beschlossen; Hinweis beim Umschreiben älterer Protokolleinträge; Reminder B: aktives Item = in der Session auf In progress gesetzt oder Spec gelesen, Erinnerung nach 5 Turns ohne Notes-Eintrag; Harness prüft vor Nutzung, ob der Viewer Köpfe unterstützt.
+- Damit alle bisher offenen Punkte erledigt.
+
+### Open
+
+- Prüfidee A braucht einen eigenen Task (Vorschlag folgt).

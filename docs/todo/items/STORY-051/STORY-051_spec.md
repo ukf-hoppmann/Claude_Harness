@@ -1,7 +1,7 @@
 # STORY-051 — Spec: Aufbau und Absicherung der Item-Notes
 
-Stand: fortlaufend; enthält nur Beschlossenes. Offene Punkte stehen am Ende
-und in den Notes.
+Diese Spec ist immer der aktuelle Stand; der Weg zu den Entscheidungen steht
+in den Notes.
 
 ## Was und warum
 
@@ -17,10 +17,26 @@ nach jeder Änderung der Notes bewusst geprüft wird.
 - **Notes, Kopf:** geltender Stand des Items. Wird ersetzt, nicht ergänzt.
 - **Notes, Protokoll:** Weg zu den Entscheidungen (Discussed/Decided/Open),
   nur angehängt.
-- **Spec:** geregelte technische Darstellung, aus der eine neue Session ohne
-  Rückfragen einen Plan erstellen kann; ohne Schrittfolge. Wird fortlaufend
-  geschrieben, sobald Entscheidungen stabil sind, und am Ende der Klärung
-  noch einmal geprüft.
+- **Spec:** immer der aktuelle technische Stand, aus dem eine neue Session
+  ohne Rückfragen einen Plan erstellen kann; ohne Schrittfolge und ohne
+  Entscheidungsfindung. Wird aktualisiert, sobald etwas entschieden ist oder
+  sich ändert, und am Ende der Klärung noch einmal geprüft.
+- **Umsetzungsplan:** entsteht erst beim Start der Umsetzung aus Spec,
+  Architektur- und Zerlegungsregeln, wird dem Owner zur Freigabe vorgelegt und
+  nicht im Backlog gespeichert. Die Besprechung endet mit der Spec; ist ein
+  Item zu groß, wird es in Kinder-Items zerlegt.
+
+## Wo und wie protokolliert wird
+
+- **Ort:** in das spezifischste Item, um das es geht. Läuft die Klärung im
+  Rahmen von Task X, gehört sie zu Task X. Story-Notes nur für Entscheidungen,
+  die mehrere Kinder betreffen oder Ziel und Umfang der Story ändern; das
+  betroffene Kind bekommt einen Verweis. Bewusste Ausnahmen sind erlaubt.
+- **Inhalt:** Protokoll statt Ergebnisliste. Je Thema: Kernfrage, geprüfte
+  Optionen mit Vor- und Nachteilen, Empfehlung, Entscheidung des Owners mit
+  Begründung, verworfene Optionen mit Grund. Unentschiedenes sofort unter
+  Open. Bei mehreren Themen zuerst ein Themenplan.
+- **Zeitpunkt:** nach jeder beantworteten Frage, bevor die nächste kommt.
 
 ## Aufbau der Notes-Datei
 
@@ -53,17 +69,26 @@ Regeln für den Kopf:
 - Nur was jetzt gilt; überholte Entscheidungen fallen aus dem Kopf und
   bleiben im Protokoll.
 - Technisches steht im Kopf in einem Satz mit Verweis auf die Spec.
-- Keine feste Längengrenze; ein langer Kopf ergibt nur einen Hinweis, nie
-  eine Ablehnung.
+- Keine feste Längengrenze; ab 15 Punkten unter Beschlossen gibt es einen
+  Hinweis (Spec schreiben oder Item teilen?), nie eine Ablehnung.
 
 Regeln für das Protokoll:
 
 - Erledigte Open-Punkte früherer Einträge werden im neuen Eintrag
   ausdrücklich geschlossen ("Open vom <Datum> (X) erledigt: …").
+- Das Protokoll wird nur angehängt. Werden ältere Einträge umgeschrieben,
+  gibt es einen Hinweis (Korrekturen bleiben möglich).
 
 ## Absicherung des Kopfs
 
-- Der Stempel im Kopf enthält die Prüfsumme des Protokolls zum Zeitpunkt der
+- Stempelzeile am Ende des Kopfs:
+  `Stand bestätigt nach Eintrag <YYYY-MM-DD> — <Thema> (<Prüfsumme>)`.
+  Prüfsumme: SHA-256 über das Protokoll in kanonischer Form (alle Einträge
+  ab der ersten Zeile `## YYYY-MM-DD — `, LF, ohne Leerzeichen am
+  Zeilenende, genau ein Zeilenumbruch am Ende), davon die ersten 12
+  Hex-Zeichen. Die Definition steht in `format.md` und gilt gleich für
+  ToDo-Viewer und `backlog.py`.
+- Der Stempel enthält die Prüfsumme des Protokolls zum Zeitpunkt der
   Bestätigung. Der Kopf ist veraltet, wenn die Prüfsumme des aktuellen
   Protokolls abweicht. Das Setzen des Stempels ändert das Protokoll nicht.
 - Nicht jeder Eintrag braucht einen neuen Kopf. Nach jeder Änderung der Notes
@@ -76,9 +101,27 @@ Regeln für das Protokoll:
   und deren Stempel veraltet ist, blockiert er das Turn-Ende, bis der Kopf
   angesehen und angepasst oder bestätigt ist. Im Files-Modus läuft das über
   die vorhandene Backlog-Prüfung am Turn-Ende.
-- Reminder (Prüfidee B): Gibt es ein aktives Item der Session und seit
-  mehreren Turns keinen Notes-Eintrag, erinnert ein Hook daran (kein
-  Blocker).
+- Ein fehlender Kopf (Zustand `missing`) zählt für den Hook wie ein
+  veralteter.
+- Reminder (Prüfidee B): Aktives Item ist eines, das in der Session auf
+  `In progress` gesetzt oder dessen Spec gelesen wurde. Nach 5 Turns ohne
+  Notes-Eintrag zu diesem Item erinnert ein Hook daran (kein Blocker).
+- Nachfrage beim Ort (Prüfidee A): Ein Notes-Eintrag an eine Story, während
+  eines ihrer Kinder `In progress` ist, ergibt einen Hinweis ("TASK-x ist in
+  Arbeit, gehört das dorthin?"). Nur Nachfrage, nie Ablehnung, weil es
+  berechtigte Ausnahmen gibt.
+- Nicht umgesetzt: Prüfung auf fehlende Begründungen (C) und Prüfung durch ein
+  zweites Modell (D).
+
+## Umstellung
+
+1. ToDo-Viewer zuerst, abwärtskompatibel: neue Endpunkte zusätzlich, alte
+   unverändert; Notes ohne Kopf sind `missing`, kein Fehler.
+2. Danach das Harness-Release mit Skill, Helfer und Hooks. Der Harness prüft
+   vor Nutzung, ob der Viewer Köpfe unterstützt; sonst ein klarer Hinweis
+   statt Blockade.
+3. Bestehende Notes bekommen den Kopf beim nächsten Bearbeiten (erzwungen
+   durch den Hook); kein Massenlauf, archivierte Items bleiben ohne Kopf.
 
 ## Schnittstelle zum ToDo-Viewer (API-Modus)
 
@@ -127,11 +170,13 @@ liegt jede Notes-Datei als ein Text in `backlog_documents`; `POST
 - Hook-Konfiguration des Plugins (Turn-Ende, Reminder)
 - ToDo-Viewer (separates Projekt)
 
-## Noch offen (siehe Notes)
+## Abnahme
 
-- Plan speichern oder mit der Spec enden.
-- Maßstab und Schwellwert des Längenhinweises.
-- Warnung beim Umschreiben älterer Protokolleinträge.
-- Umgang mit bestehenden Notes-Dateien.
-- Regeln 1–4 (Ort, Inhalt, Zeitpunkt, Spec/Notes) und Prüfideen A, C, D.
-- Abnahmekriterien.
+- Neue und bearbeitete Notes haben einen Kopf nach obigem Aufbau mit gültigem
+  Stempel; ein veralteter oder fehlender Kopf blockiert das Turn-Ende, bis er
+  angepasst oder bestätigt ist.
+- Gleiche Prüfsumme in ToDo-Viewer und `backlog.py` für dasselbe Protokoll.
+- Ein Harness gegen einen Viewer ohne Köpfe arbeitet weiter und meldet das.
+- Reminder B und Nachfrage A erscheinen in den beschriebenen Fällen und
+  blockieren nicht.
+- Regeln stehen in `SKILL.md`, `format.md`, `api.md`; Tests laufen.
