@@ -3,9 +3,9 @@
 ## Stand
 
 - Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern; Klärung läuft, Spec wird fortlaufend geschrieben. Am 2026-10-20 von TASK-020 zur Story STORY-051 umgewandelt.
-- Nächster Schritt: Zerlegung in Tasks mit dem Owner abstimmen; offene Punkte klären.
+- Nächster Schritt: offene Regelpunkte klären, dann TASK-021 umsetzen; Item im ToDo-Viewer-Backlog nach Freigabe anlegen.
 - Offen:
-  - Goal und Completion criteria an Aufbau und Absicherung der Notes anpassen (Owner-Freigabe) (2026-10-20)
+  - Item im Backlog des ToDo-Viewers anlegen; braucht Freigabe für dieses Projekt (2026-10-20)
   - Plan speichern oder mit der Spec enden; Empfehlung: mit der Spec enden, Zerlegung über Kinder-Items (2026-10-20)
   - Maßstab und Schwellwert des Längenhinweises; Empfehlung: Anzahl Punkte unter Beschlossen (2026-10-20)
   - Warnung beim Umschreiben älterer Protokolleinträge (2026-10-20)
@@ -20,9 +20,10 @@
   - Stempel als Prüfsumme des Protokolls, in API und Files-Modus; gesetzt vom Server bzw. von backlog.py, nie von Hand (2026-10-20)
   - Kopf und Protokoll in der API getrennt gespeichert, nach außen eine Markdown-Datei (2026-10-20)
   - Reminder B bei aktivem Item ohne aktuellen Notes-Eintrag (2026-10-20)
-- Verweise: Spec STORY-051_spec.md; ToDo-Viewer (separates Projekt) für die Schnittstelle
+  - Goal, Completion criteria und Summary erweitert; Zerlegung in TASK-021 bis TASK-024 (2026-10-20)
+- Verweise: Spec STORY-051_spec.md (mit Liste für den ToDo-Viewer); TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks; ToDo-Viewer (separates Projekt)
 
-Stand bestätigt nach Eintrag 2026-10-20 — Umwandlung in Story, Kopf ergänzt (Prüfsumme folgt, Mechanismus noch nicht gebaut)
+Stand bestätigt nach Eintrag 2026-10-20 — Goal angepasst, Zerlegung in Tasks, Liste für den ToDo-Viewer (Prüfsumme folgt, Mechanismus noch nicht gebaut)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -200,3 +201,19 @@ Stand bestätigt nach Eintrag 2026-10-20 — Umwandlung in Story, Kopf ergänzt 
 
 - Zerlegung in Tasks (Vorschlag folgt).
 - Goal und Completion criteria der Story decken Aufbau und Absicherung der Notes noch nicht ab; Anpassung braucht Owner-Freigabe.
+
+## 2026-10-20 — Goal angepasst, Zerlegung in Tasks, Liste für den ToDo-Viewer
+
+### Discussed
+
+- Owner wünscht eine Liste, was im ToDo-Viewer anzupassen ist. Grundlage: Neubau in server/ (Port 5411); Notes liegen heute als ein Text in backlog_documents, POST /items/{ref}/notes hängt Einträge an, der Spiegel arbeitet in beide Richtungen. Liste steht in der Spec (Abschnitt Schnittstelle zum ToDo-Viewer): Datenmodell mit Migration, Prüfsumme als gemeinsamer Vertrag mit backlog.py, Endpunkte für Kopf lesen/ersetzen/bestätigen, Zustand current/stale/missing, Spiegel zusammensetzen/zerlegen, Oberfläche, Vertragstests.
+- Beobachtung: Beim Typwechsel blieb die Titelzeile der Notes beim alten Label (TASK-020); wird mit der aus dem Item erzeugten Titelzeile behoben.
+
+### Decided
+
+- Owner: Goal, Completion criteria und Summary der Story erweitert um Aufbau und Absicherung der Notes. Open vom 2026-10-20 (Goal anpassen) erledigt.
+- Owner: Zerlegung in TASK-021 (Regeln und Format im todo-Skill), TASK-022 (Kopf-Prüfsumme im Files-Modus), TASK-023 (Kopf-Befehle im API-Helfer), TASK-024 (Hooks: Kopf-Pflicht am Turn-Ende, Reminder B). TASK-022 und TASK-023 hängen von TASK-021 ab, TASK-024 von beiden. Prüfidee A bekommt keinen Task, solange sie nicht beschlossen ist. Open vom 2026-10-20 (Zerlegung) erledigt.
+
+### Open
+
+- Item im Backlog des ToDo-Viewers anlegen (braucht ausdrückliche Freigabe für dieses Projekt).

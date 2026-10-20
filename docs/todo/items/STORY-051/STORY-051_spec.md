@@ -82,15 +82,43 @@ Regeln für das Protokoll:
 
 ## Schnittstelle zum ToDo-Viewer (API-Modus)
 
-Umsetzung im ToDo-Viewer ist eigene Arbeit dort; der Harness erwartet:
+Umsetzung im ToDo-Viewer (Neubau, `server/`) ist eigene Arbeit dort. Heute
+liegt jede Notes-Datei als ein Text in `backlog_documents`; `POST
+/items/{ref}/notes` hängt einen Eintrag an. Der Harness erwartet:
 
-- Kopf und Protokoll getrennt gespeichert: Kopf 1:1 zum Item, Einträge 1:n.
-- Befehle bzw. Endpunkte: Kopf lesen (ohne Protokoll), Kopf ersetzen,
-  Kopf bestätigen; `note` hängt weiter Einträge an und kann optional einen
-  neuen Kopf mitnehmen.
-- Der Server berechnet Prüfsumme und Stempel und meldet veraltete Köpfe.
-- Nach außen (Spiegel, Git, Files-Modus) bleibt es eine Markdown-Datei im
-  obigen Aufbau; der Sync zerlegt und setzt zusammen.
+1. **Datenmodell:** Kopf 1:1 zum Item (Inhalt, Prüfsumme und Eintrag, gegen
+   den bestätigt wurde, Revision), Protokolleinträge 1:n (Datum, Thema,
+   Markdown-Text des Eintrags, Reihenfolge). Der Text wird verlustfrei
+   gespeichert, nicht nur als Listen, weil Einträge auch per `put-doc`
+   entstehen. Migration: bestehende Notes an `## YYYY-MM-DD — ` in Einträge
+   zerlegen; ein vorhandener Abschnitt `## Stand` wird Kopf, sonst bleibt der
+   Kopf leer.
+2. **Prüfsumme:** über das Protokoll in kanonischer Form (alle Einträge, LF,
+   ohne Leerzeichen am Zeilenende, ein Zeilenumbruch am Ende), gleich
+   berechnet wie in `backlog.py`; die Definition steht in `format.md` und ist
+   der gemeinsame Vertrag.
+3. **Endpunkte:**
+   - Kopf lesen ohne Protokoll (z. B. `GET /items/{ref}/notes/state`).
+   - Kopf ersetzen (`PUT …/notes/state`, mit Version); setzt den Stempel.
+   - Kopf bestätigen (`POST …/notes/state/confirm`, mit Version); setzt den
+     Stempel, ohne den Inhalt zu ändern.
+   - `POST /items/{ref}/notes` nimmt optional `state` mit (Kopf ersetzen im
+     selben Schritt).
+   - Optional: einzelne oder die letzten N Einträge lesen.
+   - `GET/PUT …/documents/<ID>_notes.md` bleiben und arbeiten auf der
+     zusammengesetzten Datei; `PUT` zerlegt sie wieder.
+4. **Zustand melden:** Item (`show`, `index`) trägt einen Zustand des Kopfs:
+   `current`, `stale` oder `missing`. Schreibende Antworten auf Notes
+   enthalten einen Hinweis, wenn der Kopf danach veraltet ist.
+5. **Spiegel:** Encode setzt die Datei zusammen (Titelzeile aus dem aktuellen
+   Label und Titel, `## Stand`, Stempelzeile, Protokoll); Decode zerlegt sie
+   und übernimmt den Stempel aus der Datei (Files-Modus bestätigt per
+   `backlog.py`). Die Titelzeile wird immer aus dem Item erzeugt; damit
+   folgt sie auch einem Typwechsel (heute bleibt sie beim alten Label).
+6. **Oberfläche:** Kopf oben anzeigen, veralteten Kopf markieren, Protokoll
+   einklappbar.
+7. **Tests:** Vertragstests für Endpunkte, Prüfsumme (gleiches Ergebnis wie
+   `backlog.py`), Migration und Spiegel in beide Richtungen.
 
 ## Betroffen
 
