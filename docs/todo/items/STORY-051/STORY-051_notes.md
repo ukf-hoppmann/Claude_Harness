@@ -1,6 +1,6 @@
 # STORY-051 — todo-Skill: Ort und Inhalt der Diskussionsprotokolle (Notes) festlegen
 
-## Stand
+## State
 
 - Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
 - Nächster Schritt: TASK-022 umsetzen (läuft), danach TASK-025; TASK-023/024 nach den englischen Überschriften im Viewer; Release erst am Ende der Story.
@@ -21,7 +21,7 @@
   - Umstellung: Viewer zuerst abwärtskompatibel, dann Harness; alte Notes bekommen den Kopf beim nächsten Bearbeiten (2026-10-20)
 - Verweise: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-Stand bestätigt nach Eintrag 2026-10-21 — Release zurückgehalten, weiter mit TASK-022 (2a4a83518ff6)
+State confirmed after entry 2026-10-21 — Release zurückgehalten, weiter mit TASK-022 (2a4a83518ff6)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 

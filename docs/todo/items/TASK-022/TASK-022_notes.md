@@ -1,6 +1,6 @@
 # TASK-022 — Kopf-Prüfsumme im Files-Modus
 
-## Stand
+## State
 
 - Goal/Status: Kopf-Prüfsumme im Files-Modus umgesetzt; wartet auf Bestätigung.
 - Next step: Owner bestätigt; danach TASK-025.
@@ -12,7 +12,7 @@
   - Protokollvergleich normalisiert Zeilenenden und Leerzeilen am Eintragsende (2026-10-21)
 - References: Spec TASK-022_spec.md; Story STORY-051; tests/fixtures/notes-state/checksum.json
 
-Stand bestätigt nach Eintrag 2026-10-21 — Umsetzung (3a78e5fbe0b1)
+State confirmed after entry 2026-10-21 — Umsetzung (3a78e5fbe0b1)
 
 ## 2026-10-21 — Umsetzung
 

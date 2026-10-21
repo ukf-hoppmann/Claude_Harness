@@ -1,6 +1,6 @@
 # TASK-021 — Notes-Regeln und Format im todo-Skill
 
-## Stand
+## State
 
 - Goal/Status: Regeln und Format der Notes im todo-Skill beschrieben; umgesetzt, wartet auf Bestätigung.
 - Next step: Owner bestätigt; danach TASK-022, TASK-023, TASK-025.
@@ -10,7 +10,7 @@
   - SKILL.md nennt noch keine Befehle für Kopf und Bestätigung; die kommen mit TASK-022 und TASK-023 (2026-10-21)
 - References: Spec TASK-021_spec.md; Story STORY-051
 
-Stand bestätigt nach Eintrag 2026-10-21 — Umsetzung (591fca3b79ec)
+State confirmed after entry 2026-10-21 — Umsetzung (591fca3b79ec)
 
 ## 2026-10-21 — Umsetzung
 
