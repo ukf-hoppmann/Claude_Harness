@@ -292,6 +292,113 @@ class HookTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stderr, "")
 
+    NOTES_LOG = "## 2026-10-01 — First\n\n### Discussed\n\n- a\n\n## 2026-10-02 — Second\n\n### Decided\n\n- b\n"
+
+    def write_notes(self, identifier="STORY-001", head=True, decided=1, log=NOTES_LOG):
+        path = self.todo_dir / "items" / identifier / f"{identifier}_notes.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        text = f"# {identifier} — Title\n\n"
+        if head:
+            points = "".join(f"  - d{i}\n" for i in range(decided))
+            text += f"## State\n\n- Goal/Status: g\n- Decided:\n{points}- References: none\n\n"
+        path.write_text(text + log)
+        return path
+
+    def confirm(self, identifier="STORY-001"):
+        return subprocess.run(
+            [sys.executable, str(SCRIPTS / "backlog.py"), str(self.todo_dir), "--confirm-state", identifier],
+            capture_output=True, text=True,
+        )
+
+    def test_stop_blocks_changed_notes_with_stale_head_until_confirmed(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.edit(self.write_notes())
+        first = self.stop()
+        self.assertEqual(first.returncode, 2)
+        self.assertIn("STORY-001_notes.md", first.stderr)
+        self.assertIn("stale", first.stderr)
+        self.assertIn("--confirm-state STORY-001", first.stderr)
+        self.assertEqual(self.stop().returncode, 2)
+        self.assertEqual(self.confirm().returncode, 0)
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_stop_blocks_changed_notes_without_head(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.edit(self.write_notes(head=False))
+        result = self.stop()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("missing", result.stderr)
+
+    def test_stop_ignores_old_notes_that_were_not_changed(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.write_notes(head=False)
+        self.edit(self.todo_dir / "TODO.md")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_stop_does_not_check_the_head_of_a_spec(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        spec = self.todo_dir / "items" / "STORY-001" / "STORY-001_spec.md"
+        spec.parent.mkdir(parents=True)
+        spec.write_text("# Spec\n")
+        self.edit(spec)
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_stop_does_not_loop_on_a_stale_head(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.edit(self.write_notes())
+        self.assertEqual(self.stop(active=True).returncode, 0)
+
+    def test_stop_gives_a_long_head_notice_once(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.write_notes(decided=16)
+        self.assertEqual(self.confirm().returncode, 0)
+        self.edit(self.todo_dir / "items" / "STORY-001" / "STORY-001_notes.md")
+        first = self.stop()
+        self.assertEqual(first.returncode, 2)
+        self.assertIn("more than 15 points", first.stderr)
+        self.edit(self.todo_dir / "items" / "STORY-001" / "STORY-001_notes.md")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def git(self, *args):
+        subprocess.run(["git", "-C", str(self.project), *args], check=True, capture_output=True)
+
+    def test_stop_notices_a_rewritten_log_against_git(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        path = self.write_notes()
+        self.assertEqual(self.confirm().returncode, 0)
+        self.git("init", "-q")
+        self.git("add", "-A")
+        self.git("-c", "user.name=t", "-c", "user.email=t@t", "commit", "-q", "-m", "init")
+        path.write_text(path.read_text().replace("- a\n", "- rewritten\n"))
+        self.assertEqual(self.confirm().returncode, 0)
+        self.edit(path)
+        result = self.stop()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("earlier log entry", result.stderr)
+
+    def test_stop_without_git_gives_no_rewrite_notice(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.write_notes()
+        self.assertEqual(self.confirm().returncode, 0)
+        self.edit(self.todo_dir / "items" / "STORY-001" / "STORY-001_notes.md")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_api_backend_skips_notes_head_check(self):
+        self.write_config(backend="api")
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.edit(self.write_notes())
+        result = self.stop()
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stderr, "")
+
     def test_custom_todo_path(self):
         self.write_config(path="planning")
         planning = self.project / "docs" / "planning"

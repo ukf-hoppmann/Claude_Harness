@@ -83,10 +83,10 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 |---|---|---|---|
 | SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: bei `todo.backend = "api"` Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` mit Backend `api` eine statische Zeile mit API-URL und Skill-Hinweis (ohne Abfrage von Fälligem); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
-| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur bei `todo.backend = "files"`: Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört | keine |
+| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur bei `todo.backend = "files"`: Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört. Eine geänderte Notes-Datei (`items/<ID>/<ID>_notes.md`) merkt er sich zusätzlich einzeln | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
 | PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
-| Stop | `check_backlog.py` | Nur bei `todo.backend = "files"`: prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
+| Stop | `check_backlog.py` | Nur bei `todo.backend = "files"`: prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session. Für jede in der Session geänderte Notes-Datei: Kopf `missing` oder `stale` ist ein Fehler, bis er angepasst oder mit `backlog.py --confirm-state` bestätigt ist; Hinweise bei mehr als 15 Punkten unter `- Decided:` und wenn ein älterer Protokolleintrag gegenüber dem letzten Commit geändert wurde (ohne Git kein Hinweis) | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
 | Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Branch, in den gemerged wird (Orte wie bei `daily.py`; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
 | Stop | `check_techdocs.py` | Erinnert einmal pro Projekt und Session, wenn Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden; mit Teilprojekten nennt die Meldung jedes betroffene Projekt mit seinen Doku-Pfaden | Exit 2 + stderr |
 | Stop | `check_semver.py` | Nur in einem Git-Repo. Meldet pro Projekt mit Modul `semver`: Versionsdatei fehlt oder enthält keine gültige Version; Version liegt unter dem letzten Release oder mehr als einen Schritt darüber; eine Spiegel-Datei fehlt oder enthält die Version nicht. Derselbe Befund wird einmal pro Projekt und Session gemeldet; mit Teilprojekten nennt die Meldung jedes Projekt samt Aufruf `semver.py status --project <Name>` | Exit 2 + stderr |
@@ -109,7 +109,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 
 ## Skript `backlog.py`
 
-- Aufruf: `python3 plugin/scripts/backlog.py <backlog-ordner> [--index | --show <ID> [<ID> ...]]`
+- Aufruf: `python3 plugin/scripts/backlog.py <backlog-ordner> [--index | --show <ID> [<ID> ...] | --confirm-state <ID>]`
 - Prüft das Backlog-Format Version 2 (wie der Markdown-Spiegel des
   ToDo-Viewers): `TODO.md` und `archive.md` brauchen vor `## Work items`
   einen Absatz `Format: … backlog format version 2 …`; fehlt er oder nennt er
@@ -127,9 +127,18 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   `Source: <Datei>`, in der angefragten Reihenfolge und durch eine Leerzeile
   getrennt. Die Einträge werden dabei nicht geprüft. Nicht gefundene IDs
   meldet das Skript auf stderr.
+- Mit `--confirm-state <ID>`: setzt in `items/<ID>/<ID>_notes.md` die
+  Stempelzeile des Kopfs (`State confirmed after entry … (<Prüfsumme>)`) auf
+  den letzten Protokolleintrag und die aktuelle Prüfsumme; sonst ändert sich
+  an der Datei nichts (auch die Zeilenenden bleiben). Gibt
+  `confirmed <ID>: <Datum> — <Thema> (<Prüfsumme>)` aus. Zerlegen, Prüfsumme
+  und Zustand liegen in `plugin/scripts/notes_head.py`; die Testvektoren teilt
+  der Harness mit dem ToDo-Viewer (`tests/fixtures/notes-state/checksum.json`).
 - Exit-Code: 0 ohne Fehler, 1 bei Fehlern (bei `--show`: eine ID nicht
-  gefunden), 2 bei falschem Aufruf (bei `--show` auch: keine oder ungültige
-  ID, zusammen mit `--index`).
+  gefunden; bei `--confirm-state`: keine Notes-Datei, kein Kopf oder kein
+  Protokolleintrag), 2 bei falschem Aufruf (bei `--show` auch: keine oder
+  ungültige ID, zusammen mit `--index`; bei `--confirm-state`: keine oder
+  ungültige ID).
 
 ## Skript `backlog_api.py`
 

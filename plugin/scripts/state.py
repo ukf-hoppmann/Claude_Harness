@@ -47,6 +47,30 @@ def write_names(path: Path, names: set[str]) -> None:
     path.write_text(json.dumps(sorted(names)))
 
 
+def notes_changed_file(session_id: str) -> Path:
+    """JSON list of "<project>\t<path relative to the project>" for notes files changed in the session."""
+    return state_dir() / f"backlog-notes-{_safe(session_id)}.json"
+
+
+def read_changed_notes(session_id: str) -> set[tuple[str, str]]:
+    """(project, path relative to the project) of the notes files changed in the session."""
+    try:
+        entries = json.loads(notes_changed_file(session_id).read_text())
+    except (OSError, ValueError):
+        return set()
+    return {tuple(str(entry).split("\t", 1)) for entry in entries if "\t" in str(entry)}
+
+
+def write_changed_notes(session_id: str, notes: set[tuple[str, str]]) -> None:
+    """Store the changed notes files; an empty set removes the file."""
+    path = notes_changed_file(session_id)
+    if not notes:
+        path.unlink(missing_ok=True)
+        return
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(sorted(f"{project}\t{relative}" for project, relative in notes)))
+
+
 def delivered_notices_file(session_id: str) -> Path:
     return state_dir() / f"backlog-notices-{_safe(session_id)}.json"
 
