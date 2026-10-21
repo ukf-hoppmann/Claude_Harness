@@ -273,7 +273,11 @@ The head:
   ToDo-Viewer or the helper sets it.
 
 After every change to the notes, update the head or deliberately confirm that
-it is still current; both set the stamp. The head's state is:
+it is still current; both set the stamp. Files mode: edit the head in the
+file, then run
+`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --confirm-state <ID>`;
+the backlog check at the end of a turn blocks while a notes file changed in
+the session has a head that is not `current`. The head's state is:
 
 - `missing`: no `## State` section;
 - `stale`: no stamp, or its checksum differs from the current log;
