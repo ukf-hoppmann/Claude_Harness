@@ -38,7 +38,7 @@ EOF
 | `index` | Overview: `ID \| Type \| Status \| Area \| Title \| Parent` |
 | `show <ID>` | One item as JSON with its `version`, archived items included |
 | `areas` | The areas in use, one per line |
-| `create` | New item. stdin: `type`, `title`, `area`, `goal`, `completion_criteria`, optional `parent` (ID), `required_for_parent` (`"Yes"`/`"No"`), `priority`, `dependencies` (list of IDs), `summary`. Prints the item with its new ID |
+| `create` | New item. stdin: `type`, `title`, `area`, `goal`, `completion_criteria` (numbered list, one criterion per line, `\n`-separated), optional `parent` (ID), `required_for_parent` (`"Yes"`/`"No"`), `priority`, `dependencies` (list of IDs), `summary`. Prints the item with its new ID |
 | `update <ID> <version>` | stdin: `{"fields": {...}}` with any of `title`, `status`, `parent`, `required_for_parent`, `priority`, `dependencies`, `area`, `goal`, `completion_criteria`, `summary`; add `"resolution": "..."` when setting `Completed` or `Rejected` |
 | `move <ID> <version> <parent\|-> [--position N]` | New parent (`-` = none) and position among its siblings |
 | `reopen <ID>` | Set the item and its closed ancestors to `In progress`, from the top down |

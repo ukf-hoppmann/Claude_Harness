@@ -56,6 +56,7 @@ working language.
   - Goal: Describe the result. Continuation lines are indented
     by four spaces.
   - Completion criteria: State how the result is verified.
+    One numbered criterion per line (`1. …`).
   - Summary: Short summary for the project owner.
 ```
 
@@ -63,6 +64,9 @@ Fields, in this order: `Uid`, `Type`, `Parent`, `Required for parent`,
 `Status`, `Created`, `Area`, `Priority`, `Dependencies`, `Goal`,
 `Completion criteria`, `Summary`, `Resolution`, `Deleted`. Other fields are
 errors. The order is how the ToDo-Viewer writes entries; any order is read.
+
+`Completion criteria` is a numbered list, one criterion per line (`1. …`,
+`2. …`), never running text, so the ToDo-Viewer can show it as a list.
 
 `Uid` is the item's permanent internal identity, assigned by the ToDo-Viewer.
 Never create, change, or copy a `Uid`, and never invent a label; new entries
