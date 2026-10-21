@@ -269,6 +269,44 @@ class BacklogApiTest(unittest.TestCase):
         self.run_api("note", "STORY-001", stdin=json.dumps(entry))
         self.assertEqual(self.last("POST")["body"], {**entry, "project": "p1"})
 
+    def show_route(self, identifier, item_type, *children):
+        body = {"label": identifier, "type": item_type, "children": [
+            {"label": label, "status": status, "deleted": deleted} for label, status, deleted in children]}
+        self.viewer.routes[("GET", f"{ITEMS}/{identifier}")] = (200, body)
+        self.viewer.routes[("POST", f"{ITEMS}/{identifier}/notes")] = (200, {"name": "n", "version": 2})
+        self.viewer.routes[("PUT", f"{ITEMS}/{identifier}/documents/{identifier}_notes.md")] = (
+            200, {"name": f"{identifier}_notes.md", "version": 3})
+
+    def test_note_on_a_story_with_a_child_in_progress_gives_a_hint(self):
+        self.show_route("STORY-001", "Story", ("TASK-002", "Open", False), ("TASK-003", "In progress", False))
+        result = self.run_api("note", "STORY-001", stdin='{"topic": "T"}')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertIn("TASK-003 is in progress", result.stderr)
+        self.assertEqual(len(self.viewer.calls("POST")), 1)
+
+    def test_put_doc_of_story_notes_gives_the_hint_but_a_spec_does_not(self):
+        self.show_route("STORY-001", "Story", ("TASK-003", "In progress", False))
+        self.viewer.routes[("PUT", f"{ITEMS}/STORY-001/documents/STORY-001_spec.md")] = (
+            200, {"name": "STORY-001_spec.md", "version": 1})
+        notes = self.run_api("put-doc", "STORY-001", "STORY-001_notes.md", "2", stdin="x")
+        self.assertIn("TASK-003 is in progress", notes.stderr)
+        spec = self.run_api("put-doc", "STORY-001", "STORY-001_spec.md", "1", stdin="x")
+        self.assertEqual(spec.stderr, "")
+
+    def test_note_gives_no_hint_without_a_child_in_progress(self):
+        self.show_route("STORY-001", "Story", ("TASK-002", "Open", False), ("TASK-004", "In progress", True))
+        self.assertEqual(self.run_api("note", "STORY-001", stdin='{"topic": "T"}').stderr, "")
+
+    def test_note_on_a_task_gives_no_hint(self):
+        self.show_route("TASK-002", "Task")
+        self.assertEqual(self.run_api("note", "TASK-002", stdin='{"topic": "T"}').stderr, "")
+
+    def test_note_is_still_written_when_the_lookup_fails(self):
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n", "version": 2})
+        result = self.run_api("note", "STORY-001", stdin='{"topic": "T"}')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+
     def test_doc_prints_version_and_content(self):
         self.viewer.routes[("GET", f"{ITEMS}/STORY-001/documents/STORY-001_notes.md")] = (
             200, {"name": "STORY-001_notes.md", "kind": "notes", "content": "# Notizen\n\nText\n", "version": 7},

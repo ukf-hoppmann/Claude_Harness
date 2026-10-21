@@ -9,6 +9,7 @@ import sys
 from typing import Any
 from urllib.parse import quote
 
+from notes_hint import child_in_progress_hint
 from viewer_api import (
     EXIT_USAGE, NO_PARENT, Api, ApiError, Target, find_project, item_fields, print_json, print_projects,
     register_project, split_target, stdin_json, target_for, version_arg,
@@ -74,6 +75,19 @@ def _mark_trashed_children(item: dict[str, Any]) -> list[str]:
             if child.get("status") not in CLOSED_STATUSES:
                 unclosed.append(child.get("label", ""))
     return unclosed
+
+
+def _hint_children_in_progress(api: Api, project: str, identifier: str) -> None:
+    """After notes were written: ask on stderr whether they belong to a child in progress. Never fails the call."""
+    try:
+        item = api.call("GET", _item(identifier), query={"project": project})
+    except ApiError:
+        return
+    active = [c.get("label", "") for c in item.get("children") or []
+              if c.get("status") == "In progress" and not c.get("deleted")]
+    hint = child_in_progress_hint(identifier, str(item.get("type", "")), active)
+    if hint:
+        print(hint, file=sys.stderr)
 
 
 def _options(command: str, args: list[str]) -> tuple[list[str], dict[str, str | bool]]:
@@ -169,6 +183,7 @@ def _run(target: Target, command: str, positional: list[str], options: dict[str,
         print_json(api.call("POST", _item(positional[0], "/reopen"), {"project": project}))
     elif command == "note":
         print_json(api.call("POST", _item(positional[0], "/notes"), {**stdin_json(), "project": project}))
+        _hint_children_in_progress(api, project, positional[0])
     elif command == "doc":
         identifier, name = positional
         document = api.call("GET", _item(identifier, f"/documents/{quote(name)}"), query={"project": project})
@@ -181,6 +196,8 @@ def _run(target: Target, command: str, positional: list[str], options: dict[str,
             body["summary"] = options["--summary"]
         document = api.call("PUT", _item(identifier, f"/documents/{quote(name)}"), body)
         print(f"{document['name']}: saved, version {document['version']}")
+        if name.endswith("_notes.md"):
+            _hint_children_in_progress(api, project, identifier)
     elif command == "retype":
         identifier, version, new_type = positional
         body = {"project": project, "version": version_arg(version), "type": new_type}

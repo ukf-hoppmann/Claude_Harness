@@ -6,8 +6,9 @@ import sys
 from pathlib import Path
 
 import notes_head
-from backlog import validate_backlog
+from backlog import BacklogItem, validate_backlog
 from harness_config import ROOT_PROJECT, ConfigError, project_root
+from notes_hint import child_in_progress_hint
 from projects import load_projects
 from state import (
     delivered_notices_file,
@@ -51,7 +52,17 @@ def _committed(root: Path, relative: str) -> str | None:
     return result.stdout.decode("utf-8", "replace") if result.returncode == 0 else None
 
 
-def _check_notes(project, relatives: set[str]) -> tuple[list[str], list[str], set[str]]:
+def _child_hint(items: list[BacklogItem], identifier: str) -> str | None:
+    by_id = {i.identifier: i for i in items}
+    item = by_id.get(identifier)
+    if item is None:
+        return None
+    active = [i.identifier for i in items if i.parent == identifier and i.status == "In progress" and not i.deleted]
+    hint = child_in_progress_hint(identifier, item.item_type, active)
+    return hint.removeprefix("hint: ") if hint else None
+
+
+def _check_notes(project, relatives: set[str], items: list[BacklogItem]) -> tuple[list[str], list[str], set[str]]:
     """Errors, notices, and the notes files to check again at the next stop."""
     errors: list[str] = []
     notices: list[str] = []
@@ -76,6 +87,9 @@ def _check_notes(project, relatives: set[str]) -> tuple[list[str], list[str], se
                 f"{name}: more than {notes_head.LONG_STATE} points under - Decided: in the head; "
                 "write the spec or split the item?"
             )
+        child_hint = _child_hint(items, Path(relative).parent.name)
+        if child_hint:
+            notices.append(f"{name}: {child_hint}")
         committed = _committed(project.root, relative)
         if committed is not None and notes_head.history_rewritten(committed, text):
             notices.append(
@@ -111,7 +125,7 @@ def main() -> int:
         if project is None or not project.config.enabled("todo") or project.config.todo_backend != "files":
             continue
         report = validate_backlog(project.root / project.config.todo_path)
-        notes_errors, notes_notices, again = _check_notes(project, {r for p, r in changed_notes if p == name})
+        notes_errors, notes_notices, again = _check_notes(project, {r for p, r in changed_notes if p == name}, report.items)
         notes_again |= {(name, relative) for relative in again}
         errors = report.errors + notes_errors
         new_notices = [n for n in report.notices + notes_notices if _notice_key(name, n) not in delivered]

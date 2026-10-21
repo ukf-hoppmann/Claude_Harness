@@ -42,7 +42,7 @@ EOF
 | `update <ID> <version>` | stdin: `{"fields": {...}}` with any of `title`, `status`, `parent`, `required_for_parent`, `priority`, `dependencies`, `area`, `goal`, `completion_criteria`, `summary`; add `"resolution": "..."` when setting `Completed` or `Rejected` |
 | `move <ID> <version> <parent\|-> [--position N]` | New parent (`-` = none) and position among its siblings |
 | `reopen <ID>` | Set the item and its closed ancestors to `In progress`, from the top down |
-| `note <ID>` | Append a dated notes entry. stdin: `{"topic": "...", "discussed": [...], "decided": [...], "open": [...]}`; add `"summary"` if the item has none yet |
+| `note <ID>` | Append a dated notes entry. stdin: `{"topic": "...", "discussed": [...], "decided": [...], "open": [...]}`; add `"summary"` if the item has none yet. On an epic or story with a child `In progress` (also for `put-doc` on its notes) a hint on stderr asks whether the discussion belongs in that child's notes; the entry is written either way |
 | `doc <ID> <name>` | Print a notes or spec document: `version: <v>`, a blank line, the text. Names: `<ID>_notes.md`, `<ID>_spec.md`, `<ID>_spec_<topic>.md` |
 | `put-doc <ID> <name> <version\|new> [--summary TEXT]` | Replace a document with the complete text from stdin, or create it with `new` (first notes need `--summary` if the item has none) |
 | `retype <ID> <version> <type>` | Change the type (`Epic`, `Story`, `Task`). The ID's prefix is the type, so the item gets the next free ID of the new type; references in the project's texts follow. Prints `old_label` and `new_label`; refused when the new type breaks a lifecycle rule |
