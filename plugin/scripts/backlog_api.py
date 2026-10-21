@@ -21,8 +21,10 @@ USAGE = """usage: backlog_api.py [--project <name> | --source <name>] <command> 
   health                                  server reachable?
   sources                                 the names of all projects the viewer knows, with their folders
   register                                register this backlog as a viewer project (only after the owner's yes)
-  index                                   one line per item: ID | Type | Status | Area | Title | Parent
-  show <ID>                               item as JSON, with its version (archived items too)
+  index [--with-trash]                    one line per item: ID | Type | Status | Area | Title | Parent;
+                                          items in the trash are left out, or marked (Papierkorb) with --with-trash
+  show <ID>                               item as JSON, with its version (archived items too); deleted children
+                                          are marked and do not count as open work
   areas                                   the areas in use, one per line
   create                                  stdin: JSON fields (type, title, area, goal, completion_criteria, ...)
   update <ID> <version>                   stdin: JSON {"fields": {...}, "resolution": ...}
@@ -37,15 +39,46 @@ USAGE = """usage: backlog_api.py [--project <name> | --source <name>] <command> 
   restore <ID>                            restore an item (with the descendants deleted with it) from the trash"""
 
 BACKLOG_KINDS = ("epic", "story", "task")
+TRASH_MARK = "(Papierkorb)"
+CLOSED_STATUSES = ("Completed", "Rejected")
 
 
 def _item(identifier: str, suffix: str = "") -> str:
     return f"/backlog/items/{quote(identifier)}{suffix}"
 
 
+def _trashed(api: Api, project: str) -> list[dict[str, Any]]:
+    elements = api.call("GET", "/workspace/trash", query={"projects": project})
+    return [e for e in elements if e.get("kind") in BACKLOG_KINDS]
+
+
+def _index_text(text: str, trashed: set[str], with_trash: bool) -> str:
+    """The index without the trashed items, or with them marked; the header line stays."""
+    lines = []
+    for line in text.splitlines():
+        columns = [c.strip() for c in line.split("|")]
+        if columns[0] in trashed:
+            if not with_trash:
+                continue
+            line = f"{line} {TRASH_MARK}"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def _mark_trashed_children(item: dict[str, Any]) -> list[str]:
+    """Mark deleted children (they are not open work); returns the labels of those still unclosed."""
+    unclosed = []
+    for child in item.get("children") or []:
+        if child.get("deleted"):
+            child["note"] = "im Papierkorb; zählt nicht als offenes Kind"
+            if child.get("status") not in CLOSED_STATUSES:
+                unclosed.append(child.get("label", ""))
+    return unclosed
+
+
 def _options(command: str, args: list[str]) -> tuple[list[str], dict[str, str | bool]]:
     """Positional arguments and the command's options (flags or options with a value)."""
-    allowed = {"put-doc": {"--summary": False}, "delete": {"--cascade": True}, "move": {"--position": False}}
+    allowed = {"put-doc": {"--summary": False}, "delete": {"--cascade": True}, "index": {"--with-trash": True}, "move": {"--position": False}}
     flags = allowed.get(command, {})
     positional: list[str] = []
     options: dict[str, str | bool] = {}
@@ -99,9 +132,17 @@ def run(project_name: str, source_name: str | None, command: str, args: list[str
 def _run(target: Target, command: str, positional: list[str], options: dict[str, str | bool]) -> None:
     api, project = target.api, target.uid
     if command == "index":
-        print(api.call("GET", "/backlog/index", query={"projects": project})["text"])
+        text = api.call("GET", "/backlog/index", query={"projects": project})["text"]
+        trashed = {e.get("label", "") for e in _trashed(api, project)}
+        print(_index_text(text, trashed, bool(options.get("--with-trash"))))
     elif command == "show":
-        print_json(api.call("GET", _item(positional[0]), query={"project": project}))
+        item = api.call("GET", _item(positional[0]), query={"project": project})
+        unclosed = _mark_trashed_children(item)
+        print_json(item)
+        if unclosed:
+            print(f"hint: {', '.join(unclosed)} liegt im Papierkorb, ist aber nicht geschlossen; "
+                  "gelöschte Kinder zählen nicht für Fortschritt und Abschluss, sie blockieren nichts.",
+                  file=sys.stderr)
     elif command == "areas":
         print("\n".join(api.call("GET", "/backlog/areas", query={"project": project})["areas"]))
     elif command == "create":

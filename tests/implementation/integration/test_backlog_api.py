@@ -23,6 +23,7 @@ class BacklogApiTest(unittest.TestCase):
         self.viewer = FakeViewer()
         self.write_config(self.viewer.url)
         self.viewer.add_project("p1", "project", self.todo)
+        self.viewer.routes[("GET", f"{API}/workspace/trash")] = (200, [])
 
     def tearDown(self):
         self.viewer.close()
@@ -77,6 +78,30 @@ class BacklogApiTest(unittest.TestCase):
         self.assertEqual(result.stdout.splitlines(), text.splitlines())
         self.assertEqual(self.last("GET")["query"], {"projects": ["p1"]})
         self.assertEqual(self.writes(), [])
+
+    def test_index_leaves_out_trashed_items_or_marks_them(self):
+        text = ("ID | Type | Status | Area | Title | Parent\n"
+                "STORY-001 | Story | Open | Kern | A | -\nTASK-001 | Task | Open | Kern | B | STORY-001")
+        self.viewer.routes[("GET", f"{API}/backlog/index")] = (200, {"text": text, "count": 2})
+        self.viewer.routes[("GET", f"{API}/workspace/trash")] = (200, [
+            {"label": "TASK-001", "kind": "task"}, {"label": "STORY-001", "kind": "note"},
+        ])
+        lines = self.run_api("index").stdout.splitlines()
+        self.assertEqual(lines, text.splitlines()[:2])
+        lines = self.run_api("index", "--with-trash").stdout.splitlines()
+        self.assertEqual(lines[2], "TASK-001 | Task | Open | Kern | B | STORY-001 (Papierkorb)")
+
+    def test_show_marks_deleted_children_and_hints_at_unclosed_ones(self):
+        item = {"label": "STORY-001", "children": [
+            {"label": "TASK-001", "status": "Open", "deleted": True},
+            {"label": "TASK-002", "status": "Completed", "deleted": False},
+        ]}
+        self.viewer.routes[("GET", f"{ITEMS}/STORY-001")] = (200, item)
+        result = self.run_api("show", "STORY-001")
+        children = json.loads(result.stdout)["children"]
+        self.assertIn("Papierkorb", children[0]["note"])
+        self.assertNotIn("note", children[1])
+        self.assertIn("TASK-001 liegt im Papierkorb", result.stderr)
 
     def test_unregistered_backlog_has_own_exit_code_and_registers_nothing(self):
         self.viewer.projects.clear()

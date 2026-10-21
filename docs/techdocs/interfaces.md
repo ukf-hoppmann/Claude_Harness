@@ -175,8 +175,8 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   | `health` | Erreichbarkeit (`GET /core/health`) |
   | `sources` | `Project \| Folder` jedes Viewer-Projekts (die Namen für `--source`; `-` ohne Spiegel-Ordner) |
   | `register` | Backlog-Ordner als Viewer-Projekt anlegen (`POST /workspace/projects`, Spiegel und Auto-Sync an); Name beim Root-Projekt der Ordnername des Haupt-Checkouts, sonst der Name des Teilprojekts. Abgelehnt (Exit 2), wenn der Ordner schon registriert ist oder mit `--source` |
-  | `index` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` (`GET /backlog/index`) |
-  | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte |
+  | `index [--with-trash]` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` (`GET /backlog/index`); Einträge im Papierkorb (`GET /workspace/trash`) fehlen, mit `--with-trash` stehen sie mit dem Zusatz `(Papierkorb)` da |
+  | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte; gelöschte Kinder tragen ein `note`-Feld und zählen nicht als offene Arbeit (nicht geschlossene nennt ein Hinweis auf stderr) |
   | `areas` | Benutzte Bereiche, einer pro Zeile |
   | `create` | Neuer Eintrag; stdin: flaches JSON mit `type` und den Feldern; die ID vergibt der Server |
   | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` (`PUT /backlog/items/{ID}`) |

@@ -98,6 +98,12 @@ Read only what the task needs:
   own completion criteria: if met, set it to `Awaiting confirmation` and tell
   the owner; otherwise say what is missing. A parent is only completed or
   rejected once every child is closed or reparented.
+- Items in the trash do not count: not as open children, not for progress,
+  not for the completion check. API: `index` leaves them out (`index
+  --with-trash` marks them `(Papierkorb)`), `show` marks deleted children,
+  `trash` lists them. A parent with deleted but unclosed children is not
+  blocked by them: do not report them as open work, only tell the owner
+  that they lie in the trash.
 - New work goes under an existing epic or story whenever one fits — including
   archived ones. Prefer proposing to reopen a closed parent (owner approval,
   reason recorded in its notes) over creating a new epic or story.

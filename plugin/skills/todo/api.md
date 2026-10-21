@@ -35,8 +35,8 @@ EOF
 | `health` | Is the server reachable? |
 | `sources` | `Project \| Folder` of every project the viewer knows; the names `--source` accepts |
 | `register` | Register the session's backlog as a viewer project with a mirror. Only after the owner said yes (exit code 4 below) |
-| `index` | Overview: `ID \| Type \| Status \| Area \| Title \| Parent` |
-| `show <ID>` | One item as JSON with its `version`, archived items included |
+| `index [--with-trash]` | Overview: `ID \| Type \| Status \| Area \| Title \| Parent`; items in the trash are left out, with `--with-trash` they are shown marked `(Papierkorb)` |
+| `show <ID>` | One item as JSON with its `version`, archived items included; deleted children carry a `note` and do not count as open work (stderr names unclosed ones as a hint) |
 | `areas` | The areas in use, one per line |
 | `create` | New item. stdin: `type`, `title`, `area`, `goal`, `completion_criteria` (numbered list, one criterion per line, `\n`-separated), optional `parent` (ID), `required_for_parent` (`"Yes"`/`"No"`), `priority`, `dependencies` (list of IDs), `summary`. Prints the item with its new ID |
 | `update <ID> <version>` | stdin: `{"fields": {...}}` with any of `title`, `status`, `parent`, `required_for_parent`, `priority`, `dependencies`, `area`, `goal`, `completion_criteria`, `summary`; add `"resolution": "..."` when setting `Completed` or `Rejected` |
