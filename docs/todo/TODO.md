@@ -359,26 +359,3 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     Schnittstelle stimmt mit der Umsetzung im ToDo-Viewer überein.
   - Summary: Im API-Modus kann der Harness die Übersicht einer Notes-Datei
     getrennt lesen, ersetzen und bestätigen.
-
-- `TASK-025` **Nachfrage bei Notes an eine Story mit Kind in Arbeit**
-  - Uid: 45d14f50-cb70-43f8-911c-57dd9c710f0e.
-  - Type: Task.
-  - Parent: `STORY-051`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-10-20.
-  - Area: Entwicklung.
-  - Priority: Urgent.
-  - Dependencies: `TASK-021`.
-  - Goal: Schreibt die LLM einen Notes-Eintrag an eine Story, während eines
-    ihrer Kinder In progress ist, gibt der Helfer einen Hinweis aus ('TASK-x
-    ist in Arbeit, gehört das dorthin?'). Der Eintrag wird trotzdem
-    geschrieben (Prüfidee A, nur Nachfrage).
-  - Completion criteria: 1. Hinweis in backlog_api.py (note, put-doc auf
-    Notes) und im Files-Modus in der Backlog-Prüfung umgesetzt.
-    2. Unit-Tests für Story mit/ohne Kind in Arbeit und für Tasks (kein
-    Hinweis).
-    3. Der Eintrag wird nie abgelehnt.
-    4. Doku in api.md bzw. format.md.
-  - Summary: Schreibt Claude Protokolle an eine Story, während einer ihrer
-    Tasks in Arbeit ist, fragt der Harness nach, ob das dorthin gehört.
