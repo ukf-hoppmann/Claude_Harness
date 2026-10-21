@@ -18,7 +18,7 @@ Prüfsumme in `format.md` (TASK-021).
   (blockiert das Turn-Ende) mit der Anweisung: Kopf prüfen, anpassen oder
   bestätigen, dann `--confirm-state`. Nicht geänderte alte Notes ohne Kopf
   werden nicht gemeldet.
-- Hinweis (kein Fehler): Kopf mit mehr als 15 Punkten unter Beschlossen;
+- Hinweis (kein Fehler): Kopf mit mehr als 15 Punkten unter `- Decided:`;
   ältere Protokolleinträge geändert (Vergleich mit dem Stand vor der Session,
   falls verfügbar, sonst über Git).
 - `cloud_export.py`: prüfen, dass Kopf und Stempel beim Export erhalten

@@ -15,10 +15,11 @@ Task ändert nur Texte; Code kommt in TASK-022 bis TASK-025.
     Stempel nie von Hand schreiben.
   - Lesereihenfolge: zuerst Kopf und Spec, Protokoll nur bei Bedarf.
 - `plugin/skills/todo/format.md`, Item files:
-  - Aufbau der Notes-Datei (Titel, `## Stand` mit fester Reihenfolge,
+  - Aufbau der Notes-Datei (Titel, `## State` mit den festen englischen Markern
+    `- Goal/Status:`, `- Next step:`, `- Open:`, `- Decided:`, `- References:`,
     Stempelzeile, Protokoll) mit Beispiel.
   - Regeln für den Kopf (ein Punkt pro Zeile mit Datum, nur Geltendes,
-    Technisches als Verweis auf die Spec, Hinweis ab 15 Beschlüssen).
+    Technisches als Verweis auf die Spec, Hinweis ab 15 Punkten unter `- Decided:`).
   - Protokoll nur anhängen; erledigte Open-Punkte ausdrücklich schließen.
   - Definition der Prüfsumme (gemeinsamer Vertrag mit dem ToDo-Viewer):
     SHA-256 über das Protokoll in kanonischer Form, erste 12 Hex-Zeichen;

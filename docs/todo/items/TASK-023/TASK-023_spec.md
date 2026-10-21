@@ -3,6 +3,9 @@
 Grundlage: STORY-051_spec.md (Schnittstelle zum ToDo-Viewer, Umstellung).
 Der ToDo-Viewer hat die Erweiterung seit v0.8.14 (dort TASK-044); maßgeblich
 ist seine `docs/techdocs/interfaces.md`, Abschnitt Backlog/Notes.
+Voraussetzung ist zusätzlich die Viewer-Version mit den englischen
+Überschriften (`## State`, `- Decided:`, `State confirmed after entry …`,
+Beschluss vom 2026-10-21).
 
 ## Schnittstelle des Viewers (Stand v0.8.14)
 

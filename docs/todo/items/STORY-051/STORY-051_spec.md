@@ -43,17 +43,17 @@ nach jeder Änderung der Notes bewusst geprüft wird.
 ```markdown
 # <ID> — <Titel>
 
-## Stand
+## State
 
-- Ziel/Status: <ein Satz>
-- Nächster Schritt: …
-- Offen:
+- Goal/Status: <ein Satz>
+- Next step: …
+- Open:
   - … (<Datum des Protokolleintrags>)
-- Beschlossen:
+- Decided:
   - … (<Datum>)
-- Verweise: Spec, Kinder-Items, verwandte Items
+- References: Spec, Kinder-Items, verwandte Items
 
-Stand bestätigt nach Eintrag <Datum> — <Thema> (<Prüfsumme>)
+State confirmed after entry <YYYY-MM-DD> — <Thema> (<Prüfsumme>)
 
 ## <YYYY-MM-DD> — <Thema>
 
@@ -64,12 +64,14 @@ Stand bestätigt nach Eintrag <Datum> — <Thema> (<Prüfsumme>)
 
 Regeln für den Kopf:
 
-- Reihenfolge: Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise.
+- Reihenfolge: Goal/Status, Next step, Open, Decided, References. Die
+  Überschriften und Marker sind fest und Englisch (Architekturregel 6), der
+  Inhalt steht in `docs.language`; der Viewer darf sie lokalisiert anzeigen.
 - Ein Punkt pro Zeile, mit Datum als Verweis ins Protokoll.
 - Nur was jetzt gilt; überholte Entscheidungen fallen aus dem Kopf und
   bleiben im Protokoll.
 - Technisches steht im Kopf in einem Satz mit Verweis auf die Spec.
-- Keine feste Längengrenze; ab 15 Punkten unter Beschlossen gibt es einen
+- Keine feste Längengrenze; ab 15 Punkten unter `- Decided:` gibt es einen
   Hinweis (Spec schreiben oder Item teilen?), nie eine Ablehnung.
 
 Regeln für das Protokoll:
@@ -82,7 +84,7 @@ Regeln für das Protokoll:
 ## Absicherung des Kopfs
 
 - Stempelzeile am Ende des Kopfs:
-  `Stand bestätigt nach Eintrag <YYYY-MM-DD> — <Thema> (<Prüfsumme>)`.
+  `State confirmed after entry <YYYY-MM-DD> — <Thema> (<Prüfsumme>)`.
   Prüfsumme: SHA-256 über das Protokoll in kanonischer Form (alle Einträge
   ab der ersten Zeile `## YYYY-MM-DD — `, LF, ohne Leerzeichen am
   Zeilenende, genau ein Zeilenumbruch am Ende), davon die ersten 12
@@ -134,7 +136,7 @@ liegt jede Notes-Datei als ein Text in `backlog_documents`; `POST
    Markdown-Text des Eintrags, Reihenfolge). Der Text wird verlustfrei
    gespeichert, nicht nur als Listen, weil Einträge auch per `put-doc`
    entstehen. Migration: bestehende Notes an `## YYYY-MM-DD — ` in Einträge
-   zerlegen; ein vorhandener Abschnitt `## Stand` wird Kopf, sonst bleibt der
+   zerlegen; ein vorhandener Abschnitt `## State` wird Kopf, sonst bleibt der
    Kopf leer.
 2. **Prüfsumme:** über das Protokoll in kanonischer Form (alle Einträge, LF,
    ohne Leerzeichen am Zeilenende, ein Zeilenumbruch am Ende), gleich
@@ -154,7 +156,7 @@ liegt jede Notes-Datei als ein Text in `backlog_documents`; `POST
    `current`, `stale` oder `missing`. Schreibende Antworten auf Notes
    enthalten einen Hinweis, wenn der Kopf danach veraltet ist.
 5. **Spiegel:** Encode setzt die Datei zusammen (Titelzeile aus dem aktuellen
-   Label und Titel, `## Stand`, Stempelzeile, Protokoll); Decode zerlegt sie
+   Label und Titel, `## State`, Stempelzeile, Protokoll); Decode zerlegt sie
    und übernimmt den Stempel aus der Datei (Files-Modus bestätigt per
    `backlog.py`). Die Titelzeile wird immer aus dem Item erzeugt; damit
    folgt sie auch einem Typwechsel (heute bleibt sie beim alten Label).

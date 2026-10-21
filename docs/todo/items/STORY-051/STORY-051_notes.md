@@ -4,8 +4,10 @@
 
 - Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
 - Nächster Schritt: TASK-021 umsetzen; danach TASK-022, TASK-023 und TASK-025, TASK-024 zuletzt; dann Harness-Release.
-- Offen: nichts
+- Offen:
+  - Englische Überschriften im ToDo-Viewer umsetzen (Owner); danach Kopf dieser Notes umstellen (2026-10-21)
 - Beschlossen:
+  - Feste Überschriften von Kopf und Stempel auf Englisch (Regel 6), Inhalt in docs.language; der Viewer darf sie in der Oberfläche lokalisiert anzeigen (2026-10-21)
   - Notes: Kopf „Stand“ oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Reihenfolge Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
   - Protokollregeln: spezifischstes Item, Kernfrage/Optionen/Entscheidung mit Begründung/Verworfenes, nach jeder geklärten Frage schreiben (2026-10-20)
   - Spec ist immer der aktuelle Stand, wird fortlaufend aktualisiert; die Entscheidungsfindung steht in den Notes (2026-10-20)
@@ -18,7 +20,7 @@
   - Umstellung: Viewer zuerst abwärtskompatibel, dann Harness; alte Notes bekommen den Kopf beim nächsten Bearbeiten (2026-10-20)
 - Verweise: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-Stand bestätigt nach Eintrag 2026-10-21 — ToDo-Viewer umgesetzt, Abgleich mit dem Harness (069e7758172e)
+Stand bestätigt nach Eintrag 2026-10-21 — Englische Überschriften beschlossen (9191d36e6ea4)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -277,3 +279,27 @@ Stand bestätigt nach Eintrag 2026-10-21 — ToDo-Viewer umgesetzt, Abgleich mit
 ### Decided
 
 - TASK-023-Spec an die tatsächliche Schnittstelle angepasst; die Entwicklung gegen eine Attrappe entfällt. Testvektoren werden in die Harness-Tests kopiert.
+
+## 2026-10-21 — Konflikt mit Architekturregel 6 (Sprache der Überschriften)
+
+### Discussed
+
+- Beim Start der Umsetzung geprüft: Architekturregel 6 verlangt, dass maschinell geprüfte Feldnamen und Überschriften Englisch bleiben (wie Discussed/Decided/Open). Kopf und Stempel sind aber deutsch und werden maschinell geprüft: '## Stand', '- Beschlossen:' (Zählung für den Längenhinweis), 'Stand bestätigt nach Eintrag …'. Im ToDo-Viewer v0.8.14 fest so eingebaut. Projekte mit docs.language = en bekämen deutsche Überschriften.
+- Optionen: (1) Englisch: '## State', '- Goal/Status:', '- Next step:', '- Open:', '- Decided:', '- References:', Stempel 'State confirmed after entry <Datum> — <Thema> (<Prüfsumme>)'; braucht eine kleine Änderung im ToDo-Viewer (Konstanten, Tests, Migration der schon gestempelten Köpfe, bisher nur STORY-051). (2) Ausnahme von Regel 6: Deutsch bleibt fest für alle Projekte. (3) Sprachabhängig nach docs.language: Viewer und Harness müssten beide Sprachen erkennen; mehr Aufwand, fehleranfällig.
+- Empfehlung Claude: Option 1, einheitlich mit Discussed/Decided/Open; der Inhalt des Kopfs bleibt in docs.language.
+- Kein Konflikt: Architekturregel 2 (Hooks ohne Netzwerk). Der Hook aus TASK-024 fragt den Viewer nicht selbst; der Helfer merkt sich den Zustand des Kopfs aus den Antworten des Servers im Session-State, der Hook liest nur diesen.
+
+### Open
+
+- Sprache der Überschriften: Option 1, 2 oder 3.
+
+## 2026-10-21 — Englische Überschriften beschlossen
+
+### Discussed
+
+- Unverändert bleiben Titelzeile '# <ID> — <Titel>', Eintragsüberschrift '## YYYY-MM-DD — <Thema>' und '### Discussed/Decided/Open'. Hinweise des Servers: der Harness wertet nur die stabilen Codes aus; Meldungstexte, die die LLM liest, sollten wie alle Hook-Meldungen Englisch sein (Regel 6).
+
+### Decided
+
+- Owner: Option 1. Die festen Überschriften und Marker von Kopf und Stempel sind Englisch: '## State', '- Goal/Status:', '- Next step:', '- Open:', '- Decided:', '- References:', Stempel 'State confirmed after entry <YYYY-MM-DD> — <Thema> (<Prüfsumme>)'. Der Inhalt bleibt in docs.language. Weil die Überschriften fest sind, kann der Viewer sie in seiner Oberfläche lokalisiert anzeigen. Open vom 2026-10-21 (Sprache der Überschriften) erledigt.
+- Owner passt den ToDo-Viewer an; Claude stellt danach den Kopf dieser Notes um und schreibt die englischen Überschriften in Spec und todo-Skill.
