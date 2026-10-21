@@ -3,7 +3,7 @@
 ## Stand
 
 - Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
-- Nächster Schritt: TASK-021 umsetzen; danach TASK-022 und TASK-025, TASK-023 sobald der ToDo-Viewer erweitert ist, TASK-024 zuletzt.
+- Nächster Schritt: TASK-021 umsetzen; danach TASK-022, TASK-023 und TASK-025, TASK-024 zuletzt; dann Harness-Release.
 - Offen: nichts
 - Beschlossen:
   - Notes: Kopf „Stand“ oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Reihenfolge Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
@@ -14,10 +14,11 @@
   - Kopf und Protokoll in der API getrennt gespeichert, nach außen eine Datei (2026-10-20)
   - Prüfidee A nur als Nachfrage, B als Reminder; C und D nicht (2026-10-20)
   - Langer Kopf nur Hinweis (ab 15 Beschlüssen); Umschreiben älterer Einträge nur Hinweis (2026-10-20)
+  - ToDo-Viewer hat Kopf und Protokoll getrennt seit v0.8.14 und passt zur Spec; Harness erkennt die Unterstützung am Feld notes_state (2026-10-21)
   - Umstellung: Viewer zuerst abwärtskompatibel, dann Harness; alte Notes bekommen den Kopf beim nächsten Bearbeiten (2026-10-20)
 - Verweise: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-Stand bestätigt nach Eintrag 2026-10-20 — TASK-025 angelegt, Specs für alle Tasks (Prüfsumme folgt, Mechanismus noch nicht gebaut)
+Stand bestätigt nach Eintrag 2026-10-21 — ToDo-Viewer umgesetzt, Abgleich mit dem Harness (069e7758172e)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -263,3 +264,16 @@ Stand bestätigt nach Eintrag 2026-10-20 — TASK-025 angelegt, Specs für alle 
 ### Decided
 
 - Owner: TASK-025 (Nachfrage bei Notes an eine Story mit Kind in Arbeit) angelegt, abhängig von TASK-021, für die Story erforderlich. Open vom 2026-10-20 (Task für Prüfidee A) erledigt.
+
+## 2026-10-21 — ToDo-Viewer umgesetzt, Abgleich mit dem Harness
+
+### Discussed
+
+- Owner: Die Aufteilung in Kopf und Protokoll ist im ToDo-Viewer schon umgesetzt (dort TASK-044, v0.8.14, läuft auf Port 5411).
+- Abgleich Claude mit dem Code und interfaces.md des Viewers: Endpunkte state (lesen), put-state, confirm-state, entries; note mit optionalem state und state_version; notes_state in show/list und Spalte Notes im index; Hinweise notes_state_stale, notes_state_long (ab 15 Beschlüssen), notes_history_rewritten; Prüfsumme und Stempelzeile genau wie in der Spec; Testvektoren in tests/fixtures/notes-state/checksum.json. Die Titelzeile kommt jetzt aus dem Item.
+- Abweichung: /core/health meldet keine Version. Claude legt fest: Der Harness erkennt die Unterstützung am Feld notes_state in show bzw. an einer 404 auf notes/state.
+- Probe: Der Kopf dieser Notes war stale (handgeschriebene Stempelzeile ohne Prüfsumme) und wurde über put-state ersetzt; der Server hat gestempelt, Zustand current.
+
+### Decided
+
+- TASK-023-Spec an die tatsächliche Schnittstelle angepasst; die Entwicklung gegen eine Attrappe entfällt. Testvektoren werden in die Harness-Tests kopiert.
