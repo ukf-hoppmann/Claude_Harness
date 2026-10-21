@@ -2,12 +2,12 @@
 
 ## State
 
-- Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
-- Nächster Schritt: TASK-022 umsetzen (läuft), danach TASK-025; TASK-023/024 nach den englischen Überschriften im Viewer; Release erst am Ende der Story.
-- Offen:
-  - Englische Überschriften im ToDo-Viewer umsetzen (Owner); danach Kopf dieser Notes umstellen (2026-10-21)
-- Beschlossen:
-  - TASK-021 umgesetzt (wartet auf Bestätigung); Release des Harness erst am Ende der Story, gemeinsam mit dem Viewer (2026-10-21)
+- Goal/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
+- Next step: TASK-025 umsetzen (läuft); TASK-023/024 danach; Release erst am Ende der Story.
+- Open:
+  - Keine
+- Decided:
+  - TASK-021 und TASK-022 vom Owner bestätigt; Release des Harness erst am Ende der Story, gemeinsam mit dem Viewer (2026-10-21)
   - Feste Überschriften von Kopf und Stempel auf Englisch (Regel 6), Inhalt in docs.language; der Viewer darf sie in der Oberfläche lokalisiert anzeigen (2026-10-21)
   - Notes: Kopf „Stand“ oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Reihenfolge Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
   - Protokollregeln: spezifischstes Item, Kernfrage/Optionen/Entscheidung mit Begründung/Verworfenes, nach jeder geklärten Frage schreiben (2026-10-20)
@@ -19,7 +19,8 @@
   - Langer Kopf nur Hinweis (ab 15 Beschlüssen); Umschreiben älterer Einträge nur Hinweis (2026-10-20)
   - ToDo-Viewer hat Kopf und Protokoll getrennt seit v0.8.14 und passt zur Spec; Harness erkennt die Unterstützung am Feld notes_state (2026-10-21)
   - Umstellung: Viewer zuerst abwärtskompatibel, dann Harness; alte Notes bekommen den Kopf beim nächsten Bearbeiten (2026-10-20)
-- Verweise: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
+  - Viewer ist auf englische Überschriften umgestellt; ältere Notes werden beim nächsten Bearbeiten migriert, nicht auf Vorrat (2026-10-21)
+- References: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
 State confirmed after entry 2026-10-21 — Release zurückgehalten, weiter mit TASK-022 (2a4a83518ff6)
 
@@ -315,3 +316,14 @@ State confirmed after entry 2026-10-21 — Release zurückgehalten, weiter mit T
 
 - Owner: Release zurückhalten bis zum Ende der Story; dann ein Release mit allen Änderungen, einschließlich 7e7e8b1 (nummerierte Completion criteria).
 - Owner: weiter mit TASK-022.
+
+## 2026-10-21 — Viewer auf englische Überschriften umgestellt, Migration nur teilweise
+
+### Discussed
+
+- Der Owner hat den ToDo-Viewer auf die englischen Überschriften umgestellt. Migriert wurden nur die Notes, die der Viewer selbst braucht; alle anderen werden nicht gesammelt umgestellt.
+
+### Decided
+
+- Ältere Notes werden beim nächsten Bearbeiten migriert, nicht auf Vorrat (Owner, 2026-10-21). Begründung: Aufwand fällt nur dort an, wo die Notes ohnehin angefasst werden.
+- TASK-021 und TASK-022 vom Owner bestätigt (Completed). Weiter mit TASK-025.

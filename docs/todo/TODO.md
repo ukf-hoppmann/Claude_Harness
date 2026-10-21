@@ -318,46 +318,6 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     wo und wie protokolliert wird; jede Notes-Datei bekommt oben eine
     Übersicht über den aktuellen Stand, deren Aktualität der Harness prüft.
 
-- `TASK-022` **Kopf-Prüfsumme im Files-Modus**
-  - Uid: 3d2a5e66-74c1-459a-8b7a-2b493a3c1995.
-  - Type: Task.
-  - Parent: `STORY-051`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-10-20.
-  - Area: Entwicklung.
-  - Priority: Urgent.
-  - Dependencies: `TASK-021`.
-  - Goal: backlog.py kann den Kopf einer Notes-Datei bestätigen und schreibt
-    dabei den Stempel mit der Prüfsumme des Protokolls; die Backlog-Prüfung
-    am Turn-Ende meldet Notes, deren Stempel nicht zum Protokoll passt.
-  - Completion criteria: Bestätigungsbefehl und Prüfung sind umgesetzt und
-    mit Unit-Tests abgedeckt (Kopf aktuell, veraltet, fehlend, Stempel ohne
-    Kopfänderung gesetzt); Doku in format.md bzw. Techdocs aktualisiert.
-  - Summary: Im Dateimodus kann der Harness die Übersicht einer Notes-Datei
-    bestätigen und hält das Turn-Ende an, solange sie veraltet ist.
-
-- `TASK-021` **Notes-Regeln und Format im todo-Skill**
-  - Uid: 5a3e2a33-b822-45e7-86c8-4678f5be0e3e.
-  - Type: Task.
-  - Parent: `STORY-051`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-10-20.
-  - Area: Dokumentation.
-  - Priority: Urgent.
-  - Dependencies: None.
-  - Goal: SKILL.md, format.md und api.md beschreiben den Aufbau der Notes
-    (Kopf 'Stand' mit Stempel, darunter das Protokoll), die Rollen von Notes
-    und Spec (Spec fortlaufend, am Ende geprüft) sowie die vom Owner
-    beschlossenen Regeln 1–4 zu Ort, Inhalt und Zeitpunkt.
-  - Completion criteria: Die Texte entsprechen der Spec von STORY-051;
-    offene Regelpunkte sind vom Owner entschieden und eingearbeitet;
-    funktionale Tests zu den Skill-Texten (falls vorhanden) laufen.
-  - Summary: Die Regeln, wie Claude Besprechungen protokolliert und wie die
-    Übersicht oben in den Notes aussieht, stehen jetzt in der Anleitung des
-    Harness.
-
 - `TASK-024` **Hooks für aktuellen Notes-Kopf und Protokoll-Reminder**
   - Uid: 93bf2558-2beb-4088-9d63-c4e980a0fac4.
   - Type: Task.
@@ -405,7 +365,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Task.
   - Parent: `STORY-051`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-10-20.
   - Area: Entwicklung.
   - Priority: Urgent.
