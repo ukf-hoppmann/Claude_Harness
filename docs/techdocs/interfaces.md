@@ -460,7 +460,7 @@ JSON auf stdin.
 |---|---|---|
 | `.claude-harness/config.toml` | TOML | [configuration.md](configuration.md) |
 | `.claude-harness/runtime/manifest.json` | JSON, von `cloud_export.py` geschrieben | Abschnitt Skript `cloud_export.py` |
-| `TODO.md`, `archive.md`, `items/<ID>/` | Backlog-Format v1 (Markdown) | `plugin/skills/todo/format.md` |
+| `TODO.md`, `archive.md`, `items/<ID>/` | Backlog-Format v2 (Markdown); Item-Notes mit Kopf `## State` (feste englische Marker, Stempelzeile mit Prüfsumme) über dem datierten Protokoll, Prüfsumme gemeinsam mit dem ToDo-Viewer | `plugin/skills/todo/format.md` (Abschnitt *Notes*) |
 | `<YYYY-MM-DD>_daily.md` | Markdown nach Vorlage | `plugin/templates/daily/daily.md`, Skill `daily` |
 | Systemdoku | Markdown nach Vorlagen | `plugin/templates/techdocs/` |
 | Versionsdatei (`semver.file`, Standard `docs/VERSION`) | eine Zeile `MAJOR.MINOR.PATCH` (Ganzzahlen ohne führende Nullen), keine Vorabversionen | Skill `semver` |
