@@ -39,7 +39,9 @@ description: Rules for the project backlog and for notes, topics, and alarms (vi
 Read only what the task needs:
 
 - By default: the overview — API: `index`; files: `TODO.md`.
-- Discussing or deciding something about an item: also its notes.
+- Discussing or deciding something about an item: also its notes — first
+  their head (`## State`) and the spec; the log only when you need the
+  reasons behind a decision.
 - Planning its implementation or asked about its spec: also its spec.
   The spec is the input for a plan; do not write step-by-step plans into it.
 - Overview across `TODO.md` and `archive.md` (e.g. to place new work or to
@@ -70,8 +72,24 @@ Read only what the task needs:
 - When an item gets notes, it needs a plain-language `Summary`. Files:
   create `items/<ID>/<ID>_notes.md` (no field points to it); API: the first
   notes entry creates it.
-- Record decisions in the item's notes as they happen, dated, under
-  `Discussed` / `Decided` / `Open`.
+- Record discussions in the notes ([format.md](format.md#notes)):
+  - **Where:** in the most specific item they are about. When the
+    discussion is part of task X, it goes into task X. A story's notes only
+    get decisions that affect several children or the story's goal or scope;
+    the affected child gets a reference. Deliberate exceptions are fine.
+  - **What:** a record, not a result list. Per topic: the core question,
+    the options considered with pros and cons, your recommendation, the
+    owner's decision with its reason, and rejected options with theirs.
+    Undecided proposals go under `Open` right away. With several topics,
+    the first entry is a topic plan.
+  - **When:** after every answered question, before asking the next one —
+    not at the end.
+  - **Head:** after every change to the notes, update the head or
+    deliberately confirm that it is still current.
+- Keep the spec current: once something is decided, bring the spec up to
+  date; the notes keep the way there. A discussion ends with the spec. The
+  implementation plan is made only when implementation starts, presented
+  for approval, and not stored in the backlog.
 - Before rejecting a required child, ask in the same question whether it
   becomes `Required for parent: No` (then also adjust the parent's `Goal` and
   `Completion criteria` if they name the child's content) or whether the

@@ -202,12 +202,14 @@ the parent, so reparenting never moves files.
 A notes or spec file belongs to the item through its folder and file name
 alone; the entry has no field for it.
 
-- `<ID>_notes.md`: Discussions and decisions. One file that grows over time;
-  entries are dated (`## YYYY-MM-DD — Topic`) and use the headings
-  `### Discussed`, `### Decided`, and `### Open`.
+- `<ID>_notes.md`: Discussions and decisions: a head with the current state
+  above a log that grows over time (see [Notes](#notes)).
 - `<ID>_spec.md`: Technical summary (what and why, constraints, interfaces,
-  affected files, acceptance criteria). It is the basis for planning an
-  implementation but contains no step-by-step plan itself.
+  affected files, acceptance criteria). It is always the current state: update
+  it whenever something is decided or changes, and check it once more when the
+  discussion ends. It holds no decision history (that is in the notes) and no
+  step-by-step plan; a new session must be able to plan the implementation
+  from it without asking.
 
 Additional files are created only when needed, with a topic suffix such as
 `<ID>_spec_<topic>.md`; the first file is never renamed. Notes and specs may be
@@ -215,6 +217,83 @@ revised when plans change, but changes of direction are recorded in the notes
 instead of being silently overwritten.
 
 Daily development reports do not belong in the backlog folder.
+
+### Notes
+
+A notes file has a title line, a head (`## State`) with the current state of
+the item, and below it the log of dated entries:
+
+```markdown
+# STORY-012 — Simplify the login dialog
+
+## State
+
+- Goal/Status: One dialog for password and SSO; design agreed, spec current.
+- Next step: Implement TASK-031.
+- Open:
+  - Whether SSO users may still set a password (2026-09-30)
+- Decided:
+  - One dialog instead of two (2026-09-30)
+  - Errors shown inline, details in the spec (2026-09-30)
+- References: Spec STORY-012_spec.md; TASK-031, TASK-032
+
+State confirmed after entry 2026-09-30 — Dialog structure (1ddbc455ee9d)
+
+## 2026-09-30 — Dialog structure
+
+### Discussed
+
+- …
+
+### Decided
+
+- …
+
+### Open
+
+- …
+```
+
+The head:
+
+- Has exactly these markers in this order: `- Goal/Status:`, `- Next step:`,
+  `- Open:`, `- Decided:`, `- References:`. Markers and headings are English
+  and fixed; their content is in the project's language (the ToDo-Viewer may
+  show them translated).
+- Is replaced, not extended. It holds only what applies now: a decision that
+  was superseded leaves the head and stays in the log.
+- One point per line, with the date of the log entry it comes from.
+  Technical details get one sentence and a reference to the spec.
+- Has no length limit. More than 15 points under `- Decided:` give a hint
+  (write the spec or split the item?), never a rejection.
+- Ends with the stamp line
+  `State confirmed after entry <YYYY-MM-DD> — <topic> (<checksum>)`, naming
+  the last log entry and the checksum of the log when the head was last
+  updated or confirmed. Never write or edit the stamp line by hand; the
+  ToDo-Viewer or the helper sets it.
+
+After every change to the notes, update the head or deliberately confirm that
+it is still current; both set the stamp. The head's state is:
+
+- `missing`: no `## State` section;
+- `stale`: no stamp, or its checksum differs from the current log;
+- `current`: otherwise.
+
+Checksum (shared with the ToDo-Viewer): take the log from its first entry
+line `## YYYY-MM-DD — ` to the end, use LF line endings, strip spaces and tabs
+at the end of every line, and end it with exactly one line break. The
+checksum is the first 12 hex characters of SHA-256 over this text in UTF-8.
+
+The log:
+
+- Entries are dated (`## YYYY-MM-DD — Topic`) and use the headings
+  `### Discussed`, `### Decided`, and `### Open`.
+- Entries are only appended. An open point of an earlier entry that is
+  resolved is closed explicitly in the new entry ("Open from <date> (X)
+  resolved: …"). Changing an earlier entry is a deliberate correction and
+  gives a hint.
+
+Notes without a head get one the next time they are changed.
 
 ## Archive
 
