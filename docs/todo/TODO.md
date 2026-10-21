@@ -323,7 +323,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Task.
   - Parent: `STORY-051`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-10-20.
   - Area: Entwicklung.
   - Priority: Urgent.
@@ -335,7 +335,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     mit Unit-Tests abgedeckt (Kopf aktuell, veraltet, fehlend, Stempel ohne
     Kopfänderung gesetzt); Doku in format.md bzw. Techdocs aktualisiert.
   - Summary: Im Dateimodus kann der Harness die Übersicht einer Notes-Datei
-    bestätigen und meldet, wenn sie veraltet ist.
+    bestätigen und hält das Turn-Ende an, solange sie veraltet ist.
 
 - `TASK-021` **Notes-Regeln und Format im todo-Skill**
   - Uid: 5a3e2a33-b822-45e7-86c8-4678f5be0e3e.

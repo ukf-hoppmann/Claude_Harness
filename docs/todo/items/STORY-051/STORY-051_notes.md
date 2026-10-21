@@ -3,10 +3,11 @@
 ## Stand
 
 - Ziel/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
-- Nächster Schritt: TASK-021 umsetzen; danach TASK-022, TASK-023 und TASK-025, TASK-024 zuletzt; dann Harness-Release.
+- Nächster Schritt: TASK-022 umsetzen (läuft), danach TASK-025; TASK-023/024 nach den englischen Überschriften im Viewer; Release erst am Ende der Story.
 - Offen:
   - Englische Überschriften im ToDo-Viewer umsetzen (Owner); danach Kopf dieser Notes umstellen (2026-10-21)
 - Beschlossen:
+  - TASK-021 umgesetzt (wartet auf Bestätigung); Release des Harness erst am Ende der Story, gemeinsam mit dem Viewer (2026-10-21)
   - Feste Überschriften von Kopf und Stempel auf Englisch (Regel 6), Inhalt in docs.language; der Viewer darf sie in der Oberfläche lokalisiert anzeigen (2026-10-21)
   - Notes: Kopf „Stand“ oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Reihenfolge Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
   - Protokollregeln: spezifischstes Item, Kernfrage/Optionen/Entscheidung mit Begründung/Verworfenes, nach jeder geklärten Frage schreiben (2026-10-20)
@@ -20,7 +21,7 @@
   - Umstellung: Viewer zuerst abwärtskompatibel, dann Harness; alte Notes bekommen den Kopf beim nächsten Bearbeiten (2026-10-20)
 - Verweise: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-Stand bestätigt nach Eintrag 2026-10-21 — Englische Überschriften beschlossen (9191d36e6ea4)
+Stand bestätigt nach Eintrag 2026-10-21 — Release zurückgehalten, weiter mit TASK-022 (2a4a83518ff6)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -303,3 +304,14 @@ Stand bestätigt nach Eintrag 2026-10-21 — Englische Überschriften beschlosse
 
 - Owner: Option 1. Die festen Überschriften und Marker von Kopf und Stempel sind Englisch: '## State', '- Goal/Status:', '- Next step:', '- Open:', '- Decided:', '- References:', Stempel 'State confirmed after entry <YYYY-MM-DD> — <Thema> (<Prüfsumme>)'. Der Inhalt bleibt in docs.language. Weil die Überschriften fest sind, kann der Viewer sie in seiner Oberfläche lokalisiert anzeigen. Open vom 2026-10-21 (Sprache der Überschriften) erledigt.
 - Owner passt den ToDo-Viewer an; Claude stellt danach den Kopf dieser Notes um und schreibt die englischen Überschriften in Spec und todo-Skill.
+
+## 2026-10-21 — Release zurückgehalten, weiter mit TASK-022
+
+### Discussed
+
+- Nach dem Merge von TASK-021 verlangt der semver-Skill ein Release (patch 0.12.1). Das widerspricht der vereinbarten Reihenfolge (Viewer zuerst, dann Harness), solange der Viewer noch ## Stand schreibt.
+
+### Decided
+
+- Owner: Release zurückhalten bis zum Ende der Story; dann ein Release mit allen Änderungen, einschließlich 7e7e8b1 (nummerierte Completion criteria).
+- Owner: weiter mit TASK-022.
