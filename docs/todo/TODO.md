@@ -342,7 +342,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Task.
   - Parent: `STORY-051`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-10-20.
   - Area: Dokumentation.
   - Priority: Urgent.
@@ -354,8 +354,9 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Completion criteria: Die Texte entsprechen der Spec von STORY-051;
     offene Regelpunkte sind vom Owner entschieden und eingearbeitet;
     funktionale Tests zu den Skill-Texten (falls vorhanden) laufen.
-  - Summary: Die beschlossenen Regeln zum Protokollieren und zum Aufbau der
-    Notes werden in die Anleitung des Harness geschrieben.
+  - Summary: Die Regeln, wie Claude Besprechungen protokolliert und wie die
+    Übersicht oben in den Notes aussieht, stehen jetzt in der Anleitung des
+    Harness.
 
 - `TASK-024` **Hooks für aktuellen Notes-Kopf und Protokoll-Reminder**
   - Uid: 93bf2558-2beb-4088-9d63-c4e980a0fac4.
@@ -413,9 +414,11 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     ihrer Kinder In progress ist, gibt der Helfer einen Hinweis aus ('TASK-x
     ist in Arbeit, gehört das dorthin?'). Der Eintrag wird trotzdem
     geschrieben (Prüfidee A, nur Nachfrage).
-  - Completion criteria: Hinweis in backlog_api.py (note, put-doc auf Notes)
-    und im Files-Modus in der Backlog-Prüfung umgesetzt; Unit-Tests für
-    Story mit/ohne Kind in Arbeit und für Tasks (kein Hinweis); der Eintrag
-    wird nie abgelehnt; Doku in api.md bzw. format.md.
+  - Completion criteria: 1. Hinweis in backlog_api.py (note, put-doc auf
+    Notes) und im Files-Modus in der Backlog-Prüfung umgesetzt.
+    2. Unit-Tests für Story mit/ohne Kind in Arbeit und für Tasks (kein
+    Hinweis).
+    3. Der Eintrag wird nie abgelehnt.
+    4. Doku in api.md bzw. format.md.
   - Summary: Schreibt Claude Protokolle an eine Story, während einer ihrer
     Tasks in Arbeit ist, fragt der Harness nach, ob das dorthin gehört.
