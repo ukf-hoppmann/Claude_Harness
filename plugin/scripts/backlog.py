@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
+import notes_head
+
 TODO_FILE = "TODO.md"
 ARCHIVE_FILE = "archive.md"
 
@@ -531,11 +533,39 @@ def _raw_entries(path: Path) -> list[tuple[str, str]]:
     return [(identifier, "\n".join(lines).rstrip()) for identifier, lines in entries]
 
 
-USAGE = "usage: backlog.py <backlog-folder> [--index | --show <ID> [<ID> ...]]"
+USAGE = "usage: backlog.py <backlog-folder> [--index | --show <ID> [<ID> ...] | --confirm-state <ID>]"
+
+
+def confirm_state(todo_dir: Path, identifier: str) -> int:
+    """Set the stamp line of the item's notes head (skills/todo/format.md, section Notes)."""
+    path = todo_dir / "items" / identifier / f"{identifier}_notes.md"
+    try:
+        with path.open(encoding="utf-8", newline="") as source:
+            text = source.read()
+    except OSError:
+        print(f"no notes file: {path}", file=sys.stderr)
+        return 1
+    try:
+        text = notes_head.confirmed(text)
+    except notes_head.NotesHeadError as error:
+        print(f"{identifier}: {error}", file=sys.stderr)
+        return 1
+    with path.open("w", encoding="utf-8", newline="") as target:
+        target.write(text)
+    stamp = notes_head.split(text).stamp
+    print(f"confirmed {identifier}: {stamp.day} — {stamp.topic} ({stamp.checksum})")
+    return 0
 
 
 def main(argv: list[str]) -> int:
     args = argv[1:]
+    if "--confirm-state" in args:
+        at = args.index("--confirm-state")
+        rest = args[:at] + args[at + 2:]
+        if at + 1 >= len(args) or not re.fullmatch(_ANY_ID, args[at + 1]) or len(rest) != 1:
+            print(USAGE, file=sys.stderr)
+            return 2
+        return confirm_state(Path(rest[0]), args[at + 1])
     identifiers: list[str] | None = None
     if "--show" in args:
         at = args.index("--show")

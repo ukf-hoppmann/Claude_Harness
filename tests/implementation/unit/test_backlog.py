@@ -397,6 +397,43 @@ class BacklogTest(unittest.TestCase):
         self.assertEqual(main(["backlog.py", str(self.dir), "--show", "kein-id"]), 2)
         self.assertEqual(main(["backlog.py", str(self.dir), "--index", "--show", "STORY-001"]), 2)
 
+    def write_notes(self, identifier, text):
+        path = self.dir / "items" / identifier / f"{identifier}_notes.md"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+        return path
+
+    def test_confirm_state(self):
+        import contextlib
+        import io
+
+        from backlog import main
+        from notes_head import CURRENT, state_of
+        write_backlog(self.dir, [item("STORY-001")])
+        path = self.write_notes(
+            "STORY-001",
+            "# STORY-001 — Title\n\n## State\n\n- Goal/Status: g\n\n## 2026-10-01 — Topic\n\n### Decided\n\n- a\n",
+        )
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            self.assertEqual(main(["backlog.py", str(self.dir), "--confirm-state", "STORY-001"]), 0)
+        self.assertEqual(state_of(path.read_text()), CURRENT)
+        self.assertRegex(out.getvalue(), r"^confirmed STORY-001: 2026-10-01 — Topic \([0-9a-f]{12}\)\n$")
+
+    def test_confirm_state_errors(self):
+        import contextlib
+        import io
+
+        from backlog import USAGE, main
+        self.assertIn("--confirm-state", USAGE)
+        write_backlog(self.dir, [item("STORY-001")])
+        with contextlib.redirect_stderr(io.StringIO()):
+            self.assertEqual(main(["backlog.py", str(self.dir), "--confirm-state", "STORY-001"]), 1)
+            self.write_notes("STORY-001", "# STORY-001 — Title\n\n## 2026-10-01 — Topic\n\n- a\n")
+            self.assertEqual(main(["backlog.py", str(self.dir), "--confirm-state", "STORY-001"]), 1)
+            self.assertEqual(main(["backlog.py", str(self.dir), "--confirm-state", "kein-id"]), 2)
+            self.assertEqual(main(["backlog.py", str(self.dir), "--confirm-state"]), 2)
+
     def test_repository_backlog_is_valid(self):
         report = validate_backlog(REPO_ROOT / "docs" / "todo")
         self.assertEqual(report.errors, [])
