@@ -265,7 +265,9 @@ The head:
 - One point per line, with the date of the log entry it comes from.
   Technical details get one sentence and a reference to the spec.
 - Has no length limit. More than 15 points under `- Decided:` give a hint
-  (write the spec or split the item?), never a rejection.
+  (write the spec or split the item?), never a rejection. The same holds for
+  notes of an epic or story changed while one of its children is `In progress`
+  (does the discussion belong in that child's notes?).
 - Ends with the stamp line
   `State confirmed after entry <YYYY-MM-DD> — <topic> (<checksum>)`, naming
   the last log entry and the checksum of the log when the head was last

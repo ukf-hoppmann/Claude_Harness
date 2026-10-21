@@ -391,6 +391,32 @@ class HookTest(unittest.TestCase):
         self.edit(self.todo_dir / "items" / "STORY-001" / "STORY-001_notes.md")
         self.assertEqual(self.stop().returncode, 0)
 
+    def story_with_task_in_progress(self):
+        write_backlog(self.todo_dir, [
+            item("STORY-001", Status="In progress"),
+            item("TASK-001", Type="Task", Status="In progress", Parent="`STORY-001`", Required_for_parent="Yes"),
+        ])
+
+    def test_stop_asks_about_story_notes_while_a_child_is_in_progress(self):
+        self.write_config()
+        self.story_with_task_in_progress()
+        path = self.write_notes()
+        self.assertEqual(self.confirm().returncode, 0)
+        self.edit(path)
+        first = self.stop()
+        self.assertEqual(first.returncode, 2)
+        self.assertIn("TASK-001 is in progress", first.stderr)
+        self.edit(path)
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_stop_gives_no_child_hint_for_task_notes(self):
+        self.write_config()
+        self.story_with_task_in_progress()
+        path = self.write_notes("TASK-001")
+        self.assertEqual(self.confirm("TASK-001").returncode, 0)
+        self.edit(path)
+        self.assertEqual(self.stop().returncode, 0)
+
     def test_api_backend_skips_notes_head_check(self):
         self.write_config(backend="api")
         write_backlog(self.todo_dir, [item("STORY-001")])
