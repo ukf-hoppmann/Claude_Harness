@@ -149,7 +149,9 @@ class HookTest(unittest.TestCase):
         self.assertIn("Project A (Plugins/A): language en; modules techdocs, todo; backlog Plugins/A/docs/todo/TODO.md", out)
         self.assertIn("Project B (Plugins/B): language en; modules none", out)
         # Skill pointers appear once, however many projects use the module.
-        self.assertEqual(out.count("skill claude-harness:todo"), 1)
+        # The todo skill is named by the Backlog line and the Notes line (notes are active with either backend).
+        self.assertEqual(out.count("skill claude-harness:todo"), 2)
+        self.assertEqual(out.count("Notes: rules in skill claude-harness:todo"), 1)
         self.assertEqual(out.count("skill claude-harness:techdocs"), 1)
         self.assertIn("A: Backlog: Plugins/A/docs/todo/TODO.md does not exist", out)
         self.assertIn("A: Missing technical docs: Plugins/A/README.md", out)
@@ -168,7 +170,8 @@ class HookTest(unittest.TestCase):
         self.assertIn("Notes: via ToDo-Viewer API (http://localhost:5411/api); rules in skill claude-harness:todo", out)
         self.write_config(backend="files")
         out = self.run_hook("session_start.py", {}).stdout
-        self.assertNotIn("Notes:", out)
+        self.assertIn("Notes: docs/todo/notes/ as files; rules in skill claude-harness:todo", out)
+        self.assertNotIn("ToDo-Viewer API", out.split("Notes:")[1])
 
     def test_session_start_api_backend_does_not_require_todo_file(self):
         self.write_config(backend="api")
@@ -188,7 +191,7 @@ class HookTest(unittest.TestCase):
         out = self.run_hook("session_start.py", {}, self.CLOUD).stdout
         self.assertIn("Backlog: docs/todo/TODO.md (backend files: cloud session; config.toml says api);", out)
         self.assertNotIn("ToDo-Viewer API", out)
-        self.assertNotIn("Notes:", out)
+        self.assertIn("Notes: docs/todo/notes/ as files;", out)
 
     def test_session_start_variable_forces_api_over_files_config(self):
         self.write_config(backend="files")
