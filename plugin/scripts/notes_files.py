@@ -1,8 +1,8 @@
 """Index of the notes kept as files in a backlog folder (todo module, backend files).
 
 The format is the ToDo-Viewer's file format version 2 (notes/NOTE-001.md, notes/new-<name>.md, notes/topics.md); the
-viewer owns labels, uids and triggers. This reads only the head lines of each note, never the long text, and does not
-validate the format. The counterpart for backlog items is backlog.py --index.
+viewer owns labels, uids and triggers. --index and --due read only the head lines of each note, never the long text, and
+do not validate the format; --check does (notes_format.py). The counterpart for backlog items is backlog.py.
 """
 
 from __future__ import annotations
@@ -13,12 +13,14 @@ from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
 
+from notes_format import check_notes_folder
+
 NOTES_DIR = "notes"
 TOPICS_FILE = "topics.md"
-USAGE = "usage: notes_files.py <backlog folder> [--index | --due [--today YYYY-MM-DD]]"
+USAGE = "usage: notes_files.py <backlog folder> [--index | --due [--today YYYY-MM-DD] | --check]"
 
 # NOTE-001.md and new-<name>.md; the documents (NOTE-001_notes.md, ...), topics.md and counters.md do not match.
-_NOTE_FILE = re.compile(r"^(NOTE-[0-9]{3,}|new-[a-z0-9][a-z0-9-]*)\.md$")
+_NOTE_FILE = re.compile(r"^(NOTE-[0-9]+|new-[A-Za-z0-9-]+)\.md$")
 _FIELD = re.compile(r"^(?P<name>[A-Z][A-Za-z]*):[ \t]*(?P<value>.*?)[ \t]*$")
 _TOPIC_LINE = re.compile(r"^[ \t]*- (?P<label>\S+) \| (?P<rest>.*)$")
 _DAY = re.compile(r"^[0-9]{4}-[0-9]{2}-[0-9]{2}")
@@ -172,7 +174,8 @@ def main(argv: list[str]) -> int:
     args = argv[1:]
     today = date.today()
     due = "--due" in args
-    if "--today" in args:
+    today_given = "--today" in args
+    if today_given:
         at = args.index("--today")
         try:
             if not due or at + 1 >= len(args) or not _DAY.fullmatch(args[at + 1]):
@@ -183,10 +186,16 @@ def main(argv: list[str]) -> int:
             return 2
         args = args[:at] + args[at + 2:]
     index = "--index" in args
-    args = [a for a in args if a not in ("--index", "--due")]
-    if len(args) != 1 or args[0].startswith("-") or (index and due):
+    check = "--check" in args
+    args = [a for a in args if a not in ("--index", "--due", "--check")]
+    if len(args) != 1 or args[0].startswith("-") or [index, due, check].count(True) > 1 or (check and today_given):
         print(USAGE, file=sys.stderr)
         return 2
+    if check:
+        findings = check_notes_folder(Path(args[0]) / NOTES_DIR)
+        for finding in findings:
+            print(finding)
+        return 1 if any(f.error for f in findings) else 0
     report = read_notes(Path(args[0]))
     output = format_due(report, today) if due else format_index(report)
     if output:

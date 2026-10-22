@@ -483,6 +483,66 @@ class HookTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stderr, "")
 
+    NOTE = "# NOTE-001\nUid: u-1\nSummary: s\nStatus: waiting\n"
+
+    def write_note_file(self, name="NOTE-001.md", text=NOTE):
+        path = self.todo_dir / "notes" / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text)
+        return path
+
+    def test_stop_blocks_a_notes_file_with_a_format_error_until_it_is_fixed(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        path = self.write_note_file(text=self.NOTE + "Foo: x\n")
+        self.edit(path)
+        first = self.stop()
+        self.assertEqual(first.returncode, 2)
+        self.assertIn("notes/NOTE-001.md:5: unknown_field", first.stderr)
+        self.assertIn("notes-files.md", first.stderr)
+        self.assertEqual(self.stop().returncode, 2)
+        path.write_text(self.NOTE)
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_stop_accepts_a_valid_notes_folder(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.edit(self.write_note_file())
+        self.write_note_file("topics.md", "- TOPIC-001 | Name | uid=t-1\n")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_stop_checks_the_whole_folder_after_a_change_in_it(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.write_note_file("NOTE-002.md", "# NOTE-002\nUid: u-1\nSummary: s\nStatus: waiting\n")
+        self.edit(self.write_note_file())
+        result = self.stop()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("duplicate_uid", result.stderr)
+
+    def test_stop_does_not_check_notes_that_were_not_changed(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.write_note_file(text=self.NOTE + "Foo: x\n")
+        self.edit(self.todo_dir / "TODO.md")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def test_api_backend_does_not_check_the_notes_folder(self):
+        self.write_config(backend="api")
+        self.edit(self.write_note_file(text=self.NOTE + "Foo: x\n"))
+        result = self.stop()
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stderr, "")
+
+    def test_notices_about_notes_files_come_once_per_session(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.edit(self.write_note_file("readme.md", "x\n"))
+        first = self.stop()
+        self.assertEqual(first.returncode, 2)
+        self.assertIn("ignored_file", first.stderr)
+        self.assertEqual(self.stop().returncode, 0)
+
     def test_custom_todo_path(self):
         self.write_config(path="planning")
         planning = self.project / "docs" / "planning"

@@ -99,6 +99,51 @@ class DueTest(unittest.TestCase):
         self.assertIn("NOTE-002.md", out)
 
 
+class CheckTest(unittest.TestCase):
+    FORMAT = REPO_ROOT / "tests" / "fixtures" / "notes-format"
+
+    def test_valid_notes_have_no_findings(self):
+        self.assertEqual(run(str(self.FORMAT / "valid"), "--check"), (0, "", ""))
+
+    def test_an_error_is_printed_with_file_line_and_code_and_fails(self):
+        code, out, _ = run(str(self.FORMAT / "invalid" / "unknown_trigger"), "--check")
+        self.assertEqual(code, 1)
+        self.assertRegex(out, r"^notes/NOTE-001\.md:15: unknown_trigger: .+\n$")
+
+    def test_notices_are_printed_but_do_not_fail(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            notes = Path(tmp) / "notes"
+            notes.mkdir()
+            (notes / "readme.md").write_text("x\n")
+            code, out, _ = run(tmp, "--check")
+        self.assertEqual(code, 0)
+        self.assertRegex(out, r"^notes/readme\.md:1: ignored_file: ")
+
+    def test_errors_come_before_notices(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            notes = Path(tmp) / "notes"
+            notes.mkdir()
+            (notes / "NOTE-001.md").write_text("# NOTE-002\n")
+            (notes / "readme.md").write_text("x\n")
+            _, out, _ = run(tmp, "--check")
+        self.assertEqual([line.split(": ")[1] for line in out.splitlines()], ["file_label_mismatch", "ignored_file"])
+
+    def test_no_notes_folder_is_not_an_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            self.assertEqual(run(tmp, "--check"), (0, "", ""))
+
+    def test_new_notes_with_capital_letters_are_listed_and_checked(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            notes = Path(tmp) / "notes"
+            notes.mkdir()
+            (notes / "new-Idee.md").write_text("# NEW\nSummary: s\nStatus: waiting\n")
+            _, index, _ = run(tmp, "--index")
+            code, out, _ = run(tmp, "--check")
+        self.assertIn("new-Idee.md | waiting | - | - | s", index)
+        self.assertEqual(code, 1)
+        self.assertIn("invalid_placeholder", out)
+
+
 class CloudCopyTest(unittest.TestCase):
     def test_the_cloud_copy_carries_the_helper_and_the_rules_with_a_working_path(self):
         plugin = REPO_ROOT / "plugin"
@@ -111,7 +156,9 @@ class CloudCopyTest(unittest.TestCase):
 class UsageTest(unittest.TestCase):
     def test_wrong_calls_exit_2(self):
         for args in ([], ["a", "b"], [str(BACKLOG), "--bogus"], [str(BACKLOG), "--today", "x"],
-                     [str(BACKLOG), "--due", "--today", "22.10.2026"], [str(BACKLOG), "--index", "--due"]):
+                     [str(BACKLOG), "--due", "--today", "22.10.2026"], [str(BACKLOG), "--index", "--due"],
+                     [str(BACKLOG), "--check", "--index"], [str(BACKLOG), "--check", "--due"],
+                     [str(BACKLOG), "--check", "--today", "2026-01-01"]):
             with self.subTest(args=args):
                 code, _, err = run(*args)
                 self.assertEqual(code, 2)
