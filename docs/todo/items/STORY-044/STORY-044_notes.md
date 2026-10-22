@@ -2,17 +2,20 @@
 
 ## State
 
-- Ziel/Status: Formatprüfung für notes/ im Dateimodus (Stop-Hook, Meldung mit Datei und Zeile). In Arbeit, Klärung läuft; keine Spec.
-- Nächster Schritt: Owner entscheidet Wortlaut der Kriterien 1 bis 3, Umfang und Zeitpunkt der Prüfung; danach Spec schreiben.
+- Ziel/Status: Formatprüfung für notes/ im Dateimodus. Umgesetzt und getestet, wartet auf Bestätigung.
+- Nächster Schritt: Owner bestätigt; danach STORY-045 (Ablauf zwischen Cloud, Git und Viewer) oder STORY-046.
 - Offen:
-  - Kriterien 1 bis 3 auf den Neubau (Decoder, tests/fixtures/mirror-v2, ohne counters.md)
-  - Umfang (Dokumente der Notes) und Zeitpunkt (Stop-Hook, ganzer Ordner)
-  - Korrekturen aus STORY-043 aufnehmen (Status due, Großbuchstaben in new-Namen)
+  - Prüfung dupliziert die Regeln des Viewer-Decoders; bei Formatänderung Fixtures neu kopieren
+  - Verweisziele werden nicht auf Existenz geprüft
 - Beschlossen:
   - Story gestartet, STORY-043 bestätigt (2026-10-22)
-- Verweise: Viewer-Decoder decode.py und syntax.py (plugins/notes/infrastructure/mirror), Fixtures tests/fixtures/mirror-v2; STORY-043 Notes; EPIC-010
+  - Maßstab ist der Decoder des Neubaus (Format Version 2) mit den Beispielen aus tests/fixtures/mirror-v2; counters.md entfällt (2026-10-22)
+  - Umfang notes/ ohne Prüfung von Verweisen; Hook im vorhandenen check_backlog.py, nur nach Änderung unter notes/ (2026-10-22)
+  - Korrekturen aus STORY-043 gehören hierher; keine Tasks (2026-10-22)
+  - Umgesetzt: notes_format.py, notes_files.py --check, Marke und Stop-Hook, Skill-Regeln, Techdocs (2026-10-22)
+- Verweise: Spec STORY-044_spec.md; Viewer-Decoder decode.py und syntax.py, Fixtures tests/fixtures/mirror-v2; STORY-043 Notes; EPIC-010
 
-State confirmed after entry 2026-10-22 — Ausgangslage: Maßstab der Prüfung ist der Decoder des Neubaus (c19bf872cb42)
+State confirmed after entry 2026-10-22 — Umsetzung (f722b63e144c)
 
 ## 2026-10-22 — Ausgangslage: Maßstab der Prüfung ist der Decoder des Neubaus
 
@@ -31,3 +34,38 @@ State confirmed after entry 2026-10-22 — Ausgangslage: Maßstab der Prüfung i
 - Umfang: nur der Ordner notes/ (Notes, topics.md) oder auch die Dokumente der Notes? Vorschlag: Dokumente nur auf Dateinamen und zugehörige Note (der Viewer liest ihren Text unverändert).
 - Wann geprüft wird: Vorschlag Stop-Hook im bestehenden check_backlog.py, wenn in der Session eine Datei unter notes/ geändert wurde; dann wird der ganze Ordner geprüft (dateiübergreifende Fehler wie doppelte Uid brauchen ihn).
 - Zerlegung und Korrekturen aus STORY-043 (due, Großbuchstaben) in diese Story aufnehmen.
+
+## 2026-10-22 — Entscheidung: Maßstab Neubau, Kriterien umgestellt, Spec geschrieben
+
+### Discussed
+
+- Vorschlag: Kriterien 1 bis 3 am Decoder von Format Version 2 und an tests/fixtures/mirror-v2 ausrichten, counters.md streichen; Umfang nur notes/ (Dokumente nur auf Dateiname und zugehörige Note); Prüfung am Turn-Ende im bestehenden check_backlog.py, wenn in der Session unter notes/ etwas geändert wurde, dann über den ganzen Ordner; die beiden Korrekturen aus STORY-043 (Status due, Großbuchstaben in new-Namen) gehören hierher; keine Tasks.
+- Beim Lesen der Beispiele des Viewers: Der Decoder meldet je Datei den ersten Fehler; dateiübergreifende Fehler (doppelte Uid, doppeltes Label, doppelter Platzhalter) und Merge-Marker kommen vom Ordner. Ein Dokument ohne Note ignoriert der Viewer still, dateien mit unbekanntem Namen liest er nicht; beides wird im Harness ein Hinweis statt eines Fehlers, damit ein Tippfehler im Dateinamen auffällt.
+- Entwurf der Umsetzung: neues Modul notes_format.py mit reinen Funktionen, notes_files.py bekommt --check (Gegenstück zu backlog.py ohne Option), mark_backlog_dirty.py merkt sich Änderungen unter notes/ in einer eigenen Marke, check_backlog.py prüft dann den Ordner.
+
+### Decided
+
+- Kriterien 1 bis 3 sind wie vorgeschlagen auf den Neubau umgestellt (Owner, 2026-10-22).
+- Umfang: Ordner notes/ mit Notes, topics.md und Dokumentnamen; keine Prüfung von Verweisen auf Existenz (Owner, 2026-10-22).
+- Die Korrekturen aus STORY-043 sind Teil dieser Story; keine Tasks, eine Sitzung (Owner, 2026-10-22).
+- Spec STORY-044_spec.md geschrieben.
+
+## 2026-10-22 — Umsetzung
+
+### Discussed
+
+- Plan vom Owner freigegeben; Umsetzung im Worktree story-044-notes-format in vier Commits, Tests jeweils vorweg (576 Tests grün, vorher 520).
+- notes_format.py prüft den Ordner notes/ nach den Regeln des Viewer-Decoders (Format Version 2): je Datei der erste Fehler, dazu duplicate_uid, duplicate_label, doppelte Platzhalter, merge_markers und unreadable; Hinweise (nicht blockierend) für Dateien, die der Viewer nicht liest (ignored_file), und für Dokumente ohne Note (document_without_note). Fehlercodes sind die des Viewers. Die gültigen Beispiele und die beiden Notes-Fehlerfälle des Viewers liegen als Fixtures unter tests/fixtures/notes-format und stimmen mit expected.json (Code, Datei, Zeile) überein.
+- Kein Unterschied zum Decoder gefunden, der den Kriterien widerspricht. Beobachtet beim Nachbauen: Der Decoder behandelt 'topic_due soon' und eine unvollständige event-Zeile als invalid_value (nicht unknown_trigger); nur time und fremde Arten sind unknown_trigger. Die Prüfung folgt dem.
+- notes_files.py hat --check (Funde als notes/<Datei>:<Zeile>: <Code>: <Text>, Exit 1 bei Fehlern). Das Muster für new-Dateien ist das des Viewers (Großbuchstaben erlaubt), damit sie im Index erscheinen und die Prüfung invalid_placeholder meldet; notes-files.md nennt den Status due nicht mehr als schreibbar und beschreibt die Prüfung.
+- Hook: mark_backlog_dirty.py merkt sich Änderungen unter notes/ in einer eigenen Marke (state.py), check_backlog.py prüft dann den ganzen Ordner, nur bei Backend files; die Marke bleibt bis zur Korrektur, Hinweise kommen einmal je Sitzung. Der Sitzungsstart prüft den Ordner nicht.
+- Handlauf in einem Temp-Projekt mit den gültigen Beispielen: --check ohne Fund; nach einer 'time'-Zeile in NOTE-001.md blockiert der Hook mit 'notes/NOTE-001.md:15: unknown_trigger' (wie expected.json des Viewers), nach der Korrektur Exit 0. Nicht geprüft: ein echter Sync mit dem Viewer und eine Cloud-Sitzung.
+
+### Decided
+
+- Kriterien 1 bis 4 sind erfüllt; Status Awaiting confirmation, Bestätigung durch den Owner offen.
+
+### Open
+
+- Die Prüfung dupliziert die Regeln des Viewer-Decoders; ändert der Viewer das Format, müssen die Fixtures in tests/fixtures/notes-format neu kopiert und notes_format.py angepasst werden.
+- Verweise (Ziele von Links, Triggern, Topics) werden nicht auf Existenz geprüft; der Viewer tut das beim Sync.
