@@ -2,18 +2,20 @@
 
 ## State
 
-- Goal/Status: Harness und ToDo-Viewer über claude.ai nutzen. Kriterien 1 bis 3 sind erfüllt (über STORY-042 bis 047), Kriterium 4 (echter Lauf in einer Cloud-Sitzung mit Notes und Rückweg) ist nicht belegt.
-- Next step: Owner bestätigt STORY-046; danach entscheidet er über den Lauf in einer echten Cloud-Sitzung (Kriterium 4).
+- Goal/Status: Harness und ToDo-Viewer über claude.ai nutzen. Alle Kriterien erfüllt, Stories 042 bis 047 Completed, Kriterium 4 am 2026-10-22 mit my_story_game in einer echten Cloud-Sitzung belegt. Wartet auf Bestätigung.
+- Next step: Owner bestätigt das Epic; Testeintrag und Test-Note in my_story_game beenden; my_story_game pushen.
 - Open:
-  - Kriterium 4: Lauf in einer echten claude.ai-Sitzung mit einem Fremdprojekt, Stand danach im Viewer
-  - Konflikt-, Merge-Marker- und Platzhalter-Fall am echten Viewer nicht erprobt
+  - Bericht der Cloud-Sitzung (Hook-Meldungen) nicht gesehen
+  - Pull Request, Konflikt und Merge-Marker nicht erprobt (lokales Merge statt Pull Request)
+  - Testeintrag TASK-052 und Test-Note NOTE-001 in my_story_game; lokales main steht 3 Commits vor origin/main
 - Decided:
   - Weg A: Harness als eingecheckte Kopie im Projekt (2026-10-16)
   - Lokal API, Cloud Dateien, Cloud-Erkennung automatisch (2026-10-16)
   - Rückweg nach main per Pull Request, Durchspielung am echten Backlog (2026-10-22)
+  - Kriterium 4 mit my_story_game belegt: Eintrag mit Platzhalter wurde TASK-052, Note wurde NOTE-001, Sync ohne Konflikt (2026-10-22)
 - References: STORY-042 bis STORY-047; sync-flow.md; README, Abschnitt Cloud-Sitzungen
 
-State confirmed after entry 2026-10-22 — Stand nach STORY-042 bis STORY-047: Prüfung der Epic-Kriterien (0087e133cdb4)
+State confirmed after entry 2026-10-22 — Kriterium 4: Lauf in einer echten Cloud-Sitzung mit my_story_game (abbbd2d24fd4)
 
 ## 2026-10-14 — Ausgangslage und offene Fragen
 
@@ -132,3 +134,22 @@ State confirmed after entry 2026-10-22 — Stand nach STORY-042 bis STORY-047: P
 
 - Kriterium 4 braucht einen Lauf in einer echten claude.ai-Sitzung mit einem Fremdprojekt (z. B. ezf-ui): Harness-Kopie, Backlog-Eintrag mit Platzhalter, Note, Rückweg über Pull Request und Viewer-Sync. Das ist Sache des Owners oder ein weiteres Item.
 - Epic erst nach der Bestätigung von STORY-046 und diesem Lauf auf Awaiting confirmation setzen.
+
+## 2026-10-22 — Kriterium 4: Lauf in einer echten Cloud-Sitzung mit my_story_game
+
+### Discussed
+
+- Auf Bitte des Besitzers wurde der Ablauf mit my_story_game (Fremdprojekt, Repository ukf-hoppmann/my_story_game) in einer echten claude.ai-Cloud-Sitzung getestet. Vorbereitung: Release v0.12.7 im Harness (Sperre der Merker-Datei); in my_story_game die Spiegel-Änderungen des Viewers (Format Version 2, todo_v1 entfernt) als 'Backlog: …' committet, die veraltete Cloud-Kopie (v0.12.2) mit cloud_export.py auf v0.12.7 gebracht und main gepusht (8f36b30).
+- Cloud-Sitzung (Branch claude/kind-clarke-fxhiwf, Commit fffe983): legte nach Anweisung einen Backlog-Eintrag NEW-cloud-test-harness (Task unter EPIC-002) mit Platzhalter, ohne Uid und Label, dazu Notes mit Kopf und Stempel und eine neue Note new-cloud-test-harness.md an und pushte den Branch. Meine Prüfung des Branches mit den Checks des Harness: backlog.py 71 gültige Einträge, 0 Fehler; notes_files.py --check ohne Fund. Das Schema der Anweisung (Formatregeln, Skills sichtbar, Stempel mit backlog.py) wurde also in der Cloud ausgeführt.
+- Rückweg: Der Branch wurde lokal in main von my_story_game gemergt (stellvertretend für den Pull Request, nicht gepusht). Der Viewer meldete 'mirror_changed' (3 Einträge in die Datenbank) und war etwa 9 Sekunden später 'in_sync', ohne Konflikt. Ergebnis in den Dateien: aus NEW-cloud-test-harness wurde TASK-052 (Uid und Created vergeben, Ordner items/TASK-052 mit TASK-052_notes.md umbenannt), aus new-cloud-test-harness.md wurde NOTE-001 mit Uid. Das Zurückschreiben ('Backlog: Stand des ToDo-Viewers …', d31d045) ist in my_story_game committet.
+- Nicht gesehen: der eigene Bericht der Cloud-Sitzung (Sitzungsstart-Zeilen, Hook-Meldungen, Python-Version); ob die Hooks der Kopie dort blockiert oder geschwiegen haben, ist unbelegt. Nicht erprobt: Pull Request auf GitHub (lokales Merge statt dessen), Konflikt im Sync-Dialog, Merge-Marker. Das lokale main von my_story_game steht 3 Commits vor origin/main.
+
+### Decided
+
+- Kriterium 4 gilt als erfüllt: Ein Fremdprojekt (my_story_game) lief in einer echten claude.ai-Sitzung mit Harness-Kopie, Backlog und Notes durch, und der Stand ist danach im lokalen Viewer (TASK-052, NOTE-001). Alle Pflicht-Kinder sind Completed; das Epic steht auf Awaiting confirmation.
+
+### Open
+
+- Testeintrag TASK-052 und Test-Note NOTE-001 in my_story_game sind 'darf beendet werden': Beenden und Löschen sind Sache des Besitzers.
+- my_story_game: 3 Commits liegen lokal vor origin/main (Merge und Rückschreiben); der Push ist offen.
+- Der Bericht der Cloud-Sitzung (Hook-Meldungen) ist vom Besitzer zu lesen.

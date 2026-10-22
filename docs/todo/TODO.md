@@ -12,7 +12,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
 - `EPIC-010` **Weg von der Claude-Code-App: Harness und ToDo-Viewer über claude.ai nutzen**
   - Uid: 0bb9fc23-a57b-4616-b5b1-3cf7f0d8b9e9.
   - Type: Epic.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-10-14.
   - Area: Architektur.
   - Priority: Normal.

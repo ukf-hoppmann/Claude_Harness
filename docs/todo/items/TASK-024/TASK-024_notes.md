@@ -2,19 +2,18 @@
 
 ## State
 
-- Goal/Status: Hooks für aktuellen Notes-Kopf (API-Modus) und Protokoll-Reminder (beide Modi). Umgesetzt und getestet, wartet auf Bestätigung.
-- Next step: Owner bestätigt; echter Hook-Lauf in einer neuen Session nach dem Neuladen des Plugins.
+- Goal/Status: Hooks für aktuellen Notes-Kopf (API-Modus) und Protokoll-Reminder (beide Modi). Umgesetzt, bestätigt (Completed), im echten Lauf belegt.
+- Next step: Keiner; ältere Merker in state.py haben dieselbe Schwäche ohne Sperre (kein Item).
 - Open:
-  - Lauf mit den echten Hooks (tool_response-Form, Block am Turn-Ende, Erinnerung als Kontext)
-  - Zähler wird auch von put-state/confirm-state zurückgesetzt (Vereinfachung)
+  - Ältere Merker in state.py (dirty-Marke, geänderte Notes, Hinweise) ohne Sperre
 - Decided:
   - Weg A: PostToolUse-Hook auf Bash legt die Merker ab, kein Netzwerk im Hook (2026-10-22)
   - Helfer meldet Zustand und aktives Item als [harness]-Zeilen, legt nichts mehr ab (2026-10-22)
   - Reminder über UserPromptSubmit, nie blockierend; Files-Modus über Lesen der Spec und Ändern der Notes-Datei (2026-10-22)
-  - Umgesetzt, Doku und Skill angepasst, 636 Tests grün (2026-10-22)
+  - Echter Lauf bestanden; Merker-Datei wird gesperrt und atomar ersetzt, weil Hooks paralleler Aufrufe gleichzeitig laufen (2026-10-22)
 - References: Spec TASK-024_spec.md; STORY-051 (Spec, Notes); TASK-022, TASK-023; Architekturregel 2
 
-State confirmed after entry 2026-10-22 — Hook-Test (119f578f6d8a)
+State confirmed after entry 2026-10-22 — Echter Hook-Lauf in einer frisch gestarteten Session (41b8349e6a9b)
 
 ## 2026-10-22 — Entscheidung: Merker über einen PostToolUse-Hook (Weg A)
 
@@ -63,3 +62,22 @@ State confirmed after entry 2026-10-22 — Hook-Test (119f578f6d8a)
 ### Discussed
 
 - Testeintrag des echten Hook-Laufs (STORY-051); darf ignoriert werden.
+
+## 2026-10-22 — Echter Hook-Lauf in einer frisch gestarteten Session
+
+### Discussed
+
+- Der Owner wollte die offenen Läufe als Test sehen. In einer neuen lokalen Session (Plugin v0.12.6 geladen) lief der Test: Spec von TASK-024 lesen, einen Testeintrag in diese Notes schreiben (Eintrag 'Hook-Test' im Protokoll, bleibt stehen), Turn ohne Bestätigung beenden, dann bestätigen, danach fünf Prompts.
+- Beobachtet, wie erwartet: nach 'note' druckte der Helfer '[harness] notes-state TASK-024 stale', der Merker 'stale' lag im Datenordner der Hooks; der Stop-Hook blockierte mit 'Claude_Harness notes check: the head of these notes is not current …' und nannte TASK-024; nach 'confirm-state' meldete der Helfer 'current' und der Hook gab frei. Fünf Prompts nach dem Aktivieren: kein Hinweis bei den Prompts 1 bis 4, bei Prompt 5 'Claude_Harness reminder: no notes entry yet for the active items TASK-024 (5 turns), TASK-025 (5 turns). …' als Kontext.
+- Echte Eingabe von PostToolUse (mit einem Debug-Dump aufgezeichnet, danach wieder entfernt): tool_response hat stdout, stderr, interrupted, isImage, noOutputExpected; stderr ist immer leer, die stderr-Zeilen des Helfers stehen in stdout. Das Lesen beider Felder hat das abgedeckt. Dazu kommen session_id, cwd, prompt_id, permission_mode, tool_use_id und duration_ms.
+- Befund: Im ersten Durchlauf fehlte der Merker 'aktiv' nach 'doc' (und die Merker-Datei war nach dem 'note' ohne 'turns'). Ursache: Claude Code führt die Hooks paralleler Bash-Aufrufe gleichzeitig aus, und das Lesen, Ändern und Schreiben der Merker-Datei war nicht gesperrt; ein gleichzeitiger Schreibvorgang überschrieb den anderen. In einem Nachstellversuch mit gleichzeitigen Hook-Prozessen wurde die Datei sogar halb geschrieben (ungültiges JSON, das als leer gelesen wird).
+- Behebung (ed809ae): state.edit_notes_marks sperrt (fcntl.flock) und ersetzt die Datei atomar (temporäre Datei, os.replace); mark_notes_state.py, mark_active_item.py, remind_notes.py und mark_backlog_dirty.py nutzen es. Tests: Unit-Test mit zwölf parallelen Prozessen, Hook-Test mit zwölf parallelen Aufrufen; der Nachstellversuch verlor danach in 60 Läufen keinen Merker (vorher Fehler in jedem Lauf mit beschädigter Datei). 642 Tests grün. Die gleiche Schwäche haben die älteren Merker der Backlog-Prüfung (dirty, geänderte Notes) in state.py; sie sind hier nicht angefasst.
+
+### Decided
+
+- Die Hooks sind in einer echten Session belegt: Merker, Stop-Block, Freigabe und Reminder nach fünf Prompts. Der Fund mit den parallelen Aufrufen ist behoben.
+
+### Open
+
+- Die älteren Merker in state.py (dirty-Marke des Backlogs, geänderte Notes, Hinweise gemeldet) lesen und schreiben ebenfalls ohne Sperre; bei parallelen Aufrufen kann dort ein Eintrag verloren gehen. Ein eigenes Item wurde nicht angelegt.
+- Die Testsession läuft noch (idle) und kann archiviert werden; sie hat nichts geändert außer dem Testeintrag in diesen Notes.
