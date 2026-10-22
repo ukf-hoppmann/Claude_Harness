@@ -2,27 +2,25 @@
 
 ## State
 
-- Goal/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
-- Next step: TASK-023 umsetzen (läuft), danach TASK-024; Release erst am Ende der Story.
+- Goal/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festgelegt und mechanisch abgesichert. Alle Tasks Completed, Abschlusskriterien erfüllt, wartet auf Bestätigung.
+- Next step: Owner bestätigt; echter Hook-Lauf in einer neuen Session; danach das Harness-Release.
 - Open:
-  - Keine
+  - Echter Hook-Lauf in einer neuen Session (Block, Reminder, Form von tool_response)
+  - Harness-Release (Vorschlag Patch 0.12.6) nach der Bestätigung
 - Decided:
-  - TASK-021, TASK-022 und TASK-025 vom Owner bestätigt; Release des Harness erst am Ende der Story, gemeinsam mit dem Viewer (2026-10-21)
-  - Feste Überschriften von Kopf und Stempel auf Englisch (Regel 6), Inhalt in docs.language; der Viewer darf sie in der Oberfläche lokalisiert anzeigen (2026-10-21)
-  - Notes: Kopf „Stand“ oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Reihenfolge Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
+  - TASK-021 bis TASK-025 vom Owner bestätigt; Release des Harness erst am Ende der Story (2026-10-21, 2026-10-22)
+  - Feste Überschriften von Kopf und Stempel auf Englisch (Regel 6), Inhalt in docs.language; der Viewer zeigt sie lokalisiert an (2026-10-21)
+  - Notes: Kopf oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Marker Goal/Status, Next step, Open, Decided, References (2026-10-20)
   - Protokollregeln: spezifischstes Item, Kernfrage/Optionen/Entscheidung mit Begründung/Verworfenes, nach jeder geklärten Frage schreiben (2026-10-20)
-  - Spec ist immer der aktuelle Stand, wird fortlaufend aktualisiert; die Entscheidungsfindung steht in den Notes (2026-10-20)
-  - Besprechung endet mit der Spec; Umsetzungsplan erst beim Start, nicht gespeichert (2026-10-20)
-  - Kopf wird nach jeder Änderung der Notes angepasst oder bewusst bestätigt; Stempel mit Prüfsumme, gesetzt von Server bzw. backlog.py; Hook am Turn-Ende blockiert bis dahin (2026-10-20)
-  - Kopf und Protokoll in der API getrennt gespeichert, nach außen eine Datei (2026-10-20)
+  - Spec ist immer der aktuelle Stand; Besprechung endet mit der Spec; Umsetzungsplan erst beim Start, nicht gespeichert (2026-10-20)
+  - Kopf wird nach jeder Änderung der Notes angepasst oder bestätigt; Stempel mit Prüfsumme, gesetzt von Server bzw. backlog.py; Hook am Turn-Ende blockiert bis dahin (2026-10-20)
   - Prüfidee A nur als Nachfrage, B als Reminder; C und D nicht (2026-10-20)
   - Langer Kopf nur Hinweis (ab 15 Beschlüssen); Umschreiben älterer Einträge nur Hinweis (2026-10-20)
-  - ToDo-Viewer hat Kopf und Protokoll getrennt seit v0.8.14 und passt zur Spec; Harness erkennt die Unterstützung am Feld notes_state (2026-10-21)
-  - Umstellung: Viewer zuerst abwärtskompatibel, dann Harness; alte Notes bekommen den Kopf beim nächsten Bearbeiten (2026-10-20)
-  - Viewer ist auf englische Überschriften umgestellt; ältere Notes werden beim nächsten Bearbeiten migriert, nicht auf Vorrat (2026-10-21)
+  - Viewer hat Kopf und Protokoll getrennt und englische Überschriften; ältere Notes werden beim nächsten Bearbeiten migriert (2026-10-21)
+  - Hooks im API-Modus ohne Netzwerk: PostToolUse-Hook liest die [harness]-Zeilen des Helfers (Weg A, TASK-024, 2026-10-22)
 - References: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-State confirmed after entry 2026-10-21 — Viewer auf englische Überschriften umgestellt, Migration nur teilweise (12a45fc8455e)
+State confirmed after entry 2026-10-22 — Abnahmeprüfung nach TASK-024 (f7e0263cd2be)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
@@ -327,3 +325,24 @@ State confirmed after entry 2026-10-21 — Viewer auf englische Überschriften u
 
 - Ältere Notes werden beim nächsten Bearbeiten migriert, nicht auf Vorrat (Owner, 2026-10-21). Begründung: Aufwand fällt nur dort an, wo die Notes ohnehin angefasst werden.
 - TASK-021 und TASK-022 vom Owner bestätigt (Completed). Weiter mit TASK-025.
+
+## 2026-10-22 — Abnahmeprüfung nach TASK-024
+
+### Discussed
+
+- Alle fünf Tasks sind Completed (TASK-021 bis TASK-025); TASK-024 hat der Owner am 2026-10-22 bestätigt. Geprüft wurden die Abschlusskriterien und der Abschnitt Abnahme der Spec gegen den Stand.
+- Kriterium 1, Regeln in Skill und format.md: erfüllt (TASK-021; Kopf, Marker, Protokollregeln, Abgrenzung der Notes). Ergänzt: api.md und SKILL.md nennen die [harness]-Zeilen, die Blockade und den Reminder (TASK-024).
+- Kriterium 2, Prüfsumme in API- und Files-Modus gesetzt und geprüft: erfüllt. Files-Modus: backlog.py, notes_head.py, Stop-Hook check_backlog.py (TASK-022). API-Modus: Der Server setzt den Stempel; der Helfer hat state, put-state, confirm-state, entries (TASK-023). Die Testvektoren sind mit dem Viewer geteilt (tests/fixtures/notes-state/checksum.json).
+- Kriterium 3, Hook am Turn-Ende und Reminder B umgesetzt und getestet: erfüllt (TASK-024: mark_notes_state.py, check_notes_state.py, remind_notes.py, mark_active_item.py; 636 Tests grün). Nachfrage A ist als Hinweis des Helfers und des Hooks im Files-Modus umgesetzt (TASK-025). Nicht belegt: ein Lauf mit den echten, geladenen Hooks in einer neuen Session; die Form der Bash-Antwort stammt aus der Doku von Claude Code.
+- Kriterium 4, Schnittstelle zum Viewer beschrieben und dort umgesetzt: erfüllt (interfaces.md; der Viewer liefert Kopf, Stempel und notes_state; der Handlauf gegen den echten Viewer mit state, confirm-state und note lief). Der Viewer ist der Neubau.
+- Abnahme der Spec: Gleiche Prüfsumme in Viewer und backlog.py (geteilte Vektoren); ein Harness gegen einen Viewer ohne Köpfe arbeitet weiter und meldet das (404-Meldung des Helfers, kein Merker, keine Blockade); Reminder und Nachfrage blockieren nicht; Regeln und Tests vorhanden. Offen bleibt die Wirkung der neuen Hooks im echten Betrieb.
+- Umstellung nach Spec: Der Viewer ist zuerst umgestellt, der Harness erkennt die Unterstützung am Feld notes_state, bestehende Notes bekommen den Kopf beim nächsten Bearbeiten (kein Massenlauf). Das Harness-Release mit Skill, Helfer und Hooks steht aus: Es wurde bis zum Ende der Story zurückgehalten (Eintrag vom 2026-10-21). Unveröffentlicht seit v0.12.5 sind die Änderungen von TASK-024 und STORY-046.
+
+### Decided
+
+- Die Story steht auf Awaiting confirmation; der Owner bestätigt sie. Das Harness-Release (Vorschlag: Patch 0.12.6) wartet auf seine Freigabe und idealerweise auf den echten Hook-Lauf in einer neuen Session.
+
+### Open
+
+- Echter Hook-Lauf in einer neuen Session: Block am Turn-Ende bei veraltetem Kopf, Reminder nach 5 Prompts als Kontext, Form von tool_response bei Bash.
+- Harness-Release nach der Bestätigung.

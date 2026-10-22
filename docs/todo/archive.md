@@ -1714,3 +1714,26 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     Abgleich mit dem ToDo-Viewer verloren geht, wenn lokal gleichzeitig ein
     Eintrag mit derselben Nummer entsteht.
   - Resolution: Vom Besitzer bestätigt (2026-10-22).
+
+- `TASK-024` **Hooks für aktuellen Notes-Kopf und Protokoll-Reminder**
+  - Uid: 93bf2558-2beb-4088-9d63-c4e980a0fac4.
+  - Type: Task.
+  - Parent: `STORY-051`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-10-20.
+  - Area: Entwicklung.
+  - Priority: Urgent.
+  - Dependencies: `TASK-022`, `TASK-023`.
+  - Goal: Ein Hook am Turn-Ende blockiert, solange Notes, die in der Session
+    geändert wurden, einen veralteten Kopf haben, bis der Kopf angepasst
+    oder bestätigt ist (API- und Files-Modus). Ein Reminder (Prüfidee B)
+    erinnert, wenn ein aktives Item seit mehreren Turns keinen Notes-Eintrag
+    bekam.
+  - Completion criteria: Beide Hooks sind umgesetzt, in der
+    Plugin-Konfiguration registriert, in der Doku beschrieben und getestet
+    (Unit-Tests; Endlosschleife ausgeschlossen, weil Bestätigen den Hook
+    auflöst).
+  - Summary: Ein Hook sorgt dafür, dass die Übersicht nach jeder Änderung
+    der Notes geprüft wird, und erinnert ans Protokollieren.
+  - Resolution: Vom Besitzer bestätigt (2026-10-22).

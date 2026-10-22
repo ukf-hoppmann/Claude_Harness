@@ -107,25 +107,3 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     knapp, und lange Notes sind unübersichtlich. Künftig regelt der Harness,
     wo und wie protokolliert wird; jede Notes-Datei bekommt oben eine
     Übersicht über den aktuellen Stand, deren Aktualität der Harness prüft.
-
-- `TASK-024` **Hooks für aktuellen Notes-Kopf und Protokoll-Reminder**
-  - Uid: 93bf2558-2beb-4088-9d63-c4e980a0fac4.
-  - Type: Task.
-  - Parent: `STORY-051`.
-  - Required for parent: Yes.
-  - Status: In progress.
-  - Created: 2026-10-20.
-  - Area: Entwicklung.
-  - Priority: Urgent.
-  - Dependencies: `TASK-022`, `TASK-023`.
-  - Goal: Ein Hook am Turn-Ende blockiert, solange Notes, die in der Session
-    geändert wurden, einen veralteten Kopf haben, bis der Kopf angepasst
-    oder bestätigt ist (API- und Files-Modus). Ein Reminder (Prüfidee B)
-    erinnert, wenn ein aktives Item seit mehreren Turns keinen Notes-Eintrag
-    bekam.
-  - Completion criteria: Beide Hooks sind umgesetzt, in der
-    Plugin-Konfiguration registriert, in der Doku beschrieben und getestet
-    (Unit-Tests; Endlosschleife ausgeschlossen, weil Bestätigen den Hook
-    auflöst).
-  - Summary: Ein Hook sorgt dafür, dass die Übersicht nach jeder Änderung
-    der Notes geprüft wird, und erinnert ans Protokollieren.
