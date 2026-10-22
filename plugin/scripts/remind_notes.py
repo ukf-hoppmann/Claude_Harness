@@ -44,15 +44,15 @@ def main() -> int:
         marks[key]["turns"] = int(marks[key]["turns"]) + 1
         turns = marks[key]["turns"]
         if turns % INTERVAL == 0:
-            due.append(f"{identifier}{'' if project == ROOT_PROJECT else f' ({project})'}: {turns} turns")
+            due.append(f"{identifier}{'' if project == ROOT_PROJECT else f' ({project})'} ({turns} turns)")
     try:
         write_notes_marks(session_id, marks)
     except OSError:
         pass
     if due:
         print(
-            "Claude_Harness reminder: no notes entry for these active items since "
-            + "; ".join(due)
+            "Claude_Harness reminder: no notes entry yet for the active items "
+            + ", ".join(due)
             + ". If something was clarified, decided, or rejected, record it in the item's notes now "
             "(skill todo, record discussions in the notes). Ignore this if nothing of that happened."
         )

@@ -255,7 +255,7 @@ class RemindNotesTest(NotesHookTest):
     def test_a_subproject_is_named_by_its_item_only_when_it_is_not_the_root(self):
         self.write_subproject()
         self.set_marks({("Sub", "TASK-002"): {"state": None, "turns": 4}})
-        self.assertIn("TASK-002 (Sub)", self.prompt().stdout)
+        self.assertIn("TASK-002 (Sub) (5 turns)", self.prompt().stdout)
 
     def test_a_switched_off_module_and_other_sessions_get_nothing(self):
         self.set_marks({("root", "TASK-002"): {"state": None, "turns": 4}})
