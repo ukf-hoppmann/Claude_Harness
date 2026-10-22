@@ -210,5 +210,120 @@ class CheckNotesStateTest(NotesHookTest):
                 self.assertEqual(result.returncode, 0)
 
 
+class RemindNotesTest(NotesHookTest):
+    def prompt(self, session="s1"):
+        return self.run_hook("remind_notes.py", {"session_id": session, "hook_event_name": "UserPromptSubmit", "prompt": "weiter"})
+
+    def prompts(self, count):
+        return [self.prompt() for _ in range(count)]
+
+    def test_the_reminder_comes_with_the_fifth_prompt_and_then_every_fifth(self):
+        self.set_marks({("root", "TASK-002"): {"state": None, "turns": 0}})
+        results = self.prompts(10)
+        reminded = [i + 1 for i, r in enumerate(results) if r.stdout]
+        self.assertEqual(reminded, [5, 10])
+        self.assertIn("TASK-002", results[4].stdout)
+        self.assertIn("5 turns", results[4].stdout)
+        self.assertIn("10 turns", results[9].stdout)
+
+    def test_the_reminder_never_blocks_and_writes_nothing_to_stderr(self):
+        self.set_marks({("root", "TASK-002"): {"state": None, "turns": 4}})
+        result = self.prompt()
+        self.assertEqual((result.returncode, result.stderr), (0, ""))
+        self.assertTrue(result.stdout)
+
+    def test_an_item_that_is_not_active_is_never_counted(self):
+        self.set_marks({("root", "STORY-001"): {"state": "current", "turns": None}})
+        self.assertEqual([r.stdout for r in self.prompts(6)], [""] * 6)
+        self.assertEqual(self.marks(), {("root", "STORY-001"): {"state": "current", "turns": None}})
+
+    def test_a_notes_entry_starts_counting_again(self):
+        self.bash_done(f"{HELPER} doc TASK-002 TASK-002_spec.md", "[harness] active TASK-002\n")
+        self.prompts(4)
+        self.bash_done(f"{HELPER} note TASK-002", "[harness] notes-state TASK-002 current\n")
+        self.assertEqual([r.stdout for r in self.prompts(4)], [""] * 4)
+        self.assertTrue(self.prompt().stdout)
+
+    def test_several_active_items_get_one_message(self):
+        self.set_marks({("root", "TASK-002"): {"state": None, "turns": 4}, ("root", "TASK-003"): {"state": None, "turns": 4},
+                        ("root", "TASK-004"): {"state": None, "turns": 1}})
+        out = self.prompt().stdout
+        self.assertIn("TASK-002", out)
+        self.assertIn("TASK-003", out)
+        self.assertNotIn("TASK-004", out)
+
+    def test_a_subproject_is_named_by_its_item_only_when_it_is_not_the_root(self):
+        self.write_subproject()
+        self.set_marks({("Sub", "TASK-002"): {"state": None, "turns": 4}})
+        self.assertIn("TASK-002 (Sub)", self.prompt().stdout)
+
+    def test_a_switched_off_module_and_other_sessions_get_nothing(self):
+        self.set_marks({("root", "TASK-002"): {"state": None, "turns": 4}})
+        self.assertEqual(self.prompt(session="other").stdout, "")
+        self.write_config(todo=False)
+        self.assertEqual(self.prompt().stdout, "")
+
+    def test_bad_input_does_nothing(self):
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(self.data))
+        for text in ("", "not json", "[]", '{"prompt": "x"}'):
+            with self.subTest(text):
+                result = subprocess.run([sys.executable, str(SCRIPTS / "remind_notes.py")], input=text,
+                                        capture_output=True, text=True, env=env)
+                self.assertEqual((result.returncode, result.stdout), (0, ""))
+
+
+class FilesModeActiveItemTest(NotesHookTest):
+    """With the files backend the marks come from file access: reading a spec, changing the notes."""
+
+    def setUp(self):
+        super().setUp()
+        self.write_config(backend="files")
+        self.items = self.project / "docs" / "todo" / "items"
+
+    def read_file(self, path, session="s1"):
+        return self.run_hook("mark_active_item.py", {"session_id": session, "tool_name": "Read", "tool_input": {"file_path": str(path)}})
+
+    def edit_file(self, path, session="s1"):
+        return self.run_hook("mark_backlog_dirty.py", {"session_id": session, "tool_name": "Edit", "tool_input": {"file_path": str(path)}})
+
+    def test_reading_the_spec_makes_the_item_active(self):
+        self.assertEqual(self.read_file(self.items / "TASK-002" / "TASK-002_spec.md").returncode, 0)
+        self.assertEqual(self.marks(), {("root", "TASK-002"): {"state": None, "turns": 0}})
+
+    def test_reading_the_spec_again_does_not_restart_the_counter(self):
+        self.set_marks({("root", "TASK-002"): {"state": None, "turns": 3}})
+        self.read_file(self.items / "TASK-002" / "TASK-002_spec.md")
+        self.assertEqual(self.marks(), {("root", "TASK-002"): {"state": None, "turns": 3}})
+
+    def test_other_files_do_not_activate_anything(self):
+        for path in (self.items / "TASK-002" / "TASK-002_notes.md", self.items / "TASK-002" / "TASK-002_spec_topic.md",
+                     self.items / "TASK-002" / "other.md", self.project / "docs" / "todo" / "TODO.md",
+                     self.project / "README.md", self.items / "TASK-003" / "TASK-002_spec.md"):
+            with self.subTest(path.name):
+                self.read_file(path)
+        self.assertEqual(self.marks(), {})
+
+    def test_the_api_backend_and_a_switched_off_module_are_ignored(self):
+        self.write_config(backend="api")
+        self.read_file(self.items / "TASK-002" / "TASK-002_spec.md")
+        self.write_config(todo=False)
+        self.read_file(self.items / "TASK-002" / "TASK-002_spec.md")
+        self.assertEqual(self.marks(), {})
+
+    def test_changing_the_notes_of_an_active_item_restarts_the_counter(self):
+        self.set_marks({("root", "TASK-002"): {"state": None, "turns": 4}})
+        self.edit_file(self.items / "TASK-002" / "TASK-002_notes.md")
+        self.assertEqual(self.marks(), {("root", "TASK-002"): {"state": None, "turns": 0}})
+
+    def test_changing_notes_of_an_item_that_is_not_active_marks_nothing(self):
+        self.edit_file(self.items / "TASK-002" / "TASK-002_notes.md")
+        self.assertEqual(self.marks(), {})
+
+    def test_the_reminder_runs_on_the_marks_of_the_files_backend_too(self):
+        self.read_file(self.items / "TASK-002" / "TASK-002_spec.md")
+        out = [self.run_hook("remind_notes.py", {"session_id": "s1", "prompt": "x"}).stdout for _ in range(5)]
+        self.assertEqual([bool(o) for o in out], [False, False, False, False, True])
+
+
 if __name__ == "__main__":
     unittest.main()
