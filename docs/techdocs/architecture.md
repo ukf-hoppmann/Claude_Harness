@@ -118,7 +118,7 @@ deren `settings.json`.
 | Zustand | Ort | Lebensdauer |
 |---|---|---|
 | Projektkonfiguration | `.claude-harness/config.toml` | im Repo versioniert |
-| Merker pro Session (Backlog geändert, Hinweise gemeldet, Doku-Erinnerung, gelesene Architekturregeln, gemeldete SemVer-Befunde) | `$CLAUDE_PLUGIN_DATA`, sonst `<tmp>/claude-harness/` | pro Session |
+| Merker pro Session (Backlog geändert, Hinweise gemeldet, Doku-Erinnerung, gelesene Architekturregeln, gemeldete SemVer-Befunde, Items mit geänderten Notes und aktive Items aus `backlog_api.py`) | `$CLAUDE_PLUGIN_DATA`, sonst `<tmp>/claude-harness/` | pro Session |
 | Ausgangsbranch eines Worktrees | Git-Config `branch.<worktree-branch>.harnessBase` | bis der Branch gelöscht wird |
 | Bestätigter Stand des Tagesberichts, eine Zeile `<Commit> <Branch>` pro Branch | `.git/claude-harness/daily-ack`, für ein Projekt unterhalb des Git-Roots `daily-ack-<Ordner mit _ statt />` | pro Klon und Projektordner, nie committet |
 | Release-Tags | Tags `<Präfix><Version>` | im Repo, nur lokal, bis der Owner sie pusht |

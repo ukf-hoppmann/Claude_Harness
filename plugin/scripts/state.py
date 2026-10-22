@@ -71,6 +71,26 @@ def write_changed_notes(session_id: str, notes: set[tuple[str, str]]) -> None:
     path.write_text(json.dumps(sorted(f"{project}\t{relative}" for project, relative in notes)))
 
 
+def items_file(session_id: str, kind: str) -> Path:
+    """JSON list of "<project>\\t<ID>": backlog items whose `notes` were changed or which are `active` in the session."""
+    return state_dir() / f"backlog-items-{kind}-{_safe(session_id)}.json"
+
+
+def read_items(session_id: str, kind: str) -> set[tuple[str, str]]:
+    try:
+        entries = json.loads(items_file(session_id, kind).read_text())
+    except (OSError, ValueError):
+        return set()
+    return {tuple(str(entry).split("\t", 1)) for entry in entries if "\t" in str(entry)}
+
+
+def add_item(session_id: str, kind: str, project: str, identifier: str) -> None:
+    items = read_items(session_id, kind) | {(project, identifier)}
+    path = items_file(session_id, kind)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(sorted(f"{p}\t{i}" for p, i in items)))
+
+
 def delivered_notices_file(session_id: str) -> Path:
     return state_dir() / f"backlog-notices-{_safe(session_id)}.json"
 
