@@ -93,8 +93,9 @@ are relative to it.
     - The hooks run only in cloud sessions with one repository; locally the
       plugin applies. `/claude-harness:update` keeps the copy current and can
       remove it again.
-    - A cloud session cannot reach the ToDo-Viewer API: the backlog there
-      needs `todo.backend = "files"` in the config.
+    - A cloud session cannot reach the ToDo-Viewer API: it uses the `files`
+      backend on its own, whatever `todo.backend` says, so the config stays
+      the same.
 12. Ask whether the harness configs should stay out of Git (e.g. when
     colleagues should not see them): propose adding `.claude-harness/` to
     `.gitignore` and change it only after approval. Do not propose it when
