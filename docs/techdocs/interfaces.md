@@ -115,7 +115,11 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   einen Absatz `Format: … backlog format version 2 …`; fehlt er oder nennt er
   eine andere Version, ist das ein Fehler. Jeder Eintrag braucht eine `Uid`
   (UUID, eindeutig); neue Einträge mit Platzhalter `NEW-<kurzname>` haben
-  keine `Uid` und dürfen `Created` weglassen. `Notes` und `Spec` sind
+  keine `Uid` und dürfen `Created` weglassen. Das verhindert doppelte IDs bei
+  paralleler Arbeit in Cloud und lokal: Labels und `Uid` vergibt nur der
+  Viewer beim Sync (er gleicht nach `Uid` ab), ein Eintrag mit Label ohne `Uid`
+  und ein Platzhalter mit `Uid` sind Fehler, ebenso zwei gleiche
+  Platzhalter. `Notes` und `Spec` sind
   unbekannte Felder. Ein Eintrag in der falschen Datei ist ein Hinweis, kein
   Fehler.
 - Ohne Option: listet Fehler und Hinweise und eine Zusammenfassung.

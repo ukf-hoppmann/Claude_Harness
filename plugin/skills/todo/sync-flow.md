@@ -49,9 +49,16 @@ stay as they are: [SKILL.md](SKILL.md) (backlog), [notes.md](notes.md) and
   directly and follow [format.md](format.md) and [notes-files.md](notes-files.md);
   the checks at the end of a turn tell you what is wrong.
 - A new item gets a placeholder `NEW-<name>`, a new note `new-<name>.md`.
-  Labels and uids come from the viewer's sync. Two sessions that create items
-  at the same time can still collide; that case is not solved here (backlog item
-  `STORY-046`), so create only items with a placeholder.
+  Labels and uids come from the viewer's sync. Never write a label (the "next
+  free number") or a `Uid` for a new entry yourself. That is what keeps parallel
+  work safe: the viewer matches entries by `Uid`, so a session in the cloud and
+  the local viewer that both create an item never collide; each placeholder
+  becomes the next free label at the sync. An entry with a label but without a
+  `Uid` is refused by the check at the end of your turn (`missing required
+  field: Uid`) and by the viewer's sync (`missing_field`); a placeholder with a
+  `Uid` is refused as well. Two placeholders with the same name in one backlog
+  are refused too (`invalid_placeholder`): pick a name that is specific to the
+  item.
 - The changes to the backlog and the notes belong to the change and are
   committed on the session's branch like any other file.
 

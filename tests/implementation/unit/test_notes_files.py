@@ -164,6 +164,11 @@ class SyncFlowTest(unittest.TestCase):
             with self.subTest(name):
                 self.assertIn("(sync-flow.md)", (self.SKILL / name).read_text(encoding="utf-8"))
 
+    def test_the_flow_rules_forbid_labels_and_uids_for_new_entries(self):
+        text = (self.SKILL / "sync-flow.md").read_text(encoding="utf-8")
+        self.assertIn("Never write a label", text)
+        self.assertNotIn("STORY-046", text)
+
     def test_notes_are_not_called_database_only_without_naming_the_mirror(self):
         text = (self.SKILL / "notes.md").read_text(encoding="utf-8")
         self.assertNotIn("there are no note files, so nothing is committed", text)
