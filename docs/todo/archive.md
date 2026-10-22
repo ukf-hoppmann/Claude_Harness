@@ -1607,3 +1607,44 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     als Markdown-Dateien im Repository, die der ToDo-Viewer später in seine
     Datenbank übernimmt.
   - Resolution: Vom Besitzer bestätigt (2026-10-22).
+
+- `STORY-044` **Formatprüfung für den Notes-Ordner**
+  - Uid: 452b2474-a5e3-428c-b8cf-6a43fa6f62a5.
+  - Type: Story.
+  - Parent: `EPIC-010`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-10-16.
+  - Area: Entwicklung.
+  - Priority: Normal.
+  - Dependencies: `STORY-043`.
+  - Goal: Eine Prüfung findet Formatfehler in den Dateien unter `notes/`
+    (Dateimodus), bevor der ToDo-Viewer sie liest. Der Viewer bricht bei
+    einem einzigen Formatfehler den ganzen Sync ab (400 `note_format`,
+    Backlog und Notes), deshalb muss der Fehler schon beim Schreiben
+    auffallen.
+  - Completion criteria: 1. Ein Prüfskript (Stop-Hook wie
+    `check_backlog.py`, nur bei `files` und nur nach Änderungen unter
+    `notes/`) prüft den ganzen Ordner `notes/` nach den Regeln des Decoders
+    von Format Version 2 und meldet Datei, Zeile und Fehlercode bei:
+    unbekannter, doppelter oder ungültiger Kopfzeile, fehlenden
+    Pflichtfeldern, ungültigem Status (auch `due`), `Mode`, `Archived` oder
+    Zeitpunkt, Dateiname und Überschrift verschieden, ungültigem
+    Platzhalter, ungültigem Auslöser (auch `time`) oder ungültiger
+    Verknüpfung, falschem Zeilenaufbau in `topics.md`, doppelter Uid,
+    doppeltem Label oder doppeltem Platzhalter und Git-Merge-Markern;
+    Dokumente der Notes nur auf Dateiname und zugehörige Note. 2. Die
+    Beispiele des Viewers liegen als Testvorlagen im Harness
+    (`tests/fixtures/`, aus `tests/fixtures/mirror-v2` des ToDo-Viewers):
+    `valid/notes` wird fehlerfrei gelesen, die Notes-Fehlerfälle `invalid/`
+    ergeben den erwarteten Code, die Datei und die Zeile; zu jedem
+    Fehlercode gibt es einen Test. 3. Weicht das Format des Viewers von der
+    Prüfung ab, ist der Unterschied in den Notes der Story festgehalten;
+    `counters.md` gibt es in Version 2 nicht und wird nicht geprüft. Die
+    Regeldatei `notes-files.md` ist berichtigt (Status `due` steht nie in
+    einer Datei) und `notes_files.py` übergeht keine `new-`-Datei mit
+    Großbuchstaben mehr. 4. Techdocs beschreiben die Prüfung.
+  - Summary: Ein Tippfehler in einer Notes-Datei würde sonst den ganzen
+    Abgleich mit dem ToDo-Viewer blockieren. Die Prüfung meldet ihn sofort
+    mit Datei und Zeile.
+  - Resolution: Vom Besitzer bestätigt (2026-10-22).
