@@ -1466,3 +1466,24 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Schreibt Claude Protokolle an eine Story, während einer ihrer
     Tasks in Arbeit ist, fragt der Harness nach, ob das dorthin gehört.
   - Resolution: Vom Owner am 2026-10-21 bestätigt.
+
+- `TASK-023` **Kopf-Befehle im API-Helfer**
+  - Uid: a62d3a80-a788-4d27-8a5f-e693881bc93f.
+  - Type: Task.
+  - Parent: `STORY-051`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-10-20.
+  - Area: Entwicklung.
+  - Priority: Urgent.
+  - Dependencies: `TASK-021`.
+  - Goal: backlog_api.py bietet Befehle zum Lesen des Kopfs (ohne
+    Protokoll), zum Ersetzen und zum Bestätigen; note nimmt optional einen
+    neuen Kopf mit; veraltete Köpfe meldet der Helfer. Voraussetzung ist die
+    Umsetzung im ToDo-Viewer.
+  - Completion criteria: Befehle sind umgesetzt, in api.md beschrieben und
+    mit Unit-Tests gegen einen Test-Server bzw. Mock abgedeckt; die
+    Schnittstelle stimmt mit der Umsetzung im ToDo-Viewer überein.
+  - Summary: Im API-Modus kann der Harness die Übersicht einer Notes-Datei
+    getrennt lesen, ersetzen und bestätigen.
+  - Resolution: Vom Owner am 2026-10-22 bestätigt.

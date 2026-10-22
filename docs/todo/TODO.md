@@ -339,23 +339,3 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     auflöst).
   - Summary: Ein Hook sorgt dafür, dass die Übersicht nach jeder Änderung
     der Notes geprüft wird, und erinnert ans Protokollieren.
-
-- `TASK-023` **Kopf-Befehle im API-Helfer**
-  - Uid: a62d3a80-a788-4d27-8a5f-e693881bc93f.
-  - Type: Task.
-  - Parent: `STORY-051`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-10-20.
-  - Area: Entwicklung.
-  - Priority: Urgent.
-  - Dependencies: `TASK-021`.
-  - Goal: backlog_api.py bietet Befehle zum Lesen des Kopfs (ohne
-    Protokoll), zum Ersetzen und zum Bestätigen; note nimmt optional einen
-    neuen Kopf mit; veraltete Köpfe meldet der Helfer. Voraussetzung ist die
-    Umsetzung im ToDo-Viewer.
-  - Completion criteria: Befehle sind umgesetzt, in api.md beschrieben und
-    mit Unit-Tests gegen einen Test-Server bzw. Mock abgedeckt; die
-    Schnittstelle stimmt mit der Umsetzung im ToDo-Viewer überein.
-  - Summary: Im API-Modus kann der Harness die Übersicht einer Notes-Datei
-    getrennt lesen, ersetzen und bestätigen.
