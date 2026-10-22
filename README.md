@@ -91,8 +91,11 @@ Harness dort wirkt, kann ein Projekt eine eingecheckte Kopie davon halten:
 
 Grenzen: Die Hooks der Kopie laufen nur in einer Sitzung mit einem Repository
 und nur in der Cloud (`CLAUDE_CODE_REMOTE=true`); lokal gelten die Hooks des
-Plugins. Der ToDo-Viewer ist aus der Cloud nicht erreichbar, der Backlog dort
-braucht `todo.backend = "files"`. Skills und Hooks der Kopie kosten lokal
+Plugins. Der ToDo-Viewer ist aus der Cloud nicht erreichbar: dort arbeitet der
+Harness automatisch mit den Markdown-Dateien des Backlogs (`files`), die Config
+bleibt unverändert; Notes und Alarme gibt es dort nicht. Mit der Variable
+`CLAUDE_HARNESS_TODO_BACKEND` lässt sich das Backend je Umgebung auch von Hand
+festlegen. Skills und Hooks der Kopie kosten lokal
 zusätzlich je Skill eine Beschreibung im Kontext. Details:
 [Schnittstellen, Skript `cloud_export.py`](docs/techdocs/interfaces.md#skript-cloud_exportpy).
 

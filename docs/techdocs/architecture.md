@@ -113,6 +113,12 @@ bleibt in der Cloud erhalten. Die Hooks der Kopie gelten nur in Sitzungen mit
 einem Repository; bei mehreren Repositories lädt die Cloud keine Hooks aus
 deren `settings.json`.
 
+Den ToDo-Viewer erreicht eine Cloud-Sitzung nicht. Beim Laden der Config
+(`load_config`) gilt deshalb dort das Backend `files`, auch wenn
+`todo.backend` auf `api` steht; `CLAUDE_HARNESS_TODO_BACKEND` hat Vorrang vor
+dieser Erkennung. Session-Start, Backlog-Hooks und Skills folgen diesem
+wirksamen Backend; die Config-Datei bleibt unverändert.
+
 ## Zustand und Ablage
 
 | Zustand | Ort | Lebensdauer |

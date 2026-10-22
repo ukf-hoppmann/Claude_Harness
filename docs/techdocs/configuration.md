@@ -18,7 +18,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `modules.development` | Boolean | `false` | nein | Schaltet die Suite `development` mit allen Teilbereichen ein |
 | `modules.semver` | Boolean | `false` | nein | Schaltet die Versionierung nach SemVer ein (Skill `claude-harness:semver`) |
 | `todo.path` | Pfad | `"todo"` | nein | Backlog-Ordner, relativ zu `docs.root` |
-| `todo.backend` | Text | `"api"` | nein | Wie die AI den Backlog pflegt: `api` über die HTTP-API des ToDo-Viewers (der Server prüft Format und Regeln, kein Backlog-Check am Turn-Ende), `files` direkt in den Markdown-Dateien (mit Backlog-Check). Ist der Server nicht erreichbar, fragt die AI, ob er gestartet oder auf Dateien ausgewichen wird |
+| `todo.backend` | Text | `"api"` | nein | Wie die AI den Backlog pflegt: `api` über die HTTP-API des ToDo-Viewers (der Server prüft Format und Regeln, kein Backlog-Check am Turn-Ende), `files` direkt in den Markdown-Dateien (mit Backlog-Check). Ist der Server nicht erreichbar, fragt die AI, ob er gestartet oder auf Dateien ausgewichen wird. Der Wert ist die Vorgabe; je Umgebung kann er überschrieben werden (siehe Umgebungsvariablen unten): in einer Cloud-Sitzung gilt `files`, ohne dass die Config geändert wird |
 | `todo.api_url` | URL | `"http://localhost:5411/api"` | nein | Basis-URL der HTTP-API des ToDo-Viewers (darunter `/backlog`, `/notes`, `/alarms`, `/workspace`, `/core`); nur für `todo.backend = "api"`. Die Adresse des alten Viewers (`…/api/v2`) wird als `…/api` gelesen, alte Configs laufen ohne Änderung weiter |
 | `daily.path` | Pfad | `"daily"` | nein | Ordner der Tagesberichte, relativ zu `docs.root` |
 | `techdocs.path` | Pfad | `"techdocs"` | nein | Ordner der Systemdoku, relativ zu `docs.root` |
@@ -141,3 +141,11 @@ gehört; Tagesberichte zählen pro Projekt nur dessen Commits.
 | `CLAUDE_PROJECT_DIR` | Claude Code | Projekt-Root für Hooks und Skripte; sonst `cwd` aus der Hook-Eingabe bzw. das aktuelle Verzeichnis. Liegen `cwd` oder die bearbeitete Datei in `<Projekt-Root>/.claude/worktrees/<Name>/`, gilt dieser Worktree als Projekt-Root |
 | `CLAUDE_PLUGIN_DATA` | Claude Code | Ordner für Merker pro Session; sonst `<tmp>/claude-harness/` |
 | `CLAUDE_PLUGIN_ROOT` | Claude Code | Pfad des Plugins in Hook-Befehlen und Skills |
+| `CLAUDE_HARNESS_TODO_BACKEND` | Nutzer (Shell, Umgebung der Sitzung) | Wert `api` oder `files`; überschreibt `todo.backend` bei jedem Laden der Config. Ein anderer Wert ist ein Config-Fehler (Meldung nennt die Variable). Leer zählt als nicht gesetzt |
+| `CLAUDE_CODE_REMOTE` | Claude Code | `true` in Cloud-Sitzungen (claude.ai/code): dort gilt der Dateimodus (`files`), weil der ToDo-Viewer nicht erreichbar ist. Jeder andere Wert zählt als lokal |
+
+Wirksames Backend (Rangfolge): `CLAUDE_HARNESS_TODO_BACKEND`, dann die
+Cloud-Erkennung über `CLAUDE_CODE_REMOTE`, dann `todo.backend`. Es gilt für
+Session-Start, Backlog-Hooks, Notes und Alarme; die Config-Datei selbst bleibt
+unverändert und wird von `/claude-harness:update` weiter so geprüft, wie sie
+dasteht. In einer Cloud-Sitzung sind Notes und Alarme aus (sie brauchen `api`).

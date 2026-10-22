@@ -54,7 +54,7 @@ merge commit can be undone with one `git revert -m 1`.
 ## Work
 
 Implement and commit in the worktree. Technical-doc changes of the change
-belong in the same branch, and so do backlog changes when `[todo].backend` is
+belong in the same branch, and so do backlog changes when the backend is
 `files`. With `api`, the server writes the backlog in the main checkout; the
 `todo` skill says when to commit it there. Daily reports are written after
 the merge, on the base branch, as the `daily` skill says.

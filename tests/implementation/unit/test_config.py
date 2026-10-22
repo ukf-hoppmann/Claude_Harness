@@ -362,5 +362,59 @@ class LoadConfigTest(unittest.TestCase):
                 self.assertEqual(set(data.get(table, {})), keys)
 
 
+class TodoBackendEnvironmentTest(unittest.TestCase):
+    """The backend is chosen per environment: CLAUDE_HARNESS_TODO_BACKEND, then the cloud, then [todo].backend."""
+
+    def _load(self, backend: str | None, env: dict[str, str]):
+        todo = "[modules]\ntodo = true\n" + (f'[todo]\nbackend = "{backend}"\n' if backend else "")
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / ".claude-harness" / "config.toml"
+            path.parent.mkdir()
+            path.write_text("version = 1\n" + todo)
+            with mock.patch.dict(os.environ, env, clear=True):
+                return load_config(Path(tmp))
+
+    def test_config_value_applies_without_environment(self):
+        self.assertEqual(self._load("files", {}).todo_backend, "files")
+        self.assertEqual(self._load("api", {}).todo_backend, "api")
+        self.assertEqual(self._load(None, {}).todo_backend, "api")
+
+    def test_cloud_session_uses_files(self):
+        self.assertEqual(self._load("api", {"CLAUDE_CODE_REMOTE": "true"}).todo_backend, "files")
+        self.assertEqual(self._load(None, {"CLAUDE_CODE_REMOTE": "true"}).todo_backend, "files")
+
+    def test_only_true_means_cloud(self):
+        for value in ("", "false", "1"):
+            with self.subTest(value=value):
+                self.assertEqual(self._load("api", {"CLAUDE_CODE_REMOTE": value}).todo_backend, "api")
+
+    def test_variable_overrides_config(self):
+        self.assertEqual(self._load("api", {"CLAUDE_HARNESS_TODO_BACKEND": "files"}).todo_backend, "files")
+        self.assertEqual(self._load("files", {"CLAUDE_HARNESS_TODO_BACKEND": "api"}).todo_backend, "api")
+
+    def test_variable_beats_cloud_detection(self):
+        env = {"CLAUDE_HARNESS_TODO_BACKEND": "api", "CLAUDE_CODE_REMOTE": "true"}
+        self.assertEqual(self._load("files", env).todo_backend, "api")
+
+    def test_empty_variable_is_ignored(self):
+        self.assertEqual(self._load("files", {"CLAUDE_HARNESS_TODO_BACKEND": ""}).todo_backend, "files")
+
+    def test_invalid_variable_is_a_config_error(self):
+        with self.assertRaises(ConfigError) as ctx:
+            self._load("api", {"CLAUDE_HARNESS_TODO_BACKEND": "database"})
+        self.assertIn("CLAUDE_HARNESS_TODO_BACKEND", str(ctx.exception))
+        self.assertIn("database", str(ctx.exception))
+
+    def test_environment_does_not_change_the_file_based_parse(self):
+        # config_update.py validates the file itself, so the environment must not leak into parse_config.
+        with mock.patch.dict(os.environ, {"CLAUDE_CODE_REMOTE": "true", "CLAUDE_HARNESS_TODO_BACKEND": "files"}):
+            self.assertEqual(parse_config({"version": 1}).todo_backend, "api")
+
+    def test_notes_follow_the_effective_backend(self):
+        # Notes live only in the ToDo-Viewer, so a cloud session has none.
+        self.assertTrue(self._load("api", {}).notes_enabled())
+        self.assertFalse(self._load("api", {"CLAUDE_CODE_REMOTE": "true"}).notes_enabled())
+
+
 if __name__ == "__main__":
     unittest.main()
