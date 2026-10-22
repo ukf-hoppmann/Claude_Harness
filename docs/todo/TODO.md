@@ -44,7 +44,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Status: In progress.
   - Created: 2026-09-28.
   - Area: Konfiguration.
-  - Priority: Important.
+  - Priority: Normal.
   - Dependencies: None.
   - Goal: Agenten pflegen Backlogs standardmäßig über die HTTP-API des
     ToDo-Viewers statt die Markdown-Dateien direkt zu schreiben; der direkte
@@ -62,7 +62,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Uid: 4846f8a8-2123-46a5-b63f-8fe463446f92.
   - Type: Story.
   - Parent: `EPIC-008`.
-  - Required for parent: No.
+  - Required for parent: Yes.
   - Status: Open.
   - Created: 2026-10-19.
   - Area: Entwicklung.
@@ -113,7 +113,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Task.
   - Parent: `STORY-051`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-10-20.
   - Area: Entwicklung.
   - Priority: Urgent.
