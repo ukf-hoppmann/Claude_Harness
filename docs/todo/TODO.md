@@ -89,7 +89,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Uid: 3b18df8f-3832-4a6b-a090-51a845d0cabd.
   - Type: Story.
   - Parent: None.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-10-19.
   - Area: Dokumentation.
   - Priority: Urgent.
