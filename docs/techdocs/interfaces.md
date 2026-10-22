@@ -83,10 +83,10 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 |---|---|---|---|
 | SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: beim wirksamen Backend `api` (siehe Konfiguration, Umgebungsvariablen) Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis; wählt die Umgebung das Backend abweichend von der Config, steht dahinter `(backend <Wert>: <Grund>; config.toml says <Wert>)`), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` eine statische Notes-Zeile mit Skill-Hinweis, ohne Abfrage von Fälligem: bei Backend `api` mit API-URL, bei `files` mit dem Ordner `<todo.path>/notes/` (der Ordner wird nicht angelegt); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
-| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört. Eine geänderte Notes-Datei (`items/<ID>/<ID>_notes.md`) merkt er sich zusätzlich einzeln | keine |
+| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört. Eine geänderte Notes-Datei (`items/<ID>/<ID>_notes.md`) merkt er sich zusätzlich einzeln, eine geänderte Datei im Ordner `notes/` des Backlogs (Notes als Dateien) das Projekt in einer eigenen Marke | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
 | PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
-| Stop | `check_backlog.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session. Für jede in der Session geänderte Notes-Datei: Kopf `missing` oder `stale` ist ein Fehler, bis er angepasst oder mit `backlog.py --confirm-state` bestätigt ist; Hinweise bei mehr als 15 Punkten unter `- Decided:`, wenn die Notes eines Epics oder einer Story geändert wurden, während eines ihrer Kinder `In progress` ist (Frage, ob die Besprechung dorthin gehört), und wenn ein älterer Protokolleintrag gegenüber dem letzten Commit geändert wurde (ohne Git kein Hinweis) | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
+| Stop | `check_backlog.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session. Für jede in der Session geänderte Notes-Datei: Kopf `missing` oder `stale` ist ein Fehler, bis er angepasst oder mit `backlog.py --confirm-state` bestätigt ist; Hinweise bei mehr als 15 Punkten unter `- Decided:`, wenn die Notes eines Epics oder einer Story geändert wurden, während eines ihrer Kinder `In progress` ist (Frage, ob die Besprechung dorthin gehört), und wenn ein älterer Protokolleintrag gegenüber dem letzten Commit geändert wurde (ohne Git kein Hinweis). Wurde in der Session eine Datei im Ordner `notes/` des Backlogs geändert, prüft er den ganzen Ordner nach Format Version 2 (`notes_format.py`): Fehler blockieren mit `notes/<Datei>:<Zeile>: <Code>: <Text>`, bis sie behoben sind; Hinweise (nicht gelesene Datei, Dokument ohne Note) einmal pro Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
 | Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Branch, in den gemerged wird (Orte wie bei `daily.py`; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
 | Stop | `check_techdocs.py` | Erinnert einmal pro Projekt und Session, wenn Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden; mit Teilprojekten nennt die Meldung jedes betroffene Projekt mit seinen Doku-Pfaden | Exit 2 + stderr |
 | Stop | `check_semver.py` | Nur in einem Git-Repo. Meldet pro Projekt mit Modul `semver`: Versionsdatei fehlt oder enthält keine gültige Version; Version liegt unter dem letzten Release oder mehr als einen Schritt darüber; eine Spiegel-Datei fehlt oder enthält die Version nicht. Derselbe Befund wird einmal pro Projekt und Session gemeldet; mit Teilprojekten nennt die Meldung jedes Projekt samt Aufruf `semver.py status --project <Name>` | Exit 2 + stderr |
@@ -260,7 +260,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Version 2 des ToDo-Viewers; der Helfer prüft es nicht vollständig (die
   Formatprüfung ist eine eigene Story) und schreibt nichts.
 - Aufruf: `python3 plugin/scripts/notes_files.py <Backlog-Ordner> [--index |
-  --due [--today JJJJ-MM-TT]]`. `--index` ist die Vorgabe.
+  --due [--today JJJJ-MM-TT] | --check]`. `--index` ist die Vorgabe.
 - `--index`: eine Kopfzeile `File | Status | Review | Topic | Summary`, dann
   eine Zeile je Note, sortiert nach Dateiname. Das Topic steht mit Namen aus
   `topics.md` (Sonderzeichen so, wie sie dort stehen, `|` als `\|`), ein
@@ -271,6 +271,29 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   früher liegt; mit der Spalte `Reason` (`review <Tag>`, `topic due <Tag>`).
   `--today` ersetzt das Tagesdatum. Auslöser auf Ereignisse kennt nur der
   Viewer und werden nicht ausgewertet.
+- `--check`: prüft den ganzen Ordner `notes/` nach den Regeln des Decoders des
+  Viewers (Format Version 2) mit `notes_format.py` und gibt je Fund eine Zeile
+  `notes/<Datei>:<Zeile>: <Code>: <Text>` aus, Fehler vor Hinweisen; Exit 1 bei
+  Fehlern, sonst 0 (Hinweise allein ändern den Exit-Code nicht). Je Datei wird
+  der erste Fehler gemeldet, wie beim Viewer, dazu die Fehler über Dateien
+  hinweg. Fehlercodes (die des Viewers): `invalid_value` (ungültige Kopf-,
+  Auslöser-, Link- oder Topic-Zeile, Status, `Mode`, `Archived`, Zeitpunkt;
+  `due` steht nie in einer Datei; eine neue Note hat keine `Uid`),
+  `unknown_field`, `missing_field` (`Summary`, `Status`, `Uid` bei einer Note
+  mit Label, Topic-Name und `uid=` bei einem Topic mit Label),
+  `file_label_mismatch` (erste Zeile passt nicht zum Dateinamen),
+  `invalid_placeholder` (Kurzname nicht `a-z`, `0-9`, `-`, oder ein Platzhalter
+  doppelt), `unknown_trigger` (`time` und alles außer `event` und
+  `topic_due`), `duplicate_uid`, `duplicate_label`; dazu `merge_markers`
+  (Anfangs- und Endmarker eines Merge-Konflikts in einer Datei) und
+  `unreadable` (nicht UTF-8 oder nicht lesbar). Hinweise, die nicht
+  blockieren: `ignored_file` (eine `.md`-Datei, die der Viewer nicht liest,
+  meist ein Tippfehler im Namen) und `document_without_note` (ein Dokument, zu
+  dem es keine Note gibt). Verweise (Ziele von Links, Triggern, Topics) werden
+  nicht auf Existenz geprüft, `counters.md` wird ignoriert. Die Beispiele des
+  Viewers (`tests/fixtures/notes-format`, Kopie aus dessen
+  `tests/fixtures/mirror-v2`) sind die gemeinsame Vorlage; der Stop-Hook ruft
+  dieselbe Prüfung.
 - Ausgabe leer, wenn es keinen Ordner `notes/` oder keine Treffer gibt. Exit 0;
   1, wenn eine Datei sich nicht lesen lässt oder keine `Summary`-Zeile hat
   (Meldung auf stderr, die übrigen Notes erscheinen trotzdem); 2 bei falschem

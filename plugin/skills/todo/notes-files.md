@@ -76,9 +76,10 @@ Links:
   `Review`, `Topic`, `Triggers`, `Links`, `Status` (see below) and the long
   text. Leave the first line, `Uid`, `Created`, `Updated`, `Archived`, and
   `Deleted` alone, and keep the other lines as they are.
-- **Status:** `waiting`, `due`, `snoozed`, `done`, `dropped`, `promoted`. You
-  set `waiting`, `snoozed`, `done`, and `dropped`; `due` and `promoted` come
-  from the viewer.
+- **Status:** `waiting`, `snoozed`, `done`, `dropped`, `promoted`. You set
+  `waiting`, `snoozed`, `done`, and `dropped`; `promoted` comes from the
+  viewer. `due` is derived by the viewer and never stands in a file; a file
+  with `Status: due` is a format error.
 - **Topics:** `Topic:` names a label (`TOPIC-001`) or a new topic as
   `new:<Name>`. A new topic needs a line `- NEW | <Name>` in `notes/topics.md`
   (create the file if needed); a child is indented by two spaces below its
@@ -104,9 +105,18 @@ Links:
 - **Never** create or edit `counters.md` (it does not exist in version 2),
   assign labels, copy a `Uid`, or rename a note file with a label.
 
-A broken file makes the viewer abort the whole sync with the file and line in
-the message. Re-read what you wrote before you finish: the first line, the
-exact field names, a valid status, times with `Z`.
+A broken file makes the viewer abort the whole sync (backlog and notes) with
+the file and line in the message. The format is checked for you: after a
+change below `notes/`, the check at the end of your turn blocks with
+`notes/<file>:<line>: <code>: <text>` until the folder is valid, and you can
+run it yourself with
+`python3 "${CLAUDE_PLUGIN_ROOT}/scripts/notes_files.py" <backlog folder> --check`
+(exit 1 on errors). Codes are the viewer's: `invalid_value`, `unknown_field`,
+`missing_field`, `file_label_mismatch`, `invalid_placeholder`,
+`unknown_trigger`, `duplicate_uid`, `duplicate_label`; plus `merge_markers` and
+`unreadable`. A notice (`ignored_file`, `document_without_note`) does not
+block; it points to a file the viewer does not read, usually a typo in its
+name. Fix the file the message names; do not work around the check.
 
 ## Authority
 
