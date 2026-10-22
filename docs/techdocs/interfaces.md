@@ -61,7 +61,7 @@ Dateiformate.
 
 | Skill | Wird geladen, wenn … |
 |---|---|
-| `claude-harness:todo` | mit dem Backlog gearbeitet wird, der Besitzer etwas merken oder sich erinnern lassen will, nach offenen oder fälligen Notes fragt oder eine Note in Backlog-Arbeit (oder zurück) umwandelt (Notes-Regeln in `notes.md` des Skills, nur bei Bedarf) |
+| `claude-harness:todo` | mit dem Backlog gearbeitet wird, der Besitzer etwas merken oder sich erinnern lassen will, nach offenen oder fälligen Notes fragt oder eine Note in Backlog-Arbeit (oder zurück) umwandelt (Notes-Regeln in `notes.md` bzw. im Dateimodus `notes-files.md` des Skills, nur bei Bedarf) |
 | `claude-harness:daily` | der Daily-Hook erinnert oder nach Tagesberichten gefragt wird |
 | `claude-harness:techdocs` | eine Änderung Nutzung, Komponenten, Schnittstellen, Einstellungen oder Betrieb betrifft oder der techdocs-Hook erinnert |
 | `claude-harness:architecture` | Code geplant oder geändert wird, Architekturregeln geändert werden, eine Anforderung den Regeln widerspricht oder der Architektur-Hook eine Änderung ablehnt |
@@ -81,7 +81,7 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
-| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: beim wirksamen Backend `api` (siehe Konfiguration, Umgebungsvariablen) Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis; wählt die Umgebung das Backend abweichend von der Config, steht dahinter `(backend <Wert>: <Grund>; config.toml says <Wert>)`), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` mit Backend `api` eine statische Zeile mit API-URL und Skill-Hinweis (ohne Abfrage von Fälligem); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung | stdout → Kontext |
+| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: beim wirksamen Backend `api` (siehe Konfiguration, Umgebungsvariablen) Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis; wählt die Umgebung das Backend abweichend von der Config, steht dahinter `(backend <Wert>: <Grund>; config.toml says <Wert>)`), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` eine statische Notes-Zeile mit Skill-Hinweis, ohne Abfrage von Fälligem: bei Backend `api` mit API-URL, bei `files` mit dem Ordner `<todo.path>/notes/` (der Ordner wird nicht angelegt); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört. Eine geänderte Notes-Datei (`items/<ID>/<ID>_notes.md`) merkt er sich zusätzlich einzeln | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
@@ -249,6 +249,32 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Einstellungen des Viewers (`settings` liest nur).
 - Exit-Code: wie bei `backlog_api.py`; Exit 2 auch bei abgeschaltetem Modul
   `todo` oder Backend `files`.
+
+## Skript `notes_files.py`
+
+- Zweck: Index und Fälligkeit der Notes im Dateimodus (Teil des Moduls
+  `todo`, Backend `files`), das Gegenstück zu `backlog.py --index`. Es liest
+  nur die Kopfzeilen der Dateien `notes/NOTE-<n>.md` und
+  `notes/new-<Name>.md` im Backlog-Ordner, nie den Langtext, die Dokumente
+  der Notes, `topics.md` oder `counters.md`. Das Format ist das Dateiformat
+  Version 2 des ToDo-Viewers; der Helfer prüft es nicht vollständig (die
+  Formatprüfung ist eine eigene Story) und schreibt nichts.
+- Aufruf: `python3 plugin/scripts/notes_files.py <Backlog-Ordner> [--index |
+  --due [--today JJJJ-MM-TT]]`. `--index` ist die Vorgabe.
+- `--index`: eine Kopfzeile `File | Status | Review | Topic | Summary`, dann
+  eine Zeile je Note, sortiert nach Dateiname. Das Topic steht mit Namen aus
+  `topics.md` (Sonderzeichen so, wie sie dort stehen, `|` als `\|`), ein
+  Topic ohne Label als `new:<Name>` aufgelöst, fehlende Werte als `-`. Notes im
+  Papierkorb (`Deleted:` gesetzt) und archivierte Notes fehlen.
+- `--due`: nur offene Notes (`waiting`, `due`, `snoozed`), deren
+  Review-Tag oder deren Topic-Fälligkeit (`due=` in `topics.md`) heute oder
+  früher liegt; mit der Spalte `Reason` (`review <Tag>`, `topic due <Tag>`).
+  `--today` ersetzt das Tagesdatum. Auslöser auf Ereignisse kennt nur der
+  Viewer und werden nicht ausgewertet.
+- Ausgabe leer, wenn es keinen Ordner `notes/` oder keine Treffer gibt. Exit 0;
+  1, wenn eine Datei sich nicht lesen lässt oder keine `Summary`-Zeile hat
+  (Meldung auf stderr, die übrigen Notes erscheinen trotzdem); 2 bei falschem
+  Aufruf.
 
 ## Skript `alarms_api.py`
 

@@ -6,6 +6,7 @@ from pathlib import Path
 
 from helpers import REPO_ROOT
 import notes_files
+from cloud_export import runtime_files, skill_files
 
 BACKLOG = REPO_ROOT / "tests" / "fixtures" / "notes-files"
 HEADER = "File | Status | Review | Topic | Summary"
@@ -96,6 +97,15 @@ class DueTest(unittest.TestCase):
         # The fixtures are all in the past or near future; with the real date the old topic date is always due.
         _, out, _ = run(str(BACKLOG), "--due")
         self.assertIn("NOTE-002.md", out)
+
+
+class CloudCopyTest(unittest.TestCase):
+    def test_the_cloud_copy_carries_the_helper_and_the_rules_with_a_working_path(self):
+        plugin = REPO_ROOT / "plugin"
+        self.assertIn(".claude-harness/runtime/scripts/notes_files.py", runtime_files(plugin))
+        rules = skill_files(plugin)[".claude/skills/harness-todo/notes-files.md"].decode("utf-8")
+        self.assertIn(".claude-harness/runtime/scripts/notes_files.py", rules)
+        self.assertNotIn("CLAUDE_PLUGIN_ROOT", rules)
 
 
 class UsageTest(unittest.TestCase):
