@@ -127,6 +127,23 @@ class MarkNotesStateTest(NotesHookTest):
         self.bash_done(f"{HELPER} note STORY-001", "[harness] notes-state STORY-001 stale\n")
         self.assertEqual(self.marks(), {})
 
+    def test_hooks_of_parallel_calls_keep_every_mark(self):
+        # The first real run lost a mark: Claude Code ran the hooks of parallel Bash calls at the same time.
+        def payload(command, line):
+            return {"session_id": "s1", "tool_name": "Bash", "tool_input": {"command": command},
+                    "tool_response": {"stdout": line, "stderr": ""}}
+
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(self.data))
+        payloads = [payload(f"{HELPER} doc TASK-00{n} TASK-00{n}_spec.md", f"[harness] active TASK-00{n}\n") for n in range(1, 7)]
+        payloads += [payload(f"{HELPER} note STORY-00{n}", f"[harness] notes-state STORY-00{n} stale\n") for n in range(1, 7)]
+        procs = [subprocess.Popen([sys.executable, str(SCRIPTS / "mark_notes_state.py")], stdin=subprocess.PIPE,
+                                  env=env, text=True) for _ in payloads]
+        for proc, data in zip(procs, payloads):
+            proc.stdin.write(json.dumps(data))
+            proc.stdin.close()
+        self.assertEqual([proc.wait() for proc in procs], [0] * len(payloads))
+        self.assertEqual(sorted(i for _, i in self.marks()), sorted([f"TASK-00{n}" for n in range(1, 7)] + [f"STORY-00{n}" for n in range(1, 7)]))
+
     def test_marks_belong_to_the_session(self):
         self.bash_done(f"{HELPER} note STORY-001", "[harness] notes-state STORY-001 stale\n", session="s1")
         self.assertEqual(self.marks("s2"), {})

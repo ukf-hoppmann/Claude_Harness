@@ -12,7 +12,7 @@ from pathlib import PurePath
 
 from harness_config import ConfigError, project_root
 from projects import load_projects
-from state import read_notes_marks, write_notes_marks
+from state import edit_notes_marks
 
 
 def is_spec_file(path: PurePath) -> bool:
@@ -45,12 +45,11 @@ def main() -> int:
     inner = relative.relative_to(project.config.todo_path)
     if not is_spec_file(inner):
         return 0
-    marks = read_notes_marks(session_id)
-    mark = marks.setdefault((project.name, inner.parts[1]), {"state": None, "turns": None})
-    if mark["turns"] is None:
-        mark["turns"] = 0
     try:
-        write_notes_marks(session_id, marks)
+        with edit_notes_marks(session_id) as marks:
+            mark = marks.setdefault((project.name, inner.parts[1]), {"state": None, "turns": None})
+            if mark["turns"] is None:
+                mark["turns"] = 0
     except OSError:
         pass
     return 0

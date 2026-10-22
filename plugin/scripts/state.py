@@ -4,9 +4,16 @@ import json
 import os
 import re
 import tempfile
+from collections.abc import Iterator
+from contextlib import contextmanager
 from pathlib import Path
 
 from harness_config import ROOT_PROJECT
+
+try:
+    import fcntl
+except ImportError:  # no file locks on this platform
+    fcntl = None  # type: ignore[assignment]
 
 
 def state_dir() -> Path:
@@ -105,13 +112,38 @@ def read_notes_marks(session_id: str) -> dict[tuple[str, str], NotesMark]:
 
 
 def write_notes_marks(session_id: str, marks: dict[tuple[str, str], NotesMark]) -> None:
-    """Store the marks; an empty dict removes the file."""
+    """Store the marks; an empty dict removes the file. The file is replaced in one step, never half written."""
     path = notes_marks_file(session_id)
     if not marks:
         path.unlink(missing_ok=True)
         return
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({f"{project}\t{identifier}": mark for (project, identifier), mark in sorted(marks.items())}))
+    text = json.dumps({f"{project}\t{identifier}": mark for (project, identifier), mark in sorted(marks.items())})
+    fd, temporary = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w") as handle:
+            handle.write(text)
+        os.replace(temporary, path)
+    except BaseException:
+        Path(temporary).unlink(missing_ok=True)
+        raise
+
+
+@contextmanager
+def edit_notes_marks(session_id: str) -> Iterator[dict[tuple[str, str], NotesMark]]:
+    """Read the marks, let the caller change them, store them: one writer at a time.
+
+    The hooks of tool calls that run in parallel (and the prompt hook) would otherwise overwrite each other's marks.
+    An error in the block stores nothing. Without file locks (not on Linux or macOS) the update is unprotected.
+    """
+    path = notes_marks_file(session_id)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path.with_name(path.name + ".lock"), "a") as lock:
+        if fcntl is not None:
+            fcntl.flock(lock, fcntl.LOCK_EX)
+        marks = read_notes_marks(session_id)
+        yield marks
+        write_notes_marks(session_id, marks)
 
 
 def delivered_notices_file(session_id: str) -> Path:

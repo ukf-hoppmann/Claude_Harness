@@ -15,7 +15,7 @@ from typing import Any
 
 from harness_config import ROOT_PROJECT, ConfigError, project_root
 from projects import load_projects
-from state import read_notes_marks, write_notes_marks
+from state import edit_notes_marks
 
 HELPER = "backlog_api.py"
 _LINE = re.compile(r"^\[harness\] (?P<kind>notes-state|active) (?P<id>[A-Za-z0-9_-]+-[0-9]+)(?: (?P<state>current|stale|missing))?$")
@@ -53,18 +53,18 @@ def main() -> int:
     project = projects.get(name) if projects else None
     if project is None or not project.config.enabled("todo") or project.config.todo_backend != "api":
         return 0
-    marks = read_notes_marks(session_id)
-    for line in reported:
-        mark = marks.setdefault((name, line["id"]), {"state": None, "turns": None})
-        if line["kind"] == "active":
-            if mark["turns"] is None:
-                mark["turns"] = 0
-        else:
-            mark["state"] = line["state"]
-            if mark["turns"] is not None:
-                mark["turns"] = 0
     try:
-        write_notes_marks(session_id, marks)
+        # Hooks of parallel Bash calls run at the same time: the update is locked.
+        with edit_notes_marks(session_id) as marks:
+            for line in reported:
+                mark = marks.setdefault((name, line["id"]), {"state": None, "turns": None})
+                if line["kind"] == "active":
+                    if mark["turns"] is None:
+                        mark["turns"] = 0
+                else:
+                    mark["state"] = line["state"]
+                    if mark["turns"] is not None:
+                        mark["turns"] = 0
     except OSError:
         pass
     return 0

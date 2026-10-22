@@ -13,7 +13,7 @@ import sys
 
 from harness_config import ROOT_PROJECT, ConfigError, project_root
 from projects import load_projects
-from state import read_notes_marks, write_notes_marks
+from state import edit_notes_marks, read_notes_marks
 
 INTERVAL = 5
 
@@ -26,27 +26,25 @@ def main() -> int:
     session_id = hook_input.get("session_id") if isinstance(hook_input, dict) else None
     if not session_id:
         return 0
-    marks = read_notes_marks(session_id)
-    active = [key for key, mark in marks.items() if mark["turns"] is not None]
-    if not active:
+    if not any(mark["turns"] is not None for mark in read_notes_marks(session_id).values()):
         return 0
     try:
         projects = load_projects(project_root(hook_input))
     except ConfigError:
         return 0
     due: list[str] = []
-    for key in sorted(active):
-        project, identifier = key
-        known = projects.get(project) if projects else None
-        if known is None or not known.config.enabled("todo"):
-            del marks[key]
-            continue
-        marks[key]["turns"] = int(marks[key]["turns"]) + 1
-        turns = marks[key]["turns"]
-        if turns % INTERVAL == 0:
-            due.append(f"{identifier}{'' if project == ROOT_PROJECT else f' ({project})'} ({turns} turns)")
     try:
-        write_notes_marks(session_id, marks)
+        with edit_notes_marks(session_id) as marks:
+            for key in sorted(k for k, mark in marks.items() if mark["turns"] is not None):
+                project, identifier = key
+                known = projects.get(project) if projects else None
+                if known is None or not known.config.enabled("todo"):
+                    del marks[key]
+                    continue
+                marks[key]["turns"] = int(marks[key]["turns"]) + 1
+                turns = marks[key]["turns"]
+                if turns % INTERVAL == 0:
+                    due.append(f"{identifier}{'' if project == ROOT_PROJECT else f' ({project})'} ({turns} turns)")
     except OSError:
         pass
     if due:

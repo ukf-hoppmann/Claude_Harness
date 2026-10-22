@@ -11,11 +11,10 @@ from state import (
     dirty_marker,
     notes_folder_marker,
     read_changed_notes,
+    edit_notes_marks,
     read_names,
-    read_notes_marks,
     write_changed_notes,
     write_names,
-    write_notes_marks,
 )
 
 
@@ -54,11 +53,13 @@ def main() -> int:
 
 def _restart_count(session_id: str, project: str, identifier: str) -> None:
     """A notes entry restarts the reminder's count for an active item (remind_notes.py)."""
-    marks = read_notes_marks(session_id)
-    mark = marks.get((project, identifier))
-    if mark is not None and mark["turns"] is not None:
-        mark["turns"] = 0
-        write_notes_marks(session_id, marks)
+    try:
+        with edit_notes_marks(session_id) as marks:
+            mark = marks.get((project, identifier))
+            if mark is not None and mark["turns"] is not None:
+                mark["turns"] = 0
+    except OSError:
+        pass
 
 
 def is_notes_folder_file(path: PurePath) -> bool:
