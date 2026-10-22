@@ -1487,3 +1487,86 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Im API-Modus kann der Harness die Übersicht einer Notes-Datei
     getrennt lesen, ersetzen und bestätigen.
   - Resolution: Vom Owner am 2026-10-22 bestätigt.
+
+- `STORY-042` **Backlog-Backend je Umgebung umschalten**
+  - Uid: 1632383e-cadd-4a3d-8b11-54032266fadc.
+  - Type: Story.
+  - Parent: `EPIC-010`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-10-16.
+  - Area: Konfiguration.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Das Backend des Backlogs (`api` oder `files`) lässt sich je
+    Umgebung wählen, ohne die eingecheckte `.claude-harness/config.toml` zu
+    ändern: lokal bleibt `api`, in einer Cloud-Session gilt `files`. Eine
+    Umgebungsvariable überschreibt `[todo].backend`.
+  - Completion criteria: 1. Die Umgebungsvariable
+    `CLAUDE_HARNESS_TODO_BACKEND` (Werte `api`, `files`) überschreibt
+    `[todo].backend` bei der Config-Auswertung; ein ungültiger Wert wird wie
+    ein Config-Fehler gemeldet. 2. Sitzungsstart, Backlog-Hooks und Hinweise
+    der Skills folgen dem wirksamen Backend. 3. Techdocs (Konfiguration) und
+    der todo-Skill beschreiben die Variable. 4. Tests decken beide Backends
+    und den Fehlerfall ab. 5. Die Cloud wird automatisch erkannt
+    (Entscheidung des Besitzers, 2026-10-16): Ist `CLAUDE_CODE_REMOTE` auf
+    `true` gesetzt, gilt der Dateimodus. Rangfolge:
+    `CLAUDE_HARNESS_TODO_BACKEND` vor der Cloud-Erkennung vor
+    `[todo].backend`.
+  - Summary: Lokal arbeitet der Harness weiter über die API des
+    ToDo-Viewers, in der Cloud automatisch über die Markdown-Dateien. Die
+    gemeinsame Config bleibt dafür unverändert.
+  - Resolution: Vom Besitzer bestätigt (2026-10-22).
+
+- `STORY-047` **Harness als Kopie im Projekt für Cloud-Sessions bereitstellen**
+  - Uid: c008f326-5e4c-4764-9381-8e2ddf6c4c20.
+  - Type: Story.
+  - Parent: `EPIC-010`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-10-16.
+  - Area: Architektur.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: In einer Cloud-Session eines Projekts, in der das Plugin nicht
+    geladen wird, stehen Regeln, Hooks und Skripte des Harness bereit, weil
+    eine erzeugte Kopie davon im Projekt liegt und eingecheckt ist (Weg A,
+    Beschluss des Besitzers vom 2026-10-16). `/claude-harness:init` und
+    `/claude-harness:update` legen die Kopie an und halten sie aktuell.
+    Lokal bleibt das Plugin maßgeblich; die Kopie darf dort nichts doppelt
+    tun.
+  - Completion criteria: 1. Die Belege stehen in den Notes: Die Cloud lädt
+    das Plugin nicht, wohl aber CLAUDE.md, .claude/skills und die Hooks aus
+    .claude/settings.json (in Sessions mit einem Repository); Python 3.13
+    und CLAUDE_CODE_REMOTE=true sind dort gesetzt. 2. Ein Generator erzeugt
+    aus plugin/ die Kopie im Projekt: Skills unter .claude/skills mit Präfix
+    (kein Namenskonflikt mit eingebauten Skills, Querverweise und
+    Pfadplatzhalter im Text ersetzt), Skripte und Vorlagen unter
+    .claude-harness/, Hooks in .claude/settings.json (vorhandene Einträge
+    bleiben erhalten). Kopiert wird nur plugin/, nie Backlog, Notes oder
+    Tagesberichte des Harness-Repositories. 3. `/claude-harness:init`
+    richtet die Kopie in einem neuen Projekt ein und
+    `/claude-harness:update` aktualisiert sie, mit Diff und Freigabe vor dem
+    Schreiben und einem Versionsvermerk, an dem eine veraltete Kopie
+    erkennbar ist. 4. Lokal läuft nichts doppelt: Die eingecheckten Hooks
+    beenden sich still, wenn sie nicht in einer Cloud-Session laufen. 5.
+    Module, die in der Cloud nicht funktionieren (z. B. worktree), sind
+    benannt und ausgenommen oder angepasst. 6. Techdocs und README
+    beschreiben Einrichtung, Aktualisierung und die Grenzen (Hooks nur in
+    Sessions mit einem Repository). 7. Ein Abnahmelauf in einer
+    Cloud-Session mit einem Projekt, das die Kopie enthält, zeigt:
+    Sitzungsstart-Hinweis, Backlog im Dateimodus und mindestens ein Hook
+    wirken. 8. Die Kopie lässt sich einfach und vollständig wieder
+    entfernen, damit das Projekt zum Stand ohne Cloud-Kopie zurückkehrt
+    (etwa wenn wieder nur lokal gearbeitet wird): Ein Manifest listet alle
+    erzeugten Dateien und Hook-Einträge; der Rückbau zeigt vorher, was
+    entfällt, schreibt erst nach Freigabe, lässt von Hand geänderte Dateien
+    stehen und meldet sie, und lässt fremde Einträge in
+    .claude/settings.json unberührt. Ein Test beweist die Rundreise: Export,
+    dann Rückbau ergibt denselben Dateistand wie vorher.
+  - Summary: Lokal wird der Harness als Plugin geladen. In der Cloud liegt
+    stattdessen eine von init und update erzeugte Kopie im Projekt, die mit
+    eingecheckt wird und die Regeln, Prüfungen und Skripte dort
+    bereitstellt.
+  - Resolution: Vom Besitzer bestätigt (2026-10-22): Abnahmelauf der
+    Cloud-Kopie in einer echten Cloud-Sitzung geprüft.

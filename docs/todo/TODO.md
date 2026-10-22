@@ -38,35 +38,6 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     über den Sync im Gleichstand. Offen: wie der Harness dort ohne Plugin
     läuft.
 
-- `STORY-042` **Backlog-Backend je Umgebung umschalten**
-  - Uid: 1632383e-cadd-4a3d-8b11-54032266fadc.
-  - Type: Story.
-  - Parent: `EPIC-010`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-10-16.
-  - Area: Konfiguration.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: Das Backend des Backlogs (`api` oder `files`) lässt sich je
-    Umgebung wählen, ohne die eingecheckte `.claude-harness/config.toml` zu
-    ändern: lokal bleibt `api`, in einer Cloud-Session gilt `files`. Eine
-    Umgebungsvariable überschreibt `[todo].backend`.
-  - Completion criteria: 1. Die Umgebungsvariable
-    `CLAUDE_HARNESS_TODO_BACKEND` (Werte `api`, `files`) überschreibt
-    `[todo].backend` bei der Config-Auswertung; ein ungültiger Wert wird wie
-    ein Config-Fehler gemeldet. 2. Sitzungsstart, Backlog-Hooks und Hinweise
-    der Skills folgen dem wirksamen Backend. 3. Techdocs (Konfiguration) und
-    der todo-Skill beschreiben die Variable. 4. Tests decken beide Backends
-    und den Fehlerfall ab. 5. Die Cloud wird automatisch erkannt
-    (Entscheidung des Besitzers, 2026-10-16): Ist `CLAUDE_CODE_REMOTE` auf
-    `true` gesetzt, gilt der Dateimodus. Rangfolge:
-    `CLAUDE_HARNESS_TODO_BACKEND` vor der Cloud-Erkennung vor
-    `[todo].backend`.
-  - Summary: Lokal arbeitet der Harness weiter über die API des
-    ToDo-Viewers, in der Cloud automatisch über die Markdown-Dateien. Die
-    gemeinsame Config bleibt dafür unverändert.
-
 - `STORY-044` **Formatprüfung für den Notes-Ordner**
   - Uid: 452b2474-a5e3-428c-b8cf-6a43fa6f62a5.
   - Type: Story.
@@ -134,7 +105,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Story.
   - Parent: `EPIC-010`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-10-16.
   - Area: Entwicklung.
   - Priority: Normal.
@@ -142,19 +113,21 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Goal: Notes und Topics lassen sich im Dateimodus (`backend = files`, z.
     B. in einer Cloud-Session) über den Ordner `notes/` im Backlog-Ordner
     führen, im Format des ToDo-Viewers (dessen Techdoc `interfaces.md`,
-    Abschnitt Dateiformat: Notes-Ordner). Der Viewer liest sie beim Sync in
-    seine Datenbank.
+    Abschnitt Dateiformat Version 2: Notes und Topics). Der Viewer liest sie
+    beim Sync in seine Datenbank.
   - Completion criteria: 1. Notes sind auch bei `files` aktiv
     (Config-Auswertung und Sitzungsstart-Zeile). 2. Der todo-Skill enthält
-    eine Regeldatei für das Dateiformat und die Befugnis: Notes anlegen als
-    `new-<kurzname>.md` mit erster Zeile `# NEW`, neue Topics als `Topic:
-    new:<Name>` bzw. `NEW`-Zeile in `topics.md`, Zeiten in UTC mit `Z`;
-    Labels, `counters.md` und der Auslöser-Zustand `fired` gehören dem
-    Viewer und werden nicht von Hand gesetzt. 3. Ein Index-Helfer für
-    `notes/` (Gegenstück zu `backlog.py --index`) listet Label, Status,
-    Review, Topic und Summary, ohne alle Dateien zu lesen. 4. Fälligkeit
-    ohne Viewer ist geregelt: nur auf Nachfrage werden Review-Datum und
-    Zeit-Auslöser mit dem heutigen Datum verglichen. 5. Die Regeln für `api`
+    eine Regeldatei für das Dateiformat (Version 2) und die Befugnis: Notes
+    anlegen als `new-<kurzname>.md` mit erster Zeile `# NEW`, neue Topics
+    als `Topic: new:<Name>` bzw. `NEW`-Zeile in `topics.md`, Zeiten in UTC
+    mit `Z`; Labels, `Uid` und der Auslöser-Zustand `fired` gehören dem
+    Viewer und werden nicht von Hand gesetzt; es gibt nur die Auslöser
+    `event` und `topic_due`, eine `time`-Zeile ist ein Formatfehler. 3. Ein
+    Index-Helfer für `notes/` (Gegenstück zu `backlog.py --index`) listet
+    Label, Status, Review, Topic und Summary, ohne alle Dateien zu lesen. 4.
+    Fälligkeit ohne Viewer ist geregelt: nur auf Nachfrage werden `Review`
+    und das Datum des Topics mit dem heutigen Datum verglichen; Zeitpunkte
+    sind Sache der Wecker und kommen hier nicht vor. 5. Die Regeln für `api`
     und `files` sind getrennt; die Aussage, Notes seien privat und nie im
     Repository, gilt nur für `api`, und die Dateivariante weist darauf hin,
     dass die Notes dann im Repository (GitHub) liegen. 6. Techdocs und
@@ -162,57 +135,6 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Auch in der Cloud lassen sich Erinnerungen und Notizen führen:
     als Markdown-Dateien im Repository, die der ToDo-Viewer später in seine
     Datenbank übernimmt.
-
-- `STORY-047` **Harness als Kopie im Projekt für Cloud-Sessions bereitstellen**
-  - Uid: c008f326-5e4c-4764-9381-8e2ddf6c4c20.
-  - Type: Story.
-  - Parent: `EPIC-010`.
-  - Required for parent: Yes.
-  - Status: In progress.
-  - Created: 2026-10-16.
-  - Area: Architektur.
-  - Priority: Important.
-  - Dependencies: None.
-  - Goal: In einer Cloud-Session eines Projekts, in der das Plugin nicht
-    geladen wird, stehen Regeln, Hooks und Skripte des Harness bereit, weil
-    eine erzeugte Kopie davon im Projekt liegt und eingecheckt ist (Weg A,
-    Beschluss des Besitzers vom 2026-10-16). `/claude-harness:init` und
-    `/claude-harness:update` legen die Kopie an und halten sie aktuell.
-    Lokal bleibt das Plugin maßgeblich; die Kopie darf dort nichts doppelt
-    tun.
-  - Completion criteria: 1. Die Belege stehen in den Notes: Die Cloud lädt
-    das Plugin nicht, wohl aber CLAUDE.md, .claude/skills und die Hooks aus
-    .claude/settings.json (in Sessions mit einem Repository); Python 3.13
-    und CLAUDE_CODE_REMOTE=true sind dort gesetzt. 2. Ein Generator erzeugt
-    aus plugin/ die Kopie im Projekt: Skills unter .claude/skills mit Präfix
-    (kein Namenskonflikt mit eingebauten Skills, Querverweise und
-    Pfadplatzhalter im Text ersetzt), Skripte und Vorlagen unter
-    .claude-harness/, Hooks in .claude/settings.json (vorhandene Einträge
-    bleiben erhalten). Kopiert wird nur plugin/, nie Backlog, Notes oder
-    Tagesberichte des Harness-Repositories. 3. `/claude-harness:init`
-    richtet die Kopie in einem neuen Projekt ein und
-    `/claude-harness:update` aktualisiert sie, mit Diff und Freigabe vor dem
-    Schreiben und einem Versionsvermerk, an dem eine veraltete Kopie
-    erkennbar ist. 4. Lokal läuft nichts doppelt: Die eingecheckten Hooks
-    beenden sich still, wenn sie nicht in einer Cloud-Session laufen. 5.
-    Module, die in der Cloud nicht funktionieren (z. B. worktree), sind
-    benannt und ausgenommen oder angepasst. 6. Techdocs und README
-    beschreiben Einrichtung, Aktualisierung und die Grenzen (Hooks nur in
-    Sessions mit einem Repository). 7. Ein Abnahmelauf in einer
-    Cloud-Session mit einem Projekt, das die Kopie enthält, zeigt:
-    Sitzungsstart-Hinweis, Backlog im Dateimodus und mindestens ein Hook
-    wirken. 8. Die Kopie lässt sich einfach und vollständig wieder
-    entfernen, damit das Projekt zum Stand ohne Cloud-Kopie zurückkehrt
-    (etwa wenn wieder nur lokal gearbeitet wird): Ein Manifest listet alle
-    erzeugten Dateien und Hook-Einträge; der Rückbau zeigt vorher, was
-    entfällt, schreibt erst nach Freigabe, lässt von Hand geänderte Dateien
-    stehen und meldet sie, und lässt fremde Einträge in
-    .claude/settings.json unberührt. Ein Test beweist die Rundreise: Export,
-    dann Rückbau ergibt denselben Dateistand wie vorher.
-  - Summary: Lokal wird der Harness als Plugin geladen. In der Cloud liegt
-    stattdessen eine von init und update erzeugte Kopie im Projekt, die mit
-    eingecheckt wird und die Regeln, Prüfungen und Skripte dort
-    bereitstellt.
 
 - `STORY-045` **Ablauf zwischen Cloud, Git und lokalem Viewer festlegen**
   - Uid: dfc1d2ff-773e-4c7f-87d6-d312bf19de67.
