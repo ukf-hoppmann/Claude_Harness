@@ -43,7 +43,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Story.
   - Parent: `EPIC-010`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-10-16.
   - Area: Governance.
   - Priority: Normal.
@@ -67,40 +67,6 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Verhindert, dass ein in der Cloud angelegter Eintrag beim
     Abgleich mit dem ToDo-Viewer verloren geht, wenn lokal gleichzeitig ein
     Eintrag mit derselben Nummer entsteht.
-
-- `STORY-045` **Ablauf zwischen Cloud, Git und lokalem Viewer festlegen**
-  - Uid: dfc1d2ff-773e-4c7f-87d6-d312bf19de67.
-  - Type: Story.
-  - Parent: `EPIC-010`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-10-16.
-  - Area: Governance.
-  - Priority: Normal.
-  - Dependencies: `STORY-042`, `STORY-043`.
-  - Goal: Der todo-Skill beschreibt, wie Backlog und Notes zwischen einer
-    Cloud-Sitzung (Dateien im Repository) und dem lokalen ToDo-Viewer
-    (Datenbank) wandern, und widerspricht dabei nicht den Regeln des
-    API-Modus.
-  - Completion criteria: 1. Der Skill beschreibt den Ablauf vor der
-    Cloud-Sitzung: Viewer-Sync, dann den Backlog-Ordner samt `notes/`
-    committen und pushen. 2. Er beschreibt die Cloud-Seite im Dateimodus:
-    Änderungen an Backlog und Notes gehören zur Änderung und liegen im
-    Branch der Sitzung. 3. Er beschreibt den Rückweg: Branch mergen, lokal
-    holen, Viewer-Sync (Auto-Sync oder Dialog), Konflikte im Dialog
-    entscheiden; bei Merge-Markern in einer Datei pausiert der Auto-Sync,
-    und die Marker sind zuerst zu lösen. 4. Er nennt die Voraussetzung im
-    Viewer (Spiegel-Ordner ist der Backlog-Ordner des Repositorys, Auto-Sync
-    an). 5. Die Regeln des API-Modus sind abgeglichen: Bei aktivem Spiegel
-    werden auch die Dateien unter `notes/` committet (bisher steht dort,
-    dass nichts committet wird), `TODO.md` und `archive.md` bleiben für die
-    KI lokal unangetastet. 6. Der Ablauf ist einmal von Anfang bis Ende
-    durchgespielt (die Cloud-Seite darf von Hand nachgestellt sein, solange
-    keine Cloud-Umgebung zur Verfügung steht); das Ergebnis steht in den
-    Notes. 7. Techdocs und README beschreiben den Ablauf.
-  - Summary: Klare Schritte, wie der Stand zwischen Cloud und dem lokalen
-    ToDo-Viewer hin und her wandert, damit nichts verloren geht und lokal
-    weiter nur die API genutzt wird.
 
 - `EPIC-008` **Backlog über die API des ToDo-Viewers**
   - Uid: 6da1ed5f-d947-48b4-b198-8bd2e96ef709.

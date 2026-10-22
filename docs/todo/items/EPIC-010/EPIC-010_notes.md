@@ -1,5 +1,20 @@
 # EPIC-010 — Weg von der Claude-Code-App: Harness und ToDo-Viewer über claude.ai nutzen
 
+## State
+
+- Ziel/Status: Harness und ToDo-Viewer über claude.ai nutzen. Kriterien 1 bis 3 sind erfüllt (über STORY-042 bis 047), Kriterium 4 (echter Lauf in einer Cloud-Sitzung mit Notes und Rückweg) ist nicht belegt.
+- Nächster Schritt: Owner bestätigt STORY-046; danach entscheidet er über den Lauf in einer echten Cloud-Sitzung (Kriterium 4).
+- Offen:
+  - Kriterium 4: Lauf in einer echten claude.ai-Sitzung mit einem Fremdprojekt, Stand danach im Viewer
+  - Konflikt-, Merge-Marker- und Platzhalter-Fall am echten Viewer nicht erprobt
+- Beschlossen:
+  - Weg A: Harness als eingecheckte Kopie im Projekt (2026-10-16)
+  - Lokal API, Cloud Dateien, Cloud-Erkennung automatisch (2026-10-16)
+  - Rückweg nach main per Pull Request, Durchspielung am echten Backlog (2026-10-22)
+- Verweise: STORY-042 bis STORY-047; sync-flow.md; README, Abschnitt Cloud-Sitzungen
+
+State confirmed after entry 2026-10-22 — Stand nach STORY-042 bis STORY-047: Prüfung der Epic-Kriterien (0087e133cdb4)
+
 ## 2026-10-14 — Ausgangslage und offene Fragen
 
 ### Discussed
@@ -102,3 +117,18 @@
 ### Open
 
 - Umsetzung von STORY-042 bis STORY-047 und der Abnahmelauf in der Cloud (Kriterium 4 des Epics).
+
+## 2026-10-22 — Stand nach STORY-042 bis STORY-047: Prüfung der Epic-Kriterien
+
+### Discussed
+
+- Kinder: STORY-042, 043, 044, 045 und 047 sind Completed; STORY-046 ist umgesetzt und wartet auf die Bestätigung. Das Epic wird erst geprüft und auf Awaiting confirmation gesetzt, wenn alle Pflicht-Kinder Completed sind.
+- Kriterium 1 (Harness in der Cloud verfügbar, Plugin wird nicht geladen): erfüllt durch STORY-047 (eingecheckte Kopie, init/update/Rückbau, Abnahmelauf vom Owner geprüft), dokumentiert in README und Techdocs.
+- Kriterium 2 (lokal API, Cloud Dateimodus, ohne Änderung der Config): erfüllt durch STORY-042 (Cloud-Erkennung über CLAUDE_CODE_REMOTE, Variable CLAUDE_HARNESS_TODO_BACKEND).
+- Kriterium 3 (Abgleich beschrieben und verlustfrei, auch bei gleichzeitiger Arbeit und gleichen IDs): beschrieben in sync-flow.md (STORY-045), Notes im Dateimodus mit Formatprüfung (STORY-043, 044), gleiche IDs durch Platzhalter vermieden (STORY-046). Am echten Backlog durchgespielt ist der Weg ohne Konflikt (Notes-Eintrag und neue Note, Sync etwa 16 Sekunden nach dem Merge). Konflikte im Sync-Dialog, Merge-Marker und Formatfehler im Sync sind nur nach der Doku des Viewers beschrieben, nicht erprobt; ein neuer Backlog-Eintrag mit Platzhalter wurde nicht am echten Viewer synchronisiert.
+- Kriterium 4 (Fremdprojekt läuft in einer claude.ai-Session mit Harness, Backlog und Notes nachweislich durch, Stand danach lokal im Viewer): nicht belegt. Der Owner hat die Cloud-Kopie in einer Session geprüft (STORY-047); die Notes im Dateimodus, die Formatprüfung und der Rückweg bis in den Viewer wurden mit einer von Hand nachgestellten Cloud-Seite im eigenen Repository erprobt, nicht in einer echten Cloud-Sitzung eines Fremdprojekts.
+
+### Open
+
+- Kriterium 4 braucht einen Lauf in einer echten claude.ai-Sitzung mit einem Fremdprojekt (z. B. ezf-ui): Harness-Kopie, Backlog-Eintrag mit Platzhalter, Note, Rückweg über Pull Request und Viewer-Sync. Das ist Sache des Owners oder ein weiteres Item.
+- Epic erst nach der Bestätigung von STORY-046 und diesem Lauf auf Awaiting confirmation setzen.
