@@ -3,11 +3,11 @@
 ## State
 
 - Goal/Status: Regeln für Ort, Inhalt, Zeitpunkt und Aufbau der Item-Notes festlegen und mechanisch absichern. Klärung abgeschlossen, Spec auf aktuellem Stand. Am 2026-10-20 von TASK-020 zur Story umgewandelt.
-- Next step: TASK-025 umsetzen (läuft); TASK-023/024 danach; Release erst am Ende der Story.
+- Next step: TASK-023 umsetzen (läuft), danach TASK-024; Release erst am Ende der Story.
 - Open:
   - Keine
 - Decided:
-  - TASK-021 und TASK-022 vom Owner bestätigt; Release des Harness erst am Ende der Story, gemeinsam mit dem Viewer (2026-10-21)
+  - TASK-021, TASK-022 und TASK-025 vom Owner bestätigt; Release des Harness erst am Ende der Story, gemeinsam mit dem Viewer (2026-10-21)
   - Feste Überschriften von Kopf und Stempel auf Englisch (Regel 6), Inhalt in docs.language; der Viewer darf sie in der Oberfläche lokalisiert anzeigen (2026-10-21)
   - Notes: Kopf „Stand“ oben (wird ersetzt), darunter das Protokoll (wird nur angehängt); Reihenfolge Ziel/Status, Nächster Schritt, Offen, Beschlossen, Verweise (2026-10-20)
   - Protokollregeln: spezifischstes Item, Kernfrage/Optionen/Entscheidung mit Begründung/Verworfenes, nach jeder geklärten Frage schreiben (2026-10-20)
@@ -22,7 +22,7 @@
   - Viewer ist auf englische Überschriften umgestellt; ältere Notes werden beim nächsten Bearbeiten migriert, nicht auf Vorrat (2026-10-21)
 - References: Spec STORY-051_spec.md; TASK-021 Regeln und Format, TASK-022 Files-Modus, TASK-023 API-Helfer, TASK-024 Hooks, TASK-025 Nachfrage A, jeweils mit eigener Spec; Item im Backlog des ToDo-Viewers (vom Owner angelegt)
 
-State confirmed after entry 2026-10-21 — Release zurückgehalten, weiter mit TASK-022 (2a4a83518ff6)
+State confirmed after entry 2026-10-21 — Viewer auf englische Überschriften umgestellt, Migration nur teilweise (12a45fc8455e)
 
 ## 2026-10-19 — Ausgangslage und Vorschläge zur Prüfung durch den Owner
 
