@@ -2,19 +2,20 @@
 
 ## State
 
-- Ziel/Status: Notes und Topics im Dateimodus führen (Regeln, Index-Helfer, Config). In Arbeit; Klärung abgeschlossen, Spec auf aktuellem Stand.
-- Nächster Schritt: Umsetzungsplan vorlegen und vom Owner freigeben lassen.
+- Ziel/Status: Notes und Topics im Dateimodus führen. Umgesetzt und getestet, wartet auf Bestätigung.
+- Nächster Schritt: Owner bestätigt; danach STORY-044 (Formatprüfung) oder STORY-045 (Ablauf).
 - Offen:
-  - nichts
+  - Sync mit dem echten Viewer nicht geprüft (new-Dateien, topics.md, Deleted)
 - Beschlossen:
   - Story gestartet, STORY-042 und STORY-047 bestätigt (2026-10-22)
   - Dateiformat Version 2 des Viewer-Neubaus gilt, alte Fassung verworfen (2026-10-22)
   - alarms.md nicht in dieser Story (2026-10-22)
   - Kriterien 2 und 4 und das Ziel auf Version 2 umgestellt (2026-10-22)
   - Keine Tasks, eine Sitzung (2026-10-22)
+  - Umgesetzt: notes_enabled bei jedem Backend, viewer_notes_enabled für die API-Helfer, notes_files.py, notes-files.md, Doku (2026-10-22)
 - Verweise: Spec STORY-043_spec.md; Viewer-Techdoc docs/techdocs/interfaces.md (Dateiformat Version 2); EPIC-010; STORY-044 und STORY-045 für Formatprüfung und Ablauf
 
-State confirmed after entry 2026-10-22 — Kriterien auf Version 2 umgestellt, Spec geschrieben (07f07953de9e)
+State confirmed after entry 2026-10-22 — Umsetzung (977fe1df9f84)
 
 ## 2026-10-22 — Ausgangslage: Dateiformat und Umfang prüfen
 
@@ -60,3 +61,23 @@ State confirmed after entry 2026-10-22 — Kriterien auf Version 2 umgestellt, S
 - Kriterien 2 und 4 und das Ziel sind wie vorgeschlagen geändert (Owner, 2026-10-22).
 - Keine Tasks; die Story wird in einer Sitzung umgesetzt, die Abschnitte stehen im Plan (Owner, 2026-10-22).
 - Spec STORY-043_spec.md geschrieben: Notes bei jedem Backend aktiv, neue Regeldatei notes-files.md, Index-Helfer notes_files.py (--index, --due, --today), Wecker, Formatprüfung und Ablauf ausgeklammert.
+
+## 2026-10-22 — Umsetzung
+
+### Discussed
+
+- Plan vom Owner freigegeben; Umsetzung im Worktree story-043-notes-dateimodus in fünf Commits, Tests jeweils vorweg (520 Tests grün, vorher 468 plus neue).
+- notes_enabled() gilt jetzt bei jedem Backend; neu viewer_notes_enabled() (nur api) schützt notes_api.py und alarms_api.py. Der Sitzungsstart nennt im Dateimodus 'Notes: <todo.path>/notes/ as files'.
+- Abweichung vom Plan: Im Mehrprojekt-Test kommt der Skill todo jetzt zweimal vor (Backlog-Zeile und Notes-Zeile), weil Notes auch bei files aktiv sind; der Test erwartet das ausdrücklich.
+- notes_files.py (--index, --due, --today) liest nur Kopfzeilen, löst Topics über topics.md auf, lässt Papierkorb und Archiv weg und wertet event-Auslöser nicht aus. Namen mit '|' bleiben mit Escape stehen, damit eine Zeile eine Zeile bleibt.
+- Neue Regeldatei plugin/skills/todo/notes-files.md (Format Version 2, Befugnis, Datenschutzhinweis, Lesereihenfolge); notes.md verweist im Dateimodus dorthin. Techdocs (architecture, interfaces, configuration) und README angepasst; ein Test sichert, dass Helfer und Regeldatei in der Cloud-Kopie landen.
+- Handlauf in einem Temp-Projekt mit CLAUDE_CODE_REMOTE=true: Sitzungsstart zeigt die Notes-Zeile, Index und --due liefern die Fixture, notes_api.py meldet weiter 'need api' (Exit 2). Nicht geprüft: eine echte Cloud-Sitzung und der Sync der Dateien mit dem Viewer.
+
+### Decided
+
+- Kriterien 1 bis 6 sind erfüllt; Status Awaiting confirmation, Bestätigung durch den Owner offen.
+
+### Open
+
+- Ob der Viewer-Sync die von der KI geschriebenen Dateien (new-<name>.md, topics.md) annimmt, ist nicht gegen einen echten Sync geprüft; die Formatprüfung ist STORY-044.
+- Ein 'Deleted:'-Zeitpunkt, von der KI in eine Note geschrieben, ist im Format vorgesehen, aber ungetestet gegen den Viewer.
