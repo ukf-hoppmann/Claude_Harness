@@ -90,7 +90,15 @@ Read only what the task needs:
   - **When:** after every answered question, before asking the next one —
     not at the end.
   - **Head:** after every change to the notes, update the head or
-    deliberately confirm that it is still current.
+    deliberately confirm that it is still current. A check at the end of
+    your turn blocks while the head of notes you changed is `stale` or
+    `missing` (API: it relies on what the helper reported; files: on the
+    stamp); update it (`put-state`) or confirm it (`confirm-state`, files:
+    `backlog.py --confirm-state`) to continue.
+  - **Reminder:** an item you work on (set `In progress`, or its spec read)
+    that gets no notes entry for 5 prompts triggers a short reminder (again
+    after every further 5). It is no block: write the entry if something was
+    clarified, decided, or rejected; otherwise ignore it.
 - Keep the spec current: once something is decided, bring the spec up to
   date; the notes keep the way there. A discussion ends with the spec. The
   implementation plan is made only when implementation starts, presented
