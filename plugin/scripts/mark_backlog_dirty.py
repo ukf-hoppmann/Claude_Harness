@@ -6,7 +6,8 @@ from pathlib import PurePath
 
 from harness_config import ConfigError, project_root
 from projects import load_projects
-from state import dirty_marker, read_changed_notes, read_names, write_changed_notes, write_names
+from notes_format import NOTES_DIR
+from state import dirty_marker, notes_folder_marker, read_changed_notes, read_names, write_changed_notes, write_names
 
 
 def main() -> int:
@@ -32,10 +33,18 @@ def main() -> int:
         # The marker lists the projects whose backlog changed in this session.
         marker = dirty_marker(session_id)
         write_names(marker, read_names(marker) | {project.name})
+        if is_notes_folder_file(relative.relative_to(project.config.todo_path)):
+            folder_marker = notes_folder_marker(session_id)
+            write_names(folder_marker, read_names(folder_marker) | {project.name})
         if is_notes_file(relative.relative_to(project.config.todo_path)):
             notes = read_changed_notes(session_id) | {(project.name, relative.as_posix())}
             write_changed_notes(session_id, notes)
     return 0
+
+
+def is_notes_folder_file(path: PurePath) -> bool:
+    """A file of the notes folder (`notes/…`) below the backlog folder: notes kept as files, not item notes."""
+    return len(path.parts) >= 2 and path.parts[0] == NOTES_DIR
 
 
 def is_notes_file(path: PurePath) -> bool:
