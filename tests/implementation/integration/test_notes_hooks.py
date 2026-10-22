@@ -325,5 +325,30 @@ class FilesModeActiveItemTest(NotesHookTest):
         self.assertEqual([bool(o) for o in out], [False, False, False, False, True])
 
 
+class RegistrationTest(unittest.TestCase):
+    def test_the_hooks_are_registered_for_their_events(self):
+        hooks = json.loads((SCRIPTS.parent / "hooks" / "hooks.json").read_text())["hooks"]
+
+        def registered(event, matcher=None):
+            return sorted(
+                Path(h["command"].split("/")[-1].rstrip('"')).name
+                for group in hooks[event] if group.get("matcher") == matcher
+                for h in group["hooks"]
+            )
+
+        self.assertIn("mark_notes_state.py", registered("PostToolUse", "Bash"))
+        self.assertIn("mark_active_item.py", registered("PostToolUse", "Read"))
+        self.assertIn("check_notes_state.py", registered("Stop"))
+        self.assertEqual(registered("UserPromptSubmit"), ["remind_notes.py"])
+
+    def test_every_registered_script_exists(self):
+        hooks = json.loads((SCRIPTS.parent / "hooks" / "hooks.json").read_text())["hooks"]
+        for groups in hooks.values():
+            for group in groups:
+                for hook in group["hooks"]:
+                    name = hook["command"].split("/scripts/")[1].rstrip('"')
+                    self.assertTrue((SCRIPTS / name).is_file(), name)
+
+
 if __name__ == "__main__":
     unittest.main()
