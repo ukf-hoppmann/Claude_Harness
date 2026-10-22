@@ -13,7 +13,7 @@
   - Regeln in einer neuen Unterdatei sync-flow.md des Skills todo, SKILL.md und notes.md verweisen und werden berichtigt (2026-10-22)
 - Verweise: Viewer-Doku operations.md (Auto-Sync, Notes im Sync), neubau-server.md (Sync), docs/handover/neubau-cloud.md; STORY-042, STORY-043, STORY-046; EPIC-010
 
-State confirmed after entry 2026-10-22 — Entscheidung: Rückweg per Pull Request, Durchspielung am echten Backlog (3d6caf957981)
+State confirmed after entry 2026-10-22 — Durchspielung, Cloud-Seite (nachgestellt) (51df1a11fa77)
 
 ## 2026-10-16 — Befund aus den Cloud-Tests: Branches und Zuordnung
 
@@ -56,3 +56,9 @@ State confirmed after entry 2026-10-22 — Entscheidung: Rückweg per Pull Reque
 ### Open
 
 - Spec schreiben: neue Unterdatei sync-flow.md im Skill todo, Berichtigung von notes.md und SKILL.md (Kriterium 5), README und Techdocs. Umsetzungsplan danach zur Freigabe.
+
+## 2026-10-22 — Durchspielung, Cloud-Seite (nachgestellt)
+
+### Discussed
+
+- Probe der Cloud-Seite: Dieser Eintrag und die Note new-ablauf-probe.md wurden in einem Branch (worktree-story-045-probe) direkt in den Dateien geschrieben, wie es eine Cloud-Sitzung mit Backend files täte. Er soll nach dem Merge in main und dem Auto-Sync des Viewers über die API in diesen Notes stehen.
