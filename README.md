@@ -97,7 +97,18 @@ bleibt unverändert; Notes liegen dort als Dateien im Ordner `notes/` des
 Backlogs (und damit im Repository), Alarme gibt es dort nicht. Mit der Variable
 `CLAUDE_HARNESS_TODO_BACKEND` lässt sich das Backend je Umgebung auch von Hand
 festlegen. Skills und Hooks der Kopie kosten lokal
-zusätzlich je Skill eine Beschreibung im Kontext. Details:
+zusätzlich je Skill eine Beschreibung im Kontext.
+
+Ablauf zwischen Cloud und lokalem Viewer (Regeln im Skill `todo`, Datei
+`sync-flow.md`): Der Viewer spiegelt den Backlog-Ordner samt `notes/` in das
+Repository (Auto-Sync an). Vor der Cloud-Sitzung wird der Ordner als
+`Backlog: …` committet und `main` gepusht; die Cloud-Sitzung ändert die Dateien
+auf ihrem Branch `claude/<Name>`; der Branch kommt per Pull Request nach `main`
+(lokales Merge ist die Alternative), lokal folgt `git pull`, und der Viewer
+übernimmt die Dateien beim nächsten Auto-Sync. Konflikte entscheidet der
+Besitzer im Sync-Dialog des Viewers; bei Git-Merge-Markern pausiert der
+Auto-Sync, bis sie gelöst sind. Die Notes liegen dabei im Repository und sind
+nicht mehr privat. Details:
 [Schnittstellen, Skript `cloud_export.py`](docs/techdocs/interfaces.md#skript-cloud_exportpy).
 
 ## Entwicklung
