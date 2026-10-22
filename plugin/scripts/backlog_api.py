@@ -5,6 +5,7 @@ The backlog comes from the harness config of the session's project, never from a
 """
 from __future__ import annotations
 
+import re
 import sys
 from collections.abc import Callable
 from typing import Any
@@ -42,12 +43,19 @@ USAGE = """usage: backlog_api.py [--project <name> | --source <name>] <command> 
   entries <ID> [--last N]                 the log entries (all, or the last N): position, day, topic, text
   doc <ID> <name>                         print a notes/spec document: 'version: <v>', blank line, content
   put-doc <ID> <name> <version|new> [--summary TEXT]   stdin: the complete new document text
+  delete-doc <ID> <name> <version>        move a notes or spec document to the trash; with the notes go their head
+                                          and the item's summary
   retype <ID> <version> <type>            change the type (Epic|Story|Task); the item gets a new ID
   delete <ID> <version> [--cascade]       move to the trash (with --cascade including descendants)
-  trash                                   backlog items in the trash as JSON
-  restore <ID>                            restore an item (with the descendants deleted with it) from the trash"""
+  trash                                   backlog items and deleted documents (kind 'document', with their 'uid') in
+                                          the trash as JSON
+  restore <ID|trash uid>                  restore an item (with the descendants deleted with it) or a deleted document
+                                          (by the 'uid' that 'trash' shows) from the trash"""
 
 BACKLOG_KINDS = ("epic", "story", "task")
+#: What the trash lists besides the items: a notes or spec document that was deleted from an item.
+DOCUMENT_KIND = "document"
+LABEL = re.compile(r"[A-Z]+-\d+")
 TRASH_MARK = "(Papierkorb)"
 CLOSED_STATUSES = ("Completed", "Rejected")
 
@@ -119,10 +127,10 @@ def _options(command: str, args: list[str]) -> tuple[list[str], dict[str, str | 
 
 
 ARITY = {"health": 0, "sources": 0, "register": 0, "index": 0, "show": 1, "areas": 0, "create": 0, "update": 2,
-         "move": 3, "reopen": 1, "note": 1, "state": 1, "put-state": 2, "confirm-state": 2, "entries": 1, "doc": 2, "put-doc": 3, "retype": 3, "delete": 2, "trash": 0,
+         "move": 3, "reopen": 1, "note": 1, "state": 1, "put-state": 2, "confirm-state": 2, "entries": 1, "doc": 2, "put-doc": 3, "delete-doc": 3, "retype": 3, "delete": 2, "trash": 0,
          "restore": 1}
 # Position of the <version> argument per command.
-VERSION_AT = {"update": 1, "move": 1, "put-state": 1, "confirm-state": 1, "put-doc": 2, "retype": 1, "delete": 1}
+VERSION_AT = {"update": 1, "move": 1, "put-state": 1, "confirm-state": 1, "put-doc": 2, "delete-doc": 2, "retype": 1, "delete": 1}
 
 
 def run(project_name: str, source_name: str | None, command: str, args: list[str]) -> None:
@@ -287,6 +295,10 @@ def _run(target: Target, command: str, positional: list[str], options: dict[str,
             _print_hints(document)
             report("notes", identifier, document)
             _hint_children_in_progress(api, project, identifier)
+    elif command == "delete-doc":
+        identifier, name, version = positional
+        query = {"project": project, "version": str(version_arg(version))}
+        print_json(api.call("DELETE", _item(identifier, f"/documents/{quote(name)}"), query=query))
     elif command == "retype":
         identifier, version, new_type = positional
         body = {"project": project, "version": version_arg(version), "type": new_type}
@@ -297,9 +309,11 @@ def _run(target: Target, command: str, positional: list[str], options: dict[str,
         print_json(api.call("DELETE", f"/workspace/elements/{quote(target.resolve(identifier))}", query=query))
     elif command == "trash":
         elements = api.call("GET", "/workspace/trash", query={"projects": project})
-        print_json([e for e in elements if e.get("kind") in BACKLOG_KINDS])
+        print_json([e for e in elements if e.get("kind") in (*BACKLOG_KINDS, DOCUMENT_KIND)])
     elif command == "restore":
-        print_json(api.call("POST", "/workspace/trash/restore", {"uids": [target.resolve(positional[0])]}))
+        identifier = positional[0]
+        uid = target.resolve(identifier) if LABEL.fullmatch(identifier) else identifier
+        print_json(api.call("POST", "/workspace/trash/restore", {"uids": [uid]}))
 
 
 def main(argv: list[str]) -> int:

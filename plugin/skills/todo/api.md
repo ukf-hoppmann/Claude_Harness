@@ -49,10 +49,11 @@ EOF
 | `entries <ID> [--last N]` | The log entries (all, or the last N) as `{position, day, topic, text}`; read them only when you need the reasons behind a decision |
 | `doc <ID> <name>` | Print a notes or spec document: `version: <v>`, a blank line, the text. Names: `<ID>_notes.md`, `<ID>_spec.md`, `<ID>_spec_<topic>.md` |
 | `put-doc <ID> <name> <version\|new> [--summary TEXT]` | Replace a document with the complete text from stdin, or create it with `new` (first notes need `--summary` if the item has none) |
+| `delete-doc <ID> <name> <version>` | Move a notes or spec document to the trash, in the `version` that `doc` printed. With the notes go their head and the item's summary (a new first notes entry needs `summary` again); deleting a spec has no further effect. The answer names `trash_uid`. Refused for an item in the trash. The file leaves the mirror at once if it is unchanged there |
 | `retype <ID> <version> <type>` | Change the type (`Epic`, `Story`, `Task`). The ID's prefix is the type, so the item gets the next free ID of the new type; references in the project's texts follow. Prints `old_label` and `new_label`; refused when the new type breaks a lifecycle rule |
 | `delete <ID> <version> [--cascade]` | Move to the trash; an item with active children needs `--cascade` (the answer names `has_children` first and changes nothing) |
-| `trash` | Backlog items in the trash |
-| `restore <ID>` | Restore from the trash, with the descendants deleted together with it |
+| `trash` | Backlog items and deleted documents in the trash. A document has `kind` `document`, its own `uid` (use that to restore it), the item's ID as `label` and its name as `title` |
+| `restore <ID\|trash uid>` | Restore from the trash: an item with the descendants deleted together with it (by ID), or a deleted document (by the `uid` that `trash` shows; notes come back with head and summary). Refused with `document_exists` if the item has a document of that name again, and with `item_deleted` while the item is in the trash |
 
 A `version` is a number: take it from the last `show` (or write answer) of
 that item or document. A notes entry and every document write count as a

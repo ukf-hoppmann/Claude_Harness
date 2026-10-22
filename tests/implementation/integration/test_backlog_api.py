@@ -497,6 +497,35 @@ class BacklogApiTest(unittest.TestCase):
         self.assertEqual(json.loads(result.stdout), [{"label": "STORY-003", "kind": "story"}])
         self.assertEqual(self.last("GET")["query"], {"projects": ["p1"]})
 
+    def test_delete_doc_puts_a_document_in_the_trash_in_its_version(self):
+        path = f"{ITEMS}/STORY-001/documents/STORY-001_spec.md"
+        self.viewer.routes[("DELETE", path)] = (200, {"name": "STORY-001_spec.md", "trash_uid": "t-1"})
+        result = self.run_api("delete-doc", "STORY-001", "STORY-001_spec.md", "3")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("DELETE")["query"], {"project": ["p1"], "version": ["3"]})
+        self.assertEqual(json.loads(result.stdout), {"name": "STORY-001_spec.md", "trash_uid": "t-1"})
+
+    def test_delete_doc_refuses_a_version_that_is_no_number(self):
+        result = self.run_api("delete-doc", "STORY-001", "STORY-001_spec.md", "neu")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertEqual(self.viewer.calls("DELETE"), [])
+
+    def test_trash_lists_deleted_documents_of_the_project_too(self):
+        self.viewer.routes[("GET", f"{API}/workspace/trash")] = (200, [
+            {"label": "STORY-003", "kind": "story"},
+            {"uid": "t-1", "label": "STORY-001", "kind": "document", "title": "STORY-001_spec.md"},
+            {"label": "NOTE-001", "kind": "note"},
+        ])
+        result = self.run_api("trash")
+        self.assertEqual([e["kind"] for e in json.loads(result.stdout)], ["story", "document"])
+
+    def test_restore_takes_the_uid_of_a_deleted_document_as_it_is(self):
+        uid = "0d3c1f5e-1111-4222-8333-944455556666"
+        self.viewer.routes[("POST", f"{API}/workspace/trash/restore")] = (200, {"uids": [uid]})
+        result = self.run_api("restore", uid)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("POST")["body"], {"uids": [uid]})
+
     def test_retype_posts_version_and_type(self):
         self.viewer.routes[("POST", f"{ITEMS}/TASK-004/retype")] = (200, {"new_label": "STORY-009"})
         result = self.run_api("retype", "TASK-004", "2", "Story")
