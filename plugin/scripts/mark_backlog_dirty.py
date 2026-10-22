@@ -7,7 +7,16 @@ from pathlib import PurePath
 from harness_config import ConfigError, project_root
 from projects import load_projects
 from notes_format import NOTES_DIR
-from state import dirty_marker, notes_folder_marker, read_changed_notes, read_names, write_changed_notes, write_names
+from state import (
+    dirty_marker,
+    notes_folder_marker,
+    read_changed_notes,
+    read_names,
+    read_notes_marks,
+    write_changed_notes,
+    write_names,
+    write_notes_marks,
+)
 
 
 def main() -> int:
@@ -39,7 +48,17 @@ def main() -> int:
         if is_notes_file(relative.relative_to(project.config.todo_path)):
             notes = read_changed_notes(session_id) | {(project.name, relative.as_posix())}
             write_changed_notes(session_id, notes)
+            _restart_count(session_id, project.name, relative.parent.name)
     return 0
+
+
+def _restart_count(session_id: str, project: str, identifier: str) -> None:
+    """A notes entry restarts the reminder's count for an active item (remind_notes.py)."""
+    marks = read_notes_marks(session_id)
+    mark = marks.get((project, identifier))
+    if mark is not None and mark["turns"] is not None:
+        mark["turns"] = 0
+        write_notes_marks(session_id, marks)
 
 
 def is_notes_folder_file(path: PurePath) -> bool:
