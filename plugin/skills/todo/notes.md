@@ -8,9 +8,10 @@ to [SKILL.md](SKILL.md).
 
 1. Read `.claude-harness/config.toml` of the project the work belongs to (with
    subprojects, the session start lists each project and its folder; paths
-   below are relative to that folder). If `[modules].todo` is not `true` or
-   the backend is not `api` (for example in a cloud session), these rules do
-   not apply — say so and stop.
+   below are relative to that folder). If `[modules].todo` is not `true`,
+   these rules do not apply — say so and stop. If the backend is not `api`
+   (for example in a cloud session), the notes are files: follow
+   [notes-files.md](notes-files.md) instead and ignore the rest of this file.
 2. Write note texts (summary, body) in `[docs].language`; field names, status
    values, and roles stay English.
 3. Work only through
@@ -23,7 +24,8 @@ to [SKILL.md](SKILL.md).
 4. If the helper exits with code 3 (server not reachable), tell the user and
    ask whether to start the server or stop. Exit code 4 (project not
    registered in the viewer) is handled as in [SKILL.md](SKILL.md).
-5. Notes are private as long as they live only in the database. Do not treat
+5. With `api`, notes are private as long as they live only in the database
+   (as files they are not: [notes-files.md](notes-files.md)). Do not treat
    them as team knowledge and do not copy their content into checked-in files
    (backlog, daily reports, documentation, commit messages).
 

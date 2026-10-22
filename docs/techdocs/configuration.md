@@ -12,7 +12,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `version` | Ganzzahl | – | ja | Schema-Version, aktuell `1`. Eine ältere Version mit bekanntem Migrationspfad wird erkannt und über `/claude-harness:update` aktualisiert statt sofort abgelehnt zu werden |
 | `docs.root` | Pfad | `"docs"` | nein | Ordner für alle Harness-Dokumente, relativ zum Projekt-Root |
 | `docs.language` | ISO-639-1-Code | `"en"` | nein | Sprache aller erzeugten Dokumente (Fließtext und Überschriften, nicht maschinell geprüfte Feldnamen) |
-| `modules.todo` | Boolean | `false` | nein | Schaltet das Backlog-Modul ein. Dazu gehören Notes und Topics (Erinnerungen, Fragen, Ideen im ToDo-Viewer, Regeln in `notes.md` des Skills `todo`); sie gibt es nur mit `todo.backend = "api"`, nutzen `todo.path` (Projektzuordnung) und `todo.api_url` und haben keine eigenen Einstellungen. Der Session-Start nennt sie nur, er fragt keine fälligen Notes ab. Der frühere Schalter `modules.notes` entfällt; eine Config damit meldet einen Fehler, die Zeile ist zu streichen |
+| `modules.todo` | Boolean | `false` | nein | Schaltet das Backlog-Modul ein. Dazu gehören Notes und Topics (Erinnerungen, Fragen, Ideen); sie haben keine eigenen Einstellungen. Mit `todo.backend = "api"` liegen sie im ToDo-Viewer (Regeln in `notes.md` des Skills `todo`, nutzen `todo.path` als Projektzuordnung und `todo.api_url`), mit `files` als Markdown-Dateien im Ordner `notes/` unter `todo.path` und damit im Repository (Regeln in `notes-files.md`). Der Session-Start nennt sie nur, er fragt keine fälligen Notes ab und legt den Ordner nicht an. Der frühere Schalter `modules.notes` entfällt; eine Config damit meldet einen Fehler, die Zeile ist zu streichen |
 | `modules.daily` | Boolean | `false` | nein | Schaltet die Tagesberichte ein |
 | `modules.techdocs` | Boolean | `false` | nein | Schaltet die Systemdoku-Regeln ein |
 | `modules.development` | Boolean | `false` | nein | Schaltet die Suite `development` mit allen Teilbereichen ein |
@@ -148,4 +148,6 @@ Wirksames Backend (Rangfolge): `CLAUDE_HARNESS_TODO_BACKEND`, dann die
 Cloud-Erkennung über `CLAUDE_CODE_REMOTE`, dann `todo.backend`. Es gilt für
 Session-Start, Backlog-Hooks, Notes und Alarme; die Config-Datei selbst bleibt
 unverändert und wird von `/claude-harness:update` weiter so geprüft, wie sie
-dasteht. In einer Cloud-Sitzung sind Notes und Alarme aus (sie brauchen `api`).
+dasteht. Notes gibt es mit beiden Backends (bei `api` im Viewer, bei `files` als
+Dateien in `notes/`); die Helfer `notes_api.py` und `alarms_api.py` und die
+Alarme brauchen `api`, in einer Cloud-Sitzung gibt es sie also nicht.

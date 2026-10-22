@@ -37,11 +37,15 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.techdocs_path, PurePosixPath("docs/techdocs"))
         self.assertEqual(config.techdocs, ("architecture", "interfaces", "configuration"))
 
-    def test_notes_belong_to_todo_with_api_backend(self):
+    def test_notes_belong_to_todo_with_either_backend(self):
         on = {"version": 1, "modules": {"todo": True}}
+        files = {**on, "todo": {"backend": "files"}}
         self.assertTrue(parse_config(on).notes_enabled())
-        self.assertFalse(parse_config({**on, "todo": {"backend": "files"}}).notes_enabled())
+        self.assertTrue(parse_config(files).notes_enabled())
+        self.assertTrue(parse_config(on).viewer_notes_enabled())
+        self.assertFalse(parse_config(files).viewer_notes_enabled())
         self.assertFalse(parse_config({"version": 1, "modules": {"todo": False}}).notes_enabled())
+        self.assertFalse(parse_config({"version": 1, "modules": {"todo": False}}).viewer_notes_enabled())
         self.assertFalse(parse_config({"version": 1}).notes_enabled())
 
     def test_notes_module_switch_is_gone(self):
@@ -411,9 +415,11 @@ class TodoBackendEnvironmentTest(unittest.TestCase):
             self.assertEqual(parse_config({"version": 1}).todo_backend, "api")
 
     def test_notes_follow_the_effective_backend(self):
-        # Notes live only in the ToDo-Viewer, so a cloud session has none.
-        self.assertTrue(self._load("api", {}).notes_enabled())
-        self.assertFalse(self._load("api", {"CLAUDE_CODE_REMOTE": "true"}).notes_enabled())
+        # Notes are active with either backend; only the ToDo-Viewer's notes need the API.
+        self.assertTrue(self._load("api", {}).viewer_notes_enabled())
+        cloud = self._load("api", {"CLAUDE_CODE_REMOTE": "true"})
+        self.assertTrue(cloud.notes_enabled())
+        self.assertFalse(cloud.viewer_notes_enabled())
 
 
 if __name__ == "__main__":
