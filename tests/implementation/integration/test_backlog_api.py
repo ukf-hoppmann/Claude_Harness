@@ -43,7 +43,8 @@ class BacklogApiTest(unittest.TestCase):
         return sub / "docs" / "todo"
 
     def run_api(self, *args, stdin="", cwd=None):
-        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project))
+        env = {k: v for k, v in os.environ.items() if k != "CLAUDE_CODE_SESSION_ID"}
+        env.update(CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(Path(self._tmp.name) / "data"))
         return subprocess.run(
             [sys.executable, str(SCRIPTS / "backlog_api.py"), *args],
             input=stdin, capture_output=True, text=True, timeout=30, cwd=cwd or self.project, env=env,
