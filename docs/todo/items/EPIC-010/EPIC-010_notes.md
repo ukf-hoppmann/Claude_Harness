@@ -2,12 +2,12 @@
 
 ## State
 
-- Goal/Status: Harness und ToDo-Viewer über claude.ai nutzen. Alle Kriterien erfüllt, Stories 042 bis 047 Completed, Kriterium 4 am 2026-10-22 mit my_story_game in einer echten Cloud-Sitzung belegt. Wartet auf Bestätigung.
-- Next step: Owner bestätigt das Epic; Testeintrag und Test-Note in my_story_game beenden; my_story_game pushen.
+- Goal/Status: Harness und ToDo-Viewer über claude.ai nutzen. Alle Kriterien erfüllt (042 bis 047 Completed, Kriterium 4 mit my_story_game in einer echten Cloud-Sitzung belegt, Bericht der Sitzung gelesen). Wartet auf Bestätigung.
+- Next step: Owner bestätigt das Epic; Testeintrag TASK-052 und Test-Note NOTE-001 in my_story_game beenden; my_story_game pushen (schließt Pull Request #2).
 - Open:
-  - Bericht der Cloud-Sitzung (Hook-Meldungen) nicht gesehen
-  - Pull Request, Konflikt und Merge-Marker nicht erprobt (lokales Merge statt Pull Request)
-  - Testeintrag TASK-052 und Test-Note NOTE-001 in my_story_game; lokales main steht 3 Commits vor origin/main
+  - Stop-Hooks der Kopie in der Cloud nicht beobachtet (kein Formatfehler zum Prüfen provoziert)
+  - Pull Request, Konflikt und Merge-Marker im Sync nicht erprobt (lokales Merge statt Pull Request)
+  - Testeintrag TASK-052 und Test-Note NOTE-001 in my_story_game; main steht 3 Commits vor origin/main; Pull Request #2 offen
 - Decided:
   - Weg A: Harness als eingecheckte Kopie im Projekt (2026-10-16)
   - Lokal API, Cloud Dateien, Cloud-Erkennung automatisch (2026-10-16)
@@ -15,7 +15,7 @@
   - Kriterium 4 mit my_story_game belegt: Eintrag mit Platzhalter wurde TASK-052, Note wurde NOTE-001, Sync ohne Konflikt (2026-10-22)
 - References: STORY-042 bis STORY-047; sync-flow.md; README, Abschnitt Cloud-Sitzungen
 
-State confirmed after entry 2026-10-22 — Kriterium 4: Lauf in einer echten Cloud-Sitzung mit my_story_game (abbbd2d24fd4)
+State confirmed after entry 2026-10-22 — Bericht der Cloud-Sitzung von my_story_game ausgewertet (fe8b403395d7)
 
 ## 2026-10-14 — Ausgangslage und offene Fragen
 
@@ -153,3 +153,18 @@ State confirmed after entry 2026-10-22 — Kriterium 4: Lauf in einer echten Clo
 - Testeintrag TASK-052 und Test-Note NOTE-001 in my_story_game sind 'darf beendet werden': Beenden und Löschen sind Sache des Besitzers.
 - my_story_game: 3 Commits liegen lokal vor origin/main (Merge und Rückschreiben); der Push ist offen.
 - Der Bericht der Cloud-Sitzung (Hook-Meldungen) ist vom Besitzer zu lesen.
+
+## 2026-10-22 — Bericht der Cloud-Sitzung von my_story_game ausgewertet
+
+### Discussed
+
+- Der Owner hat den Bericht der Cloud-Sitzung (Branch claude/kind-clarke-fxhiwf) eingefügt; er bestätigt die Prüfung des Branches durch den Harness.
+- Sitzungsstart in der Cloud, wörtlich: 'Claude_Harness: modules daily=on, development=on, semver=off, techdocs=on, todo=on.', 'Backlog: docs/todo/TODO.md (backend files: cloud session; config.toml says api); …', 'Notes: docs/todo/notes/ as files; …'. Eine Zeile 'Cloud copy:' fehlt, wie vorgesehen (der Code läuft aus der Kopie und schweigt). Python 3.13.16, CLAUDE_CODE_REMOTE=true. Der Start-Check meldete 0 Fehler und 2 schon vorhandene Hinweise zu EPIC-001 und EPIC-002.
+- Die Skills harness-todo waren aufrufbar (format.md, notes-files.md, sync-flow.md lesbar). In der Cloud liefen notes_files.py --check (Exit 0, keine Ausgabe) und backlog.py (71 gültige Einträge, 0 Fehler); der Stempel kam von backlog.py --confirm-state. Commit fffe983, Branch gepusht, Pull Request #2 angelegt und nicht gemergt (die Sitzung hat sich daran gehalten).
+- Abweichungen: Die Sitzung sprach den Datenschutz-Hinweis aus notes-files.md (Notes liegen im Repository und sind nicht privat) nicht aus, ohne Folgen für den Test. Die Stop-Hooks haben weder blockiert noch etwas gemeldet; ob sie am Turn-Ende der Cloud-Sitzung liefen, ist daraus nicht zu erkennen, nur dass die Daten gültig waren. Ein Beleg wäre ein gezielter Fehler (z. B. eine time-Zeile in einer Note), den der Hook melden müsste.
+- Der Pull Request #2 blieb offen, weil der Branch lokal gemergt wurde; er schließt sich von selbst, sobald main von my_story_game gepusht wird (der Branch ist dann in origin/main enthalten).
+
+### Open
+
+- Stop-Hooks der Kopie in der Cloud wurden nicht beobachtet; ein Test mit einem absichtlichen Formatfehler würde es belegen.
+- Pull Request #2 in my_story_game ist offen, bis main gepusht wird.
