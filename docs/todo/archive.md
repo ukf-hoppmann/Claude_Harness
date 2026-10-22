@@ -1683,3 +1683,34 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     ToDo-Viewer hin und her wandert, damit nichts verloren geht und lokal
     weiter nur die API genutzt wird.
   - Resolution: Vom Besitzer bestätigt (2026-10-22).
+
+- `STORY-046` **Doppelt vergebene IDs bei paralleler Arbeit in Cloud und lokal vermeiden**
+  - Uid: 6d64c87c-b4c2-48bf-8c2e-2563ec768a95.
+  - Type: Story.
+  - Parent: `EPIC-010`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-10-16.
+  - Area: Governance.
+  - Priority: Normal.
+  - Dependencies: None.
+  - Goal: Legen die Cloud (Dateimodus, nächste freie Nummer) und der lokale
+    Viewer (Datenbank vergibt die ID) unabhängig voneinander ein Item
+    gleichen Typs an, geht dabei kein Item verloren. Für Notes löst das
+    schon das Verfahren mit `new-<kurzname>.md`, für Backlog-Items gibt es
+    keines.
+  - Completion criteria: 1. Geprüft und in den Notes festgehalten ist, wie
+    der Viewer zwei unabhängig angelegte Items mit gleicher ID beim Sync
+    behandelt (laut seiner Doku ein Konflikt `both_new`, bei dem nur eine
+    Seite übernommen wird). 2. Die Entscheidung steht in den Notes: Regel im
+    Skill (z. B. während einer Cloud-Sitzung lokal keine neuen Items
+    gleichen Typs anlegen) oder Erweiterung des Viewers (vorläufige IDs für
+    Items wie bei den Notes), jeweils mit Begründung. 3. Umgesetzt ist die
+    gewählte Lösung: bei einer Regel im todo-Skill und in den Techdocs
+    beschrieben; bei einer Viewer-Erweiterung ein Item im Backlog des
+    ToDo-Viewers angelegt (mit Freigabe des Besitzers) und der Skill
+    verweist darauf.
+  - Summary: Verhindert, dass ein in der Cloud angelegter Eintrag beim
+    Abgleich mit dem ToDo-Viewer verloren geht, wenn lokal gleichzeitig ein
+    Eintrag mit derselben Nummer entsteht.
+  - Resolution: Vom Besitzer bestätigt (2026-10-22).
