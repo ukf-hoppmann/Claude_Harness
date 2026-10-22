@@ -1570,3 +1570,40 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     bereitstellt.
   - Resolution: Vom Besitzer bestätigt (2026-10-22): Abnahmelauf der
     Cloud-Kopie in einer echten Cloud-Sitzung geprüft.
+
+- `STORY-043` **Notes und Topics im Dateimodus führen**
+  - Uid: 6e490502-1f99-4cba-8eb0-6985f5929ba7.
+  - Type: Story.
+  - Parent: `EPIC-010`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-10-16.
+  - Area: Entwicklung.
+  - Priority: Normal.
+  - Dependencies: `STORY-042`.
+  - Goal: Notes und Topics lassen sich im Dateimodus (`backend = files`, z.
+    B. in einer Cloud-Session) über den Ordner `notes/` im Backlog-Ordner
+    führen, im Format des ToDo-Viewers (dessen Techdoc `interfaces.md`,
+    Abschnitt Dateiformat Version 2: Notes und Topics). Der Viewer liest sie
+    beim Sync in seine Datenbank.
+  - Completion criteria: 1. Notes sind auch bei `files` aktiv
+    (Config-Auswertung und Sitzungsstart-Zeile). 2. Der todo-Skill enthält
+    eine Regeldatei für das Dateiformat (Version 2) und die Befugnis: Notes
+    anlegen als `new-<kurzname>.md` mit erster Zeile `# NEW`, neue Topics
+    als `Topic: new:<Name>` bzw. `NEW`-Zeile in `topics.md`, Zeiten in UTC
+    mit `Z`; Labels, `Uid` und der Auslöser-Zustand `fired` gehören dem
+    Viewer und werden nicht von Hand gesetzt; es gibt nur die Auslöser
+    `event` und `topic_due`, eine `time`-Zeile ist ein Formatfehler. 3. Ein
+    Index-Helfer für `notes/` (Gegenstück zu `backlog.py --index`) listet
+    Label, Status, Review, Topic und Summary, ohne alle Dateien zu lesen. 4.
+    Fälligkeit ohne Viewer ist geregelt: nur auf Nachfrage werden `Review`
+    und das Datum des Topics mit dem heutigen Datum verglichen; Zeitpunkte
+    sind Sache der Wecker und kommen hier nicht vor. 5. Die Regeln für `api`
+    und `files` sind getrennt; die Aussage, Notes seien privat und nie im
+    Repository, gilt nur für `api`, und die Dateivariante weist darauf hin,
+    dass die Notes dann im Repository (GitHub) liegen. 6. Techdocs und
+    README beschreiben Notes im Dateimodus; Tests decken den Helfer ab.
+  - Summary: Auch in der Cloud lassen sich Erinnerungen und Notizen führen:
+    als Markdown-Dateien im Repository, die der ToDo-Viewer später in seine
+    Datenbank übernimmt.
+  - Resolution: Vom Besitzer bestätigt (2026-10-22).

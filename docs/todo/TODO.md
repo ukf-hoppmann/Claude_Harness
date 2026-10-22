@@ -43,7 +43,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Story.
   - Parent: `EPIC-010`.
   - Required for parent: Yes.
-  - Status: Open.
+  - Status: In progress.
   - Created: 2026-10-16.
   - Area: Entwicklung.
   - Priority: Normal.
@@ -55,17 +55,25 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     auffallen.
   - Completion criteria: 1. Ein Prüfskript (Stop-Hook wie
     `check_backlog.py`, nur bei `files` und nur nach Änderungen unter
-    `notes/`) meldet Datei und Zeile bei: unbekannter Kopfzeile, ungültigem
-    Status oder Zeitpunkt, Dateiname und Label verschieden, ungültiger
-    Auslöser- oder Link-Zeile, falschem Zeilenaufbau in `topics.md` und
-    `counters.md`. 2. Die Prüfung verwendet dieselben Beispiele wie der
-    Viewer: die Golden-Files unter `backend/tests/golden/notes/` des
-    ToDo-Viewers liegen als Testvorlagen im Harness und werden fehlerfrei
-    gelesen; je ein Fehlerfall pro Meldung ist getestet. 3. Weicht das
-    Format des Viewers von der Prüfung ab, ist der Unterschied in den Notes
-    der Story festgehalten (damit erledigt sich der offene Punkt Harness
-    gegen das Notes-Format aus STORY-047 des Viewers). 4. Techdocs
-    beschreiben die Prüfung.
+    `notes/`) prüft den ganzen Ordner `notes/` nach den Regeln des Decoders
+    von Format Version 2 und meldet Datei, Zeile und Fehlercode bei:
+    unbekannter, doppelter oder ungültiger Kopfzeile, fehlenden
+    Pflichtfeldern, ungültigem Status (auch `due`), `Mode`, `Archived` oder
+    Zeitpunkt, Dateiname und Überschrift verschieden, ungültigem
+    Platzhalter, ungültigem Auslöser (auch `time`) oder ungültiger
+    Verknüpfung, falschem Zeilenaufbau in `topics.md`, doppelter Uid,
+    doppeltem Label oder doppeltem Platzhalter und Git-Merge-Markern;
+    Dokumente der Notes nur auf Dateiname und zugehörige Note. 2. Die
+    Beispiele des Viewers liegen als Testvorlagen im Harness
+    (`tests/fixtures/`, aus `tests/fixtures/mirror-v2` des ToDo-Viewers):
+    `valid/notes` wird fehlerfrei gelesen, die Notes-Fehlerfälle `invalid/`
+    ergeben den erwarteten Code, die Datei und die Zeile; zu jedem
+    Fehlercode gibt es einen Test. 3. Weicht das Format des Viewers von der
+    Prüfung ab, ist der Unterschied in den Notes der Story festgehalten;
+    `counters.md` gibt es in Version 2 nicht und wird nicht geprüft. Die
+    Regeldatei `notes-files.md` ist berichtigt (Status `due` steht nie in
+    einer Datei) und `notes_files.py` übergeht keine `new-`-Datei mit
+    Großbuchstaben mehr. 4. Techdocs beschreiben die Prüfung.
   - Summary: Ein Tippfehler in einer Notes-Datei würde sonst den ganzen
     Abgleich mit dem ToDo-Viewer blockieren. Die Prüfung meldet ihn sofort
     mit Datei und Zeile.
@@ -99,42 +107,6 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Verhindert, dass ein in der Cloud angelegter Eintrag beim
     Abgleich mit dem ToDo-Viewer verloren geht, wenn lokal gleichzeitig ein
     Eintrag mit derselben Nummer entsteht.
-
-- `STORY-043` **Notes und Topics im Dateimodus führen**
-  - Uid: 6e490502-1f99-4cba-8eb0-6985f5929ba7.
-  - Type: Story.
-  - Parent: `EPIC-010`.
-  - Required for parent: Yes.
-  - Status: Awaiting confirmation.
-  - Created: 2026-10-16.
-  - Area: Entwicklung.
-  - Priority: Normal.
-  - Dependencies: `STORY-042`.
-  - Goal: Notes und Topics lassen sich im Dateimodus (`backend = files`, z.
-    B. in einer Cloud-Session) über den Ordner `notes/` im Backlog-Ordner
-    führen, im Format des ToDo-Viewers (dessen Techdoc `interfaces.md`,
-    Abschnitt Dateiformat Version 2: Notes und Topics). Der Viewer liest sie
-    beim Sync in seine Datenbank.
-  - Completion criteria: 1. Notes sind auch bei `files` aktiv
-    (Config-Auswertung und Sitzungsstart-Zeile). 2. Der todo-Skill enthält
-    eine Regeldatei für das Dateiformat (Version 2) und die Befugnis: Notes
-    anlegen als `new-<kurzname>.md` mit erster Zeile `# NEW`, neue Topics
-    als `Topic: new:<Name>` bzw. `NEW`-Zeile in `topics.md`, Zeiten in UTC
-    mit `Z`; Labels, `Uid` und der Auslöser-Zustand `fired` gehören dem
-    Viewer und werden nicht von Hand gesetzt; es gibt nur die Auslöser
-    `event` und `topic_due`, eine `time`-Zeile ist ein Formatfehler. 3. Ein
-    Index-Helfer für `notes/` (Gegenstück zu `backlog.py --index`) listet
-    Label, Status, Review, Topic und Summary, ohne alle Dateien zu lesen. 4.
-    Fälligkeit ohne Viewer ist geregelt: nur auf Nachfrage werden `Review`
-    und das Datum des Topics mit dem heutigen Datum verglichen; Zeitpunkte
-    sind Sache der Wecker und kommen hier nicht vor. 5. Die Regeln für `api`
-    und `files` sind getrennt; die Aussage, Notes seien privat und nie im
-    Repository, gilt nur für `api`, und die Dateivariante weist darauf hin,
-    dass die Notes dann im Repository (GitHub) liegen. 6. Techdocs und
-    README beschreiben Notes im Dateimodus; Tests decken den Helfer ab.
-  - Summary: Auch in der Cloud lassen sich Erinnerungen und Notizen führen:
-    als Markdown-Dateien im Repository, die der ToDo-Viewer später in seine
-    Datenbank übernimmt.
 
 - `STORY-045` **Ablauf zwischen Cloud, Git und lokalem Viewer festlegen**
   - Uid: dfc1d2ff-773e-4c7f-87d6-d312bf19de67.
