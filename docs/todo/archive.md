@@ -1737,3 +1737,28 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Ein Hook sorgt dafür, dass die Übersicht nach jeder Änderung
     der Notes geprüft wird, und erinnert ans Protokollieren.
   - Resolution: Vom Besitzer bestätigt (2026-10-22).
+
+- `STORY-051` **todo-Skill: Ort und Inhalt der Diskussionsprotokolle (Notes) festlegen**
+  - Uid: 3b18df8f-3832-4a6b-a090-51a845d0cabd.
+  - Type: Story.
+  - Parent: None.
+  - Status: Completed.
+  - Created: 2026-10-19.
+  - Area: Dokumentation.
+  - Priority: Urgent.
+  - Dependencies: None.
+  - Goal: Der todo-Skill legt Ort, Inhalt, Zeitpunkt und Aufbau der
+    Item-Notes fest: Kopf mit dem geltenden Stand, darunter das Protokoll;
+    die Spec wird fortlaufend geschrieben. Der Harness stellt mechanisch
+    sicher, dass der Kopf nach jeder Änderung der Notes geprüft wird.
+  - Completion criteria: Die beschlossenen Regeln stehen im todo-Skill und
+    in format.md; die Prüfsumme des Kopfs wird in API- und Files-Modus
+    gesetzt und geprüft; der Hook am Turn-Ende und der Reminder B sind
+    umgesetzt und getestet; die Schnittstelle zum ToDo-Viewer ist
+    beschrieben und dort umgesetzt.
+  - Summary: Claude schreibt Besprechungen bisher teils ins falsche Item, zu
+    knapp, und lange Notes sind unübersichtlich. Künftig regelt der Harness,
+    wo und wie protokolliert wird; jede Notes-Datei bekommt oben eine
+    Übersicht über den aktuellen Stand, deren Aktualität der Harness prüft.
+  - Resolution: Vom Besitzer bestätigt (2026-10-22). Harness-Release
+    v0.12.6.

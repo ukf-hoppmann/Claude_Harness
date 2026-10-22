@@ -14,7 +14,7 @@
   - Umgesetzt, Doku und Skill angepasst, 636 Tests grün (2026-10-22)
 - References: Spec TASK-024_spec.md; STORY-051 (Spec, Notes); TASK-022, TASK-023; Architekturregel 2
 
-State confirmed after entry 2026-10-22 — Umsetzung (7b314accc035)
+State confirmed after entry 2026-10-22 — Hook-Test (119f578f6d8a)
 
 ## 2026-10-22 — Entscheidung: Merker über einen PostToolUse-Hook (Weg A)
 
@@ -57,3 +57,9 @@ State confirmed after entry 2026-10-22 — Umsetzung (7b314accc035)
 
 - Die neuen Hooks greifen erst nach einem Neuladen des Plugins; der Lauf mit den echten Hooks (Block am Turn-Ende, Erinnerung als Kontext, Form der Bash-Antwort in tool_response) ist in einer neuen Session zu prüfen. Die Form von tool_response (stdout/stderr) stammt aus der Doku von Claude Code, nicht aus einem echten Lauf.
 - Das Zurücksetzen des Zählers auch bei put-state und confirm-state ist eine Vereinfachung; ein feinerer Unterschied bräuchte eine zweite Zeile des Helfers.
+
+## 2026-10-22 — Hook-Test
+
+### Discussed
+
+- Testeintrag des echten Hook-Laufs (STORY-051); darf ignoriert werden.
