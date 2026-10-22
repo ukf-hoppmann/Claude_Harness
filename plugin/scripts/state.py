@@ -76,24 +76,42 @@ def write_changed_notes(session_id: str, notes: set[tuple[str, str]]) -> None:
     path.write_text(json.dumps(sorted(f"{project}\t{relative}" for project, relative in notes)))
 
 
-def items_file(session_id: str, kind: str) -> Path:
-    """JSON list of "<project>\\t<ID>": backlog items whose `notes` were changed or which are `active` in the session."""
-    return state_dir() / f"backlog-items-{kind}-{_safe(session_id)}.json"
+NotesMark = dict[str, "str | int | None"]
 
 
-def read_items(session_id: str, kind: str) -> set[tuple[str, str]]:
+def notes_marks_file(session_id: str) -> Path:
+    """JSON object "<project>\\t<ID>" -> {"state", "turns"} for the backlog items of the session (API backend).
+
+    `state` is the state of the item's notes head as the helper last reported it (`current`, `stale`, `missing`, or
+    null when only known as active); `turns` counts the prompts since the item became active or got a notes entry
+    (null while the item is not active).
+    """
+    return state_dir() / f"notes-marks-{_safe(session_id)}.json"
+
+
+def read_notes_marks(session_id: str) -> dict[tuple[str, str], NotesMark]:
     try:
-        entries = json.loads(items_file(session_id, kind).read_text())
+        entries = json.loads(notes_marks_file(session_id).read_text())
     except (OSError, ValueError):
-        return set()
-    return {tuple(str(entry).split("\t", 1)) for entry in entries if "\t" in str(entry)}
+        return {}
+    marks: dict[tuple[str, str], NotesMark] = {}
+    if not isinstance(entries, dict):
+        return marks
+    for key, mark in entries.items():
+        project, separator, identifier = str(key).partition("\t")
+        if separator and isinstance(mark, dict) and "state" in mark and "turns" in mark:
+            marks[(project, identifier)] = {"state": mark["state"], "turns": mark["turns"]}
+    return marks
 
 
-def add_item(session_id: str, kind: str, project: str, identifier: str) -> None:
-    items = read_items(session_id, kind) | {(project, identifier)}
-    path = items_file(session_id, kind)
+def write_notes_marks(session_id: str, marks: dict[tuple[str, str], NotesMark]) -> None:
+    """Store the marks; an empty dict removes the file."""
+    path = notes_marks_file(session_id)
+    if not marks:
+        path.unlink(missing_ok=True)
+        return
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(sorted(f"{p}\t{i}" for p, i in items)))
+    path.write_text(json.dumps({f"{project}\t{identifier}": mark for (project, identifier), mark in sorted(marks.items())}))
 
 
 def delivered_notices_file(session_id: str) -> Path:

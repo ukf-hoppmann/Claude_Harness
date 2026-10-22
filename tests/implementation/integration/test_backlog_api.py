@@ -296,17 +296,22 @@ class BacklogApiTest(unittest.TestCase):
 
     def test_note_gives_no_hint_without_a_child_in_progress(self):
         self.show_route("STORY-001", "Story", ("TASK-002", "Open", False), ("TASK-004", "In progress", True))
-        self.assertEqual(self.run_api("note", "STORY-001", stdin='{"topic": "T"}').stderr, "")
+        self.assertEqual(self.quiet(self.run_api("note", "STORY-001", stdin='{"topic": "T"}')), "")
 
     def test_note_on_a_task_gives_no_hint(self):
         self.show_route("TASK-002", "Task")
-        self.assertEqual(self.run_api("note", "TASK-002", stdin='{"topic": "T"}').stderr, "")
+        self.assertEqual(self.quiet(self.run_api("note", "TASK-002", stdin='{"topic": "T"}')), "")
 
     def test_note_is_still_written_when_the_lookup_fails(self):
         self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n", "version": 2})
         result = self.run_api("note", "STORY-001", stdin='{"topic": "T"}')
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(result.stderr, "")
+        self.assertEqual(self.quiet(result), "")
+
+    @staticmethod
+    def quiet(result):
+        """stderr without the machine-readable `[harness]` lines the hooks read."""
+        return "".join(line + "\n" for line in result.stderr.splitlines() if not line.startswith("[harness]"))
 
     STATE = f"{ITEMS}/STORY-001/notes/state"
 
@@ -339,7 +344,7 @@ class BacklogApiTest(unittest.TestCase):
         result = self.run_api("confirm-state", "STORY-001", "4")
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.last("POST")["body"], {"project": "p1", "version": 4})
-        self.assertEqual(result.stderr, "")
+        self.assertEqual(self.quiet(result), "")
 
     def test_state_versions_are_checked_before_any_request(self):
         for command in ("put-state", "confirm-state"):
@@ -367,45 +372,89 @@ class BacklogApiTest(unittest.TestCase):
         self.assertEqual(result.returncode, 1)
         self.assertIn("does not support the notes head", result.stderr)
 
-    def run_in_session(self, *args, stdin=""):
-        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_CODE_SESSION_ID="s1",
-                   CLAUDE_PLUGIN_DATA=str(Path(self._tmp.name) / "data"))
-        return subprocess.run([sys.executable, str(SCRIPTS / "backlog_api.py"), *args], input=stdin,
-                              capture_output=True, text=True, timeout=30, cwd=self.project, env=env)
+    # The hooks read these lines from the Bash answer (mark_notes_state.py); nothing is stored by the helper.
+    def harness_lines(self, result):
+        return [line for line in result.stderr.splitlines() if line.startswith("[harness]")]
 
-    def test_session_remembers_changed_notes_and_active_items(self):
-        from state import read_items
-        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n"})
+    def test_note_reports_the_state_of_the_head(self):
+        for state in ("current", "stale", "missing"):
+            with self.subTest(state):
+                self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n", "notes_state": state})
+                result = self.run_api("note", "STORY-001", stdin='{"topic": "T"}')
+                self.assertEqual(self.harness_lines(result), [f"[harness] notes-state STORY-001 {state}"])
+
+    def test_put_state_and_confirm_state_report_the_state(self):
+        self.viewer.routes[("PUT", self.STATE)] = (200, {"state": "current", "version": 5, "hints": []})
+        self.viewer.routes[("POST", f"{self.STATE}/confirm")] = (200, {"state": "current", "version": 6, "hints": []})
+        put = self.run_api("put-state", "STORY-001", "4", stdin="- Goal/Status: g\n")
+        confirm = self.run_api("confirm-state", "STORY-001", "5")
+        self.assertEqual(self.harness_lines(put), ["[harness] notes-state STORY-001 current"])
+        self.assertEqual(self.harness_lines(confirm), ["[harness] notes-state STORY-001 current"])
+
+    def test_put_doc_of_notes_reports_the_state_from_the_hints(self):
+        path = f"{ITEMS}/STORY-001/documents/STORY-001_notes.md"
+        cases = {
+            "stale": [{"code": "notes_state_stale", "message": "m"}],
+            "missing": [{"code": "notes_state_missing", "message": "m"}],
+            "current": [{"code": "notes_state_long", "message": "m"}],
+        }
+        for state, hints in cases.items():
+            with self.subTest(state):
+                self.viewer.routes[("PUT", path)] = (200, {"name": "STORY-001_notes.md", "version": 3, "hints": hints})
+                result = self.run_api("put-doc", "STORY-001", "STORY-001_notes.md", "2", stdin="x")
+                self.assertEqual(self.harness_lines(result), [f"[harness] notes-state STORY-001 {state}"])
+
+    def test_put_doc_without_hints_means_current(self):
+        path = f"{ITEMS}/STORY-001/documents/STORY-001_notes.md"
+        self.viewer.routes[("PUT", path)] = (200, {"name": "STORY-001_notes.md", "version": 3})
+        result = self.run_api("put-doc", "STORY-001", "STORY-001_notes.md", "2", stdin="x")
+        self.assertEqual(self.harness_lines(result), ["[harness] notes-state STORY-001 current"])
+
+    def test_put_doc_of_a_spec_reports_nothing(self):
+        self.viewer.routes[("PUT", f"{ITEMS}/STORY-001/documents/STORY-001_spec.md")] = (200, {"name": "n", "version": 3})
+        result = self.run_api("put-doc", "STORY-001", "STORY-001_spec.md", "2", stdin="x")
+        self.assertEqual(self.harness_lines(result), [])
+
+    def test_active_items_are_reported(self):
         self.viewer.routes[("PUT", f"{ITEMS}/TASK-002")] = (200, {"label": "TASK-002"})
+        self.viewer.routes[("POST", f"{ITEMS}/TASK-005/reopen")] = (200, {"label": "TASK-005"})
         self.viewer.routes[("GET", f"{ITEMS}/TASK-003/documents/TASK-003_spec.md")] = (
             200, {"name": "TASK-003_spec.md", "content": "x", "version": 1})
+        started = self.run_api("update", "TASK-002", "1", stdin='{"fields": {"status": "In progress"}}')
+        reopened = self.run_api("reopen", "TASK-005")
+        read_spec = self.run_api("doc", "TASK-003", "TASK-003_spec.md")
+        self.assertEqual(self.harness_lines(started), ["[harness] active TASK-002"])
+        self.assertEqual(self.harness_lines(reopened), ["[harness] active TASK-005"])
+        self.assertEqual(self.harness_lines(read_spec), ["[harness] active TASK-003"])
+
+    def test_nothing_is_reported_for_other_changes(self):
+        self.viewer.routes[("PUT", f"{ITEMS}/TASK-004")] = (200, {"label": "TASK-004"})
         self.viewer.routes[("GET", f"{ITEMS}/TASK-003/documents/TASK-003_notes.md")] = (
             200, {"name": "TASK-003_notes.md", "content": "x", "version": 1})
-        self.run_in_session("note", "STORY-001", stdin='{"topic": "T"}')
-        self.run_in_session("update", "TASK-002", "1", stdin='{"fields": {"status": "In progress"}}')
-        self.run_in_session("update", "TASK-004", "1", stdin='{"fields": {"status": "Open"}}')
-        self.run_in_session("doc", "TASK-003", "TASK-003_spec.md")
-        self.run_in_session("doc", "TASK-003", "TASK-003_notes.md")
-        data = Path(self._tmp.name) / "data"
-        old = os.environ.get("CLAUDE_PLUGIN_DATA")
-        os.environ["CLAUDE_PLUGIN_DATA"] = str(data)
-        try:
-            self.assertEqual(read_items("s1", "notes"), {("root", "STORY-001")})
-            self.assertEqual(read_items("s1", "active"), {("root", "TASK-002"), ("root", "TASK-003")})
-        finally:
-            if old is None:
-                del os.environ["CLAUDE_PLUGIN_DATA"]
-            else:
-                os.environ["CLAUDE_PLUGIN_DATA"] = old
+        updated = self.run_api("update", "TASK-004", "1", stdin='{"fields": {"status": "Open"}}')
+        read_notes = self.run_api("doc", "TASK-003", "TASK-003_notes.md")
+        self.assertEqual(self.harness_lines(updated), [])
+        self.assertEqual(self.harness_lines(read_notes), [])
 
-    def test_nothing_is_remembered_without_a_session(self):
-        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n"})
-        env = {k: v for k, v in os.environ.items() if k != "CLAUDE_CODE_SESSION_ID"}
-        env.update(CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(Path(self._tmp.name) / "data"))
-        result = subprocess.run([sys.executable, str(SCRIPTS / "backlog_api.py"), "note", "STORY-001"],
-                                input='{"topic": "T"}', capture_output=True, text=True, timeout=30,
-                                cwd=self.project, env=env)
+    def test_nothing_is_reported_for_another_projects_backlog(self):
+        self.viewer.add_project("misc", "Allgemein")
+        self.viewer.routes[("POST", f"{API}/backlog/items/STORY-001/notes")] = (200, {"name": "n", "notes_state": "stale"})
+        result = self.run_api("--source", "Allgemein", "note", "STORY-001", stdin='{"topic": "T"}')
         self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.harness_lines(result), [])
+
+    def test_nothing_is_reported_when_the_call_fails(self):
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (409, {"code": "version_conflict", "message": "x"})
+        result = self.run_api("note", "STORY-001", stdin='{"topic": "T"}')
+        self.assertEqual(result.returncode, 1)
+        self.assertEqual(self.harness_lines(result), [])
+
+    def test_the_helper_stores_no_state(self):
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n", "notes_state": "stale"})
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_CODE_SESSION_ID="s1",
+                   CLAUDE_PLUGIN_DATA=str(Path(self._tmp.name) / "data"))
+        subprocess.run([sys.executable, str(SCRIPTS / "backlog_api.py"), "note", "STORY-001"], input='{"topic": "T"}',
+                       capture_output=True, text=True, timeout=30, cwd=self.project, env=env)
         self.assertFalse((Path(self._tmp.name) / "data").exists())
 
     def test_doc_prints_version_and_content(self):
