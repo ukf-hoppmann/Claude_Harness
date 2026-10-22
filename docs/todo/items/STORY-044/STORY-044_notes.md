@@ -2,18 +2,18 @@
 
 ## State
 
-- Ziel/Status: Formatprüfung für notes/ im Dateimodus. Umgesetzt und getestet, wartet auf Bestätigung.
-- Nächster Schritt: Owner bestätigt; danach STORY-045 (Ablauf zwischen Cloud, Git und Viewer) oder STORY-046.
-- Offen:
+- Goal/Status: Formatprüfung für notes/ im Dateimodus. Umgesetzt und getestet, wartet auf Bestätigung.
+- Next step: Owner bestätigt; danach STORY-045 (Ablauf zwischen Cloud, Git und Viewer) oder STORY-046.
+- Open:
   - Prüfung dupliziert die Regeln des Viewer-Decoders; bei Formatänderung Fixtures neu kopieren
   - Verweisziele werden nicht auf Existenz geprüft
-- Beschlossen:
+- Decided:
   - Story gestartet, STORY-043 bestätigt (2026-10-22)
   - Maßstab ist der Decoder des Neubaus (Format Version 2) mit den Beispielen aus tests/fixtures/mirror-v2; counters.md entfällt (2026-10-22)
   - Umfang notes/ ohne Prüfung von Verweisen; Hook im vorhandenen check_backlog.py, nur nach Änderung unter notes/ (2026-10-22)
   - Korrekturen aus STORY-043 gehören hierher; keine Tasks (2026-10-22)
   - Umgesetzt: notes_format.py, notes_files.py --check, Marke und Stop-Hook, Skill-Regeln, Techdocs (2026-10-22)
-- Verweise: Spec STORY-044_spec.md; Viewer-Decoder decode.py und syntax.py, Fixtures tests/fixtures/mirror-v2; STORY-043 Notes; EPIC-010
+- References: Spec STORY-044_spec.md; Viewer-Decoder decode.py und syntax.py, Fixtures tests/fixtures/mirror-v2; STORY-043 Notes; EPIC-010
 
 State confirmed after entry 2026-10-22 — Umsetzung (f722b63e144c)
 

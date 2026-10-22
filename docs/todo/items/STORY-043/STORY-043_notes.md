@@ -2,18 +2,18 @@
 
 ## State
 
-- Ziel/Status: Notes und Topics im Dateimodus führen. Umgesetzt und getestet, wartet auf Bestätigung.
-- Nächster Schritt: Owner bestätigt; danach STORY-044 (Formatprüfung) oder STORY-045 (Ablauf).
-- Offen:
+- Goal/Status: Notes und Topics im Dateimodus führen. Umgesetzt und getestet, wartet auf Bestätigung.
+- Next step: Owner bestätigt; danach STORY-044 (Formatprüfung) oder STORY-045 (Ablauf).
+- Open:
   - Sync mit dem echten Viewer nicht geprüft (new-Dateien, topics.md, Deleted)
-- Beschlossen:
+- Decided:
   - Story gestartet, STORY-042 und STORY-047 bestätigt (2026-10-22)
   - Dateiformat Version 2 des Viewer-Neubaus gilt, alte Fassung verworfen (2026-10-22)
   - alarms.md nicht in dieser Story (2026-10-22)
   - Kriterien 2 und 4 und das Ziel auf Version 2 umgestellt (2026-10-22)
   - Keine Tasks, eine Sitzung (2026-10-22)
   - Umgesetzt: notes_enabled bei jedem Backend, viewer_notes_enabled für die API-Helfer, notes_files.py, notes-files.md, Doku (2026-10-22)
-- Verweise: Spec STORY-043_spec.md; Viewer-Techdoc docs/techdocs/interfaces.md (Dateiformat Version 2); EPIC-010; STORY-044 und STORY-045 für Formatprüfung und Ablauf
+- References: Spec STORY-043_spec.md; Viewer-Techdoc docs/techdocs/interfaces.md (Dateiformat Version 2); EPIC-010; STORY-044 und STORY-045 für Formatprüfung und Ablauf
 
 State confirmed after entry 2026-10-22 — Umsetzung (977fe1df9f84)
 

@@ -2,18 +2,18 @@
 
 ## State
 
-- Ziel/Status: Ablauf zwischen Cloud, Git und lokalem Viewer im Skill todo beschrieben und am echten Backlog durchgespielt. Umgesetzt, wartet auf Bestätigung.
-- Nächster Schritt: Owner bestätigt; danach STORY-046 (doppelte IDs) und das Epic EPIC-010 prüfen.
-- Offen:
+- Goal/Status: Ablauf zwischen Cloud, Git und lokalem Viewer im Skill todo beschrieben und am echten Backlog durchgespielt. Umgesetzt, wartet auf Bestätigung.
+- Next step: Owner bestätigt; danach STORY-046 (doppelte IDs) und das Epic EPIC-010 prüfen.
+- Open:
   - Konflikt-, Merge-Marker- und Formatfehler-Fall nur nach Doku beschrieben, nicht erprobt
   - Sync-Status im Helfer backlog_api.py als möglicher Befehl, kein Item
-- Beschlossen:
+- Decided:
   - Story gestartet, STORY-044 bestätigt (2026-10-22)
   - Rückweg nach main per Pull Request auf GitHub, lokales Merge als Alternative (2026-10-22)
   - Durchspielung am echten Backlog mit unschädlicher Änderung (2026-10-22)
   - Regeln in sync-flow.md im Skill todo, notes.md und SKILL.md berichtigt, README und Techdocs ergänzt (2026-10-22)
   - Durchspielung erfolgreich: Sync etwa 16 Sekunden nach dem Merge, Eintrag und Probe-Note mit Label in der Datenbank (2026-10-22)
-- Verweise: Spec STORY-045_spec.md; Viewer-Doku operations.md, neubau-server.md; STORY-042, STORY-043, STORY-046; EPIC-010
+- References: Spec STORY-045_spec.md; Viewer-Doku operations.md, neubau-server.md; STORY-042, STORY-043, STORY-046; EPIC-010
 
 State confirmed after entry 2026-10-22 — Umsetzung und Durchspielung am echten Backlog (054f51975f3e)
 

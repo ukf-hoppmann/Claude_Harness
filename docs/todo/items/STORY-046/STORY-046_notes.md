@@ -2,16 +2,16 @@
 
 ## State
 
-- Ziel/Status: Doppelt vergebene IDs bei paralleler Arbeit in Cloud und lokal vermeiden. Gelöst durch Platzhalter (Format Version 2); Regeltext und Techdoc angepasst, wartet auf Bestätigung.
-- Nächster Schritt: Owner bestätigt; danach Stand von EPIC-010 prüfen.
-- Offen:
+- Goal/Status: Doppelt vergebene IDs bei paralleler Arbeit in Cloud und lokal vermeiden. Gelöst durch Platzhalter (Format Version 2); Regeltext und Techdoc angepasst, wartet auf Bestätigung.
+- Next step: Owner bestätigt; danach Stand von EPIC-010 prüfen.
+- Open:
   - Ein Item mit Platzhalter wurde nicht am echten Backlog synchronisiert (Beleg: Tests und Doku des Viewers)
-- Beschlossen:
+- Decided:
   - Story gestartet, STORY-045 bestätigt (2026-10-22)
   - Befund: Der Viewer gleicht nach Uid ab, neue Einträge der Cloud tragen nur Platzhalter, Label und Uid vergibt der Viewer (2026-10-22)
   - Entscheidung (c): Platzhalter festschreiben statt Skill-Verbot oder Viewer-Erweiterung (2026-10-22)
   - sync-flow.md und interfaces.md angepasst (2026-10-22)
-- Verweise: Viewer-Doku neubau-server.md (Vergleich je Uid), interfaces.md (Neue Backlog-Einträge aus den Dateien); format.md (New entries); STORY-045 (sync-flow.md); EPIC-010
+- References: Viewer-Doku neubau-server.md (Vergleich je Uid), interfaces.md (Neue Backlog-Einträge aus den Dateien); format.md (New entries); STORY-045 (sync-flow.md); EPIC-010
 
 State confirmed after entry 2026-10-22 — Befund, Entscheidung und Umsetzung: Platzhalter statt Nummernvergabe (cb5018a370f1)
 

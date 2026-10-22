@@ -2,16 +2,16 @@
 
 ## State
 
-- Ziel/Status: Harness und ToDo-Viewer über claude.ai nutzen. Kriterien 1 bis 3 sind erfüllt (über STORY-042 bis 047), Kriterium 4 (echter Lauf in einer Cloud-Sitzung mit Notes und Rückweg) ist nicht belegt.
-- Nächster Schritt: Owner bestätigt STORY-046; danach entscheidet er über den Lauf in einer echten Cloud-Sitzung (Kriterium 4).
-- Offen:
+- Goal/Status: Harness und ToDo-Viewer über claude.ai nutzen. Kriterien 1 bis 3 sind erfüllt (über STORY-042 bis 047), Kriterium 4 (echter Lauf in einer Cloud-Sitzung mit Notes und Rückweg) ist nicht belegt.
+- Next step: Owner bestätigt STORY-046; danach entscheidet er über den Lauf in einer echten Cloud-Sitzung (Kriterium 4).
+- Open:
   - Kriterium 4: Lauf in einer echten claude.ai-Sitzung mit einem Fremdprojekt, Stand danach im Viewer
   - Konflikt-, Merge-Marker- und Platzhalter-Fall am echten Viewer nicht erprobt
-- Beschlossen:
+- Decided:
   - Weg A: Harness als eingecheckte Kopie im Projekt (2026-10-16)
   - Lokal API, Cloud Dateien, Cloud-Erkennung automatisch (2026-10-16)
   - Rückweg nach main per Pull Request, Durchspielung am echten Backlog (2026-10-22)
-- Verweise: STORY-042 bis STORY-047; sync-flow.md; README, Abschnitt Cloud-Sitzungen
+- References: STORY-042 bis STORY-047; sync-flow.md; README, Abschnitt Cloud-Sitzungen
 
 State confirmed after entry 2026-10-22 — Stand nach STORY-042 bis STORY-047: Prüfung der Epic-Kriterien (0087e133cdb4)
 
