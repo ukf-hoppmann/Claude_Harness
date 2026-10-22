@@ -5,11 +5,14 @@ The backlog comes from the harness config of the session's project, never from a
 """
 from __future__ import annotations
 
+import os
 import sys
+from collections.abc import Callable
 from typing import Any
 from urllib.parse import quote
 
 from notes_hint import child_in_progress_hint
+from state import add_item
 from viewer_api import (
     EXIT_USAGE, NO_PARENT, Api, ApiError, Target, find_project, item_fields, print_json, print_projects,
     register_project, split_target, stdin_json, target_for, version_arg,
@@ -31,7 +34,14 @@ USAGE = """usage: backlog_api.py [--project <name> | --source <name>] <command> 
   update <ID> <version>                   stdin: JSON {"fields": {...}, "resolution": ...}
   move <ID> <version> <parent|-> [--position N]   new parent ('-' = no parent) and position among siblings
   reopen <ID>                             reopen the item and its closed ancestors (In progress)
-  note <ID>                               stdin: JSON {"topic", "discussed", "decided", "open", "summary"}
+  note <ID>                               stdin: JSON {"topic", "discussed", "decided", "open", "summary",
+                                          "state", "state_version"} (state = new head, with state_version
+                                          when the notes have a head)
+  state <ID>                              the head (## State) of the item's notes without the log: content,
+                                          stamp, state (current|stale|missing), checksum, last_entry, version
+  put-state <ID> <version>                stdin: the complete new head (without heading and stamp); the server stamps it
+  confirm-state <ID> <version>            the head is still current: only the stamp is renewed
+  entries <ID> [--last N]                 the log entries (all, or the last N): position, day, topic, text
   doc <ID> <name>                         print a notes/spec document: 'version: <v>', blank line, content
   put-doc <ID> <name> <version|new> [--summary TEXT]   stdin: the complete new document text
   retype <ID> <version> <type>            change the type (Epic|Story|Task); the item gets a new ID
@@ -92,7 +102,7 @@ def _hint_children_in_progress(api: Api, project: str, identifier: str) -> None:
 
 def _options(command: str, args: list[str]) -> tuple[list[str], dict[str, str | bool]]:
     """Positional arguments and the command's options (flags or options with a value)."""
-    allowed = {"put-doc": {"--summary": False}, "delete": {"--cascade": True}, "index": {"--with-trash": True}, "move": {"--position": False}}
+    allowed = {"put-doc": {"--summary": False}, "entries": {"--last": False}, "delete": {"--cascade": True}, "index": {"--with-trash": True}, "move": {"--position": False}}
     flags = allowed.get(command, {})
     positional: list[str] = []
     options: dict[str, str | bool] = {}
@@ -111,10 +121,10 @@ def _options(command: str, args: list[str]) -> tuple[list[str], dict[str, str | 
 
 
 ARITY = {"health": 0, "sources": 0, "register": 0, "index": 0, "show": 1, "areas": 0, "create": 0, "update": 2,
-         "move": 3, "reopen": 1, "note": 1, "doc": 2, "put-doc": 3, "retype": 3, "delete": 2, "trash": 0,
+         "move": 3, "reopen": 1, "note": 1, "state": 1, "put-state": 2, "confirm-state": 2, "entries": 1, "doc": 2, "put-doc": 3, "retype": 3, "delete": 2, "trash": 0,
          "restore": 1}
 # Position of the <version> argument per command.
-VERSION_AT = {"update": 1, "move": 1, "put-doc": 2, "retype": 1, "delete": 1}
+VERSION_AT = {"update": 1, "move": 1, "put-state": 1, "confirm-state": 1, "put-doc": 2, "retype": 1, "delete": 1}
 
 
 def run(project_name: str, source_name: str | None, command: str, args: list[str]) -> None:
@@ -140,10 +150,45 @@ def run(project_name: str, source_name: str | None, command: str, args: list[str
         print(f"registered as viewer project {record['name']!r} (uid {record['uid']})")
         return
     target = target_for(api, project, source_name)
-    _run(target, command, positional, options)
+    _run(target, command, positional, options, _remember_in(project_name, source_name))
 
 
-def _run(target: Target, command: str, positional: list[str], options: dict[str, str | bool]) -> None:
+def _remember_in(project_name: str, source_name: str | None) -> Callable[[str, str], None]:
+    """Notes the session changed and items it works on ("notes", "active"), kept for the hooks; best effort.
+
+    Only the session's own backlog counts, and only where Claude Code names the session.
+    """
+    session_id = os.environ.get("CLAUDE_CODE_SESSION_ID")
+
+    def remember(kind: str, identifier: str) -> None:
+        if session_id and source_name is None:
+            try:
+                add_item(session_id, kind, project_name, identifier)
+            except OSError:
+                pass
+
+    return remember
+
+
+def _print_hints(answer: Any) -> None:
+    """The server's hints on a notes write, one line each on stderr; they never fail the call."""
+    for hint in (answer.get("hints") if isinstance(answer, dict) else None) or []:
+        print(f"hint: {hint.get('message', hint.get('code', ''))}", file=sys.stderr)
+
+
+def _notes_call(api: Api, method: str, path: str, body: Any = None, query: dict[str, str] | None = None) -> Any:
+    """A call on the notes head; an older viewer without it answers 404."""
+    try:
+        return api.call(method, path, body, query)
+    except ApiError as exc:
+        if str(exc).startswith("HTTP 404"):
+            raise ApiError("the ToDo-Viewer does not support the notes head (needs v0.9.0 or later); "
+                           f"work on the notes with note and put-doc.\n{exc}") from exc
+        raise
+
+
+def _run(target: Target, command: str, positional: list[str], options: dict[str, str | bool],
+         remember: Callable[[str, str], None]) -> None:
     api, project = target.api, target.uid
     if command == "index":
         text = api.call("GET", "/backlog/index", query={"projects": project})["text"]
@@ -172,6 +217,8 @@ def _run(target: Target, command: str, positional: list[str], options: dict[str,
         if "resolution" in data:
             body["resolution"] = data["resolution"]
         print_json(api.call("PUT", _item(identifier), body))
+        if body["fields"].get("status") == "In progress":
+            remember("active", identifier)
     elif command == "move":
         identifier, version, parent = positional[0], version_arg(positional[1]), positional[2]
         body = {"project": project, "version": version,
@@ -181,13 +228,38 @@ def _run(target: Target, command: str, positional: list[str], options: dict[str,
         print_json(api.call("POST", _item(identifier, "/move"), body))
     elif command == "reopen":
         print_json(api.call("POST", _item(positional[0], "/reopen"), {"project": project}))
+        remember("active", positional[0])
     elif command == "note":
-        print_json(api.call("POST", _item(positional[0], "/notes"), {**stdin_json(), "project": project}))
+        answer = api.call("POST", _item(positional[0], "/notes"), {**stdin_json(), "project": project})
+        print_json(answer)
+        _print_hints(answer)
+        remember("notes", positional[0])
         _hint_children_in_progress(api, project, positional[0])
+    elif command == "state":
+        print_json(_notes_call(api, "GET", _item(positional[0], "/notes/state"), query={"project": project}))
+    elif command == "entries":
+        query = {"project": project}
+        if "--last" in options:
+            query["last"] = str(version_arg(str(options["--last"])))
+        print_json(_notes_call(api, "GET", _item(positional[0], "/notes/entries"), query=query))
+    elif command == "put-state":
+        body = {"project": project, "content": sys.stdin.read(), "version": version_arg(positional[1])}
+        answer = _notes_call(api, "PUT", _item(positional[0], "/notes/state"), body)
+        print_json(answer)
+        _print_hints(answer)
+        remember("notes", positional[0])
+    elif command == "confirm-state":
+        body = {"project": project, "version": version_arg(positional[1])}
+        answer = _notes_call(api, "POST", _item(positional[0], "/notes/state/confirm"), body)
+        print_json(answer)
+        _print_hints(answer)
+        remember("notes", positional[0])
     elif command == "doc":
         identifier, name = positional
         document = api.call("GET", _item(identifier, f"/documents/{quote(name)}"), query={"project": project})
         sys.stdout.write(f"version: {document['version']}\n\n{document['content']}")
+        if name.endswith("_spec.md"):
+            remember("active", identifier)
     elif command == "put-doc":
         identifier, name, version = positional
         body = {"project": project, "content": sys.stdin.read(),
@@ -197,6 +269,8 @@ def _run(target: Target, command: str, positional: list[str], options: dict[str,
         document = api.call("PUT", _item(identifier, f"/documents/{quote(name)}"), body)
         print(f"{document['name']}: saved, version {document['version']}")
         if name.endswith("_notes.md"):
+            _print_hints(document)
+            remember("notes", identifier)
             _hint_children_in_progress(api, project, identifier)
     elif command == "retype":
         identifier, version, new_type = positional

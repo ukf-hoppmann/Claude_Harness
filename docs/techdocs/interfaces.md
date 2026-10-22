@@ -182,7 +182,11 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` (`PUT /backlog/items/{ID}`) |
   | `move <ID> <version> <parent\|-> [--position N]` | Neuer Parent (`-` = keiner) und Position unter den Geschwistern |
   | `reopen <ID>` | Eintrag und geschlossene Vorfahren auf `In progress`, von oben nach unten |
-  | `note <ID>` | Notes-Eintrag anhängen; stdin: `{topic, discussed, decided, open, summary?}`; bei einem Epic oder einer Story mit Kind `In progress` (nicht im Papierkorb) fragt ein Hinweis auf stderr, ob die Besprechung dorthin gehört; der Eintrag wird immer geschrieben |
+  | `note <ID>` | Notes-Eintrag anhängen; stdin: `{topic, discussed, decided, open, summary?, state?, state_version?}` (`state` ersetzt den Kopf im selben Aufruf); die `hints` des Servers (alle schreibenden Notes-Befehle) stehen zeilenweise als `hint: …` auf stderr; bei einem Epic oder einer Story mit Kind `In progress` (nicht im Papierkorb) fragt ein Hinweis auf stderr, ob die Besprechung dorthin gehört; der Eintrag wird immer geschrieben |
+  | `state <ID>` | Kopf der Notes ohne Protokoll als JSON (`GET /backlog/items/{ID}/notes/state`): `content`, `stamp`, `state` (`current`/`stale`/`missing`), `checksum`, `last_entry`, `version` des Kopfs |
+  | `put-state <ID> <version>` | Kopf mit dem Text von stdin ersetzen (`PUT …/notes/state`); der Server stempelt gegen den letzten Eintrag |
+  | `confirm-state <ID> <version>` | Kopf unverändert bestätigen (`POST …/notes/state/confirm`); nur der Stempel zieht nach |
+  | `entries <ID> [--last N]` | Protokolleinträge (alle oder die letzten N) als `{position, day, topic, text}` (`GET …/notes/entries`) |
   | `doc <ID> <name>` | Notes oder Spec ausgeben: `version: <v>`, Leerzeile, Inhalt |
   | `put-doc <ID> <name> <version\|new> [--summary TEXT]` | Dokument mit dem Text von stdin ersetzen oder neu anlegen; bei `<ID>_notes.md` gilt derselbe Hinweis wie bei `note` |
   | `retype <ID> <version> <type>` | Typ ändern (`Epic`, `Story`, `Task`); der Eintrag erhält die nächste freie ID des neuen Typs, Verweise in den Texten des Projekts ziehen mit; Antwort mit `old_label` und `new_label` |

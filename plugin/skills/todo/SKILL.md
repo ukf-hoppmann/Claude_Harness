@@ -40,8 +40,9 @@ Read only what the task needs:
 
 - By default: the overview — API: `index`; files: `TODO.md`.
 - Discussing or deciding something about an item: also its notes — first
-  their head (`## State`) and the spec; the log only when you need the
-  reasons behind a decision.
+  their head (`## State`; API: `state <ID>`) and the spec; the log (API:
+  `entries <ID> --last N`, or `doc`) only when you need the reasons behind a
+  decision.
 - Planning its implementation or asked about its spec: also its spec.
   The spec is the input for a plan; do not write step-by-step plans into it.
 - Overview across `TODO.md` and `archive.md` (e.g. to place new work or to

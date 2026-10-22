@@ -43,7 +43,8 @@ class BacklogApiTest(unittest.TestCase):
         return sub / "docs" / "todo"
 
     def run_api(self, *args, stdin="", cwd=None):
-        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project))
+        env = {k: v for k, v in os.environ.items() if k != "CLAUDE_CODE_SESSION_ID"}
+        env.update(CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(Path(self._tmp.name) / "data"))
         return subprocess.run(
             [sys.executable, str(SCRIPTS / "backlog_api.py"), *args],
             input=stdin, capture_output=True, text=True, timeout=30, cwd=cwd or self.project, env=env,
@@ -306,6 +307,106 @@ class BacklogApiTest(unittest.TestCase):
         result = self.run_api("note", "STORY-001", stdin='{"topic": "T"}')
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stderr, "")
+
+    STATE = f"{ITEMS}/STORY-001/notes/state"
+
+    def test_state_prints_the_head_without_the_log(self):
+        answer = {"name": "STORY-001_notes.md", "content": "- Goal/Status: g\n", "state": "current", "version": 4}
+        self.viewer.routes[("GET", self.STATE)] = (200, answer)
+        result = self.run_api("state", "STORY-001")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(json.loads(result.stdout), answer)
+        self.assertEqual(self.last("GET")["query"], {"project": ["p1"]})
+
+    def test_entries_asks_for_the_last_ones(self):
+        entries = [{"position": 3, "day": "2026-10-21", "topic": "T", "text": "## 2026-10-21 — T\n"}]
+        self.viewer.routes[("GET", f"{ITEMS}/STORY-001/notes/entries")] = (200, entries)
+        result = self.run_api("entries", "STORY-001", "--last", "2")
+        self.assertEqual(json.loads(result.stdout), entries)
+        self.assertEqual(self.last("GET")["query"], {"project": ["p1"], "last": ["2"]})
+
+    def test_put_state_sends_the_text_and_shows_hints(self):
+        hint = {"code": "notes_state_long", "message": "More than 15 points under - Decided:"}
+        self.viewer.routes[("PUT", self.STATE)] = (200, {"state": "current", "version": 5, "hints": [hint]})
+        result = self.run_api("put-state", "STORY-001", "4", stdin="- Goal/Status: g\n")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("PUT")["body"], {"project": "p1", "content": "- Goal/Status: g\n", "version": 4})
+        self.assertIn("hint: More than 15 points under - Decided:", result.stderr)
+        self.assertEqual(json.loads(result.stdout)["version"], 5)
+
+    def test_confirm_state_sends_only_the_version(self):
+        self.viewer.routes[("POST", f"{self.STATE}/confirm")] = (200, {"state": "current", "version": 5, "hints": []})
+        result = self.run_api("confirm-state", "STORY-001", "4")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(self.last("POST")["body"], {"project": "p1", "version": 4})
+        self.assertEqual(result.stderr, "")
+
+    def test_state_versions_are_checked_before_any_request(self):
+        for command in ("put-state", "confirm-state"):
+            result = self.run_api(command, "STORY-001", "v1", stdin="x")
+            self.assertEqual(result.returncode, 2)
+        self.assertEqual(self.viewer.requests, [])
+
+    def test_note_passes_a_new_head_and_shows_hints(self):
+        hint = {"code": "notes_state_stale", "message": "The head is stale."}
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n", "hints": [hint]})
+        entry = {"topic": "T", "decided": ["x"], "state": "- Goal/Status: g\n", "state_version": 4}
+        result = self.run_api("note", "STORY-001", stdin=json.dumps(entry))
+        self.assertEqual(self.last("POST")["body"], {**entry, "project": "p1"})
+        self.assertIn("hint: The head is stale.", result.stderr)
+
+    def test_put_doc_of_notes_shows_hints_of_the_server(self):
+        hint = {"code": "notes_history_rewritten", "message": "An earlier entry was changed."}
+        path = f"{ITEMS}/STORY-001/documents/STORY-001_notes.md"
+        self.viewer.routes[("PUT", path)] = (200, {"name": "STORY-001_notes.md", "version": 3, "hints": [hint]})
+        result = self.run_api("put-doc", "STORY-001", "STORY-001_notes.md", "2", stdin="x")
+        self.assertIn("hint: An earlier entry was changed.", result.stderr)
+
+    def test_viewer_without_head_support_gets_a_clear_message(self):
+        result = self.run_api("state", "STORY-001")
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("does not support the notes head", result.stderr)
+
+    def run_in_session(self, *args, stdin=""):
+        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_CODE_SESSION_ID="s1",
+                   CLAUDE_PLUGIN_DATA=str(Path(self._tmp.name) / "data"))
+        return subprocess.run([sys.executable, str(SCRIPTS / "backlog_api.py"), *args], input=stdin,
+                              capture_output=True, text=True, timeout=30, cwd=self.project, env=env)
+
+    def test_session_remembers_changed_notes_and_active_items(self):
+        from state import read_items
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n"})
+        self.viewer.routes[("PUT", f"{ITEMS}/TASK-002")] = (200, {"label": "TASK-002"})
+        self.viewer.routes[("GET", f"{ITEMS}/TASK-003/documents/TASK-003_spec.md")] = (
+            200, {"name": "TASK-003_spec.md", "content": "x", "version": 1})
+        self.viewer.routes[("GET", f"{ITEMS}/TASK-003/documents/TASK-003_notes.md")] = (
+            200, {"name": "TASK-003_notes.md", "content": "x", "version": 1})
+        self.run_in_session("note", "STORY-001", stdin='{"topic": "T"}')
+        self.run_in_session("update", "TASK-002", "1", stdin='{"fields": {"status": "In progress"}}')
+        self.run_in_session("update", "TASK-004", "1", stdin='{"fields": {"status": "Open"}}')
+        self.run_in_session("doc", "TASK-003", "TASK-003_spec.md")
+        self.run_in_session("doc", "TASK-003", "TASK-003_notes.md")
+        data = Path(self._tmp.name) / "data"
+        old = os.environ.get("CLAUDE_PLUGIN_DATA")
+        os.environ["CLAUDE_PLUGIN_DATA"] = str(data)
+        try:
+            self.assertEqual(read_items("s1", "notes"), {("root", "STORY-001")})
+            self.assertEqual(read_items("s1", "active"), {("root", "TASK-002"), ("root", "TASK-003")})
+        finally:
+            if old is None:
+                del os.environ["CLAUDE_PLUGIN_DATA"]
+            else:
+                os.environ["CLAUDE_PLUGIN_DATA"] = old
+
+    def test_nothing_is_remembered_without_a_session(self):
+        self.viewer.routes[("POST", f"{ITEMS}/STORY-001/notes")] = (200, {"name": "n"})
+        env = {k: v for k, v in os.environ.items() if k != "CLAUDE_CODE_SESSION_ID"}
+        env.update(CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(Path(self._tmp.name) / "data"))
+        result = subprocess.run([sys.executable, str(SCRIPTS / "backlog_api.py"), "note", "STORY-001"],
+                                input='{"topic": "T"}', capture_output=True, text=True, timeout=30,
+                                cwd=self.project, env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertFalse((Path(self._tmp.name) / "data").exists())
 
     def test_doc_prints_version_and_content(self):
         self.viewer.routes[("GET", f"{ITEMS}/STORY-001/documents/STORY-001_notes.md")] = (
