@@ -153,7 +153,13 @@ only with `api`; read it when asked to remind at a time).
 - API mode: the server writes into the backlog folder of the main checkout,
   never into a worktree, and does not commit. Commit those files in the main
   checkout on their own (message `Backlog: …`) when the task is done. During
-  a worktree change, do it after `ExitWorktree` and before the merge.
+  a worktree change, do it after `ExitWorktree` and before the merge. With a
+  mirror this includes `notes/` below the backlog folder, which the viewer
+  writes; you still do not read, edit, create, or delete any of these files
+  yourself.
+- Cloud sessions and the local viewer exchange the backlog through Git and the
+  viewer's sync: [sync-flow.md](sync-flow.md) (read it when a cloud session is
+  prepared or its branch comes back).
 
 Field syntax, lifecycle rules, and details: [format.md](format.md). Read it
 when creating items or when a check or the server reports a rule violation.

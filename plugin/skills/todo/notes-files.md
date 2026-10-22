@@ -118,6 +118,12 @@ run it yourself with
 block; it points to a file the viewer does not read, usually a typo in its
 name. Fix the file the message names; do not work around the check.
 
+## Back to the viewer
+
+The notes travel with the branch of the session. How they get into the
+viewer's database (pull request, pull, sync, conflicts) is described in
+[sync-flow.md](sync-flow.md).
+
 ## Authority
 
 Without asking: create and revise notes and topics, set links with role

@@ -153,6 +153,23 @@ class CloudCopyTest(unittest.TestCase):
         self.assertNotIn("CLAUDE_PLUGIN_ROOT", rules)
 
 
+class SyncFlowTest(unittest.TestCase):
+    SKILL = REPO_ROOT / "plugin" / "skills" / "todo"
+
+    def test_the_flow_rules_reach_the_cloud_copy(self):
+        self.assertIn(".claude/skills/harness-todo/sync-flow.md", skill_files(REPO_ROOT / "plugin"))
+
+    def test_the_skill_files_point_to_the_flow_rules(self):
+        for name in ("SKILL.md", "notes.md", "notes-files.md"):
+            with self.subTest(name):
+                self.assertIn("(sync-flow.md)", (self.SKILL / name).read_text(encoding="utf-8"))
+
+    def test_notes_are_not_called_database_only_without_naming_the_mirror(self):
+        text = (self.SKILL / "notes.md").read_text(encoding="utf-8")
+        self.assertNotIn("there are no note files, so nothing is committed", text)
+        self.assertIn("mirror", text)
+
+
 class UsageTest(unittest.TestCase):
     def test_wrong_calls_exit_2(self):
         for args in ([], ["a", "b"], [str(BACKLOG), "--bogus"], [str(BACKLOG), "--today", "x"],
