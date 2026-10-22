@@ -30,8 +30,10 @@ class HookTest(unittest.TestCase):
             f'[todo]\npath = "{path}"\nbackend = "{backend}"\n'
         )
 
-    def run_hook(self, script, payload):
-        env = dict(os.environ, CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(self.data))
+    def run_hook(self, script, payload, extra_env=None):
+        # The backend variables of the machine running the tests must not leak in.
+        env = {k: v for k, v in os.environ.items() if k not in ("CLAUDE_CODE_REMOTE", "CLAUDE_HARNESS_TODO_BACKEND")}
+        env.update(CLAUDE_PROJECT_DIR=str(self.project), CLAUDE_PLUGIN_DATA=str(self.data), **(extra_env or {}))
         return subprocess.run(
             [sys.executable, str(SCRIPTS / script)],
             input=json.dumps(payload),
@@ -40,14 +42,15 @@ class HookTest(unittest.TestCase):
             env=env,
         )
 
-    def edit(self, file_path, session="s1"):
+    def edit(self, file_path, session="s1", extra_env=None):
         return self.run_hook(
             "mark_backlog_dirty.py",
             {"session_id": session, "tool_name": "Edit", "tool_input": {"file_path": str(file_path)}},
+            extra_env,
         )
 
-    def stop(self, session="s1", active=False):
-        return self.run_hook("check_backlog.py", {"session_id": session, "stop_hook_active": active})
+    def stop(self, session="s1", active=False, extra_env=None):
+        return self.run_hook("check_backlog.py", {"session_id": session, "stop_hook_active": active}, extra_env)
 
     def test_session_start_without_config(self):
         result = self.run_hook("session_start.py", {})
@@ -177,6 +180,41 @@ class HookTest(unittest.TestCase):
         self.write_config(backend="files")
         self.assertIn("does not exist", self.run_hook("session_start.py", {}).stdout)
 
+    CLOUD = {"CLAUDE_CODE_REMOTE": "true"}
+
+    def test_session_start_in_cloud_uses_files_and_says_why(self):
+        self.write_config(backend="api")
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        out = self.run_hook("session_start.py", {}, self.CLOUD).stdout
+        self.assertIn("Backlog: docs/todo/TODO.md (backend files: cloud session; config.toml says api);", out)
+        self.assertNotIn("ToDo-Viewer API", out)
+        self.assertNotIn("Notes:", out)
+
+    def test_session_start_variable_forces_api_over_files_config(self):
+        self.write_config(backend="files")
+        out = self.run_hook("session_start.py", {}, {"CLAUDE_HARNESS_TODO_BACKEND": "api"}).stdout
+        self.assertIn("(backend api: CLAUDE_HARNESS_TODO_BACKEND; config.toml says files)", out)
+        self.assertIn("via ToDo-Viewer API", out)
+
+    def test_session_start_cloud_with_files_config_adds_no_note(self):
+        self.write_config(backend="files")
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        out = self.run_hook("session_start.py", {}, self.CLOUD).stdout
+        self.assertIn("Backlog: docs/todo/TODO.md;", out)
+        self.assertNotIn("config.toml says", out)
+
+    def test_session_start_reports_invalid_backend_variable(self):
+        self.write_config(backend="api")
+        out = self.run_hook("session_start.py", {}, {"CLAUDE_HARNESS_TODO_BACKEND": "database"}).stdout
+        self.assertIn("CLAUDE_HARNESS_TODO_BACKEND must be one of api, files", out)
+
+    def test_session_start_subproject_in_cloud(self):
+        self.write_config()
+        self.write_subprojects(backend_a="api")
+        write_backlog(self.project / "Plugins/A/docs/todo", [item("STORY-001")])
+        out = self.run_hook("session_start.py", {}, self.CLOUD).stdout
+        self.assertIn("backlog Plugins/A/docs/todo/TODO.md (backend files: cloud session; config.toml says api)", out)
+
     def test_session_start_subproject_with_api_backend(self):
         self.write_config()
         self.write_subprojects(backend_a="api")
@@ -289,6 +327,23 @@ class HookTest(unittest.TestCase):
         write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
         self.edit(self.todo_dir / "TODO.md")
         result = self.stop()
+        self.assertEqual(result.returncode, 0)
+        self.assertEqual(result.stderr, "")
+
+    def test_cloud_checks_the_backlog_files_although_config_says_api(self):
+        self.write_config(backend="api")
+        write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
+        self.edit(self.todo_dir / "TODO.md", extra_env=self.CLOUD)
+        result = self.stop(extra_env=self.CLOUD)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("Priority", result.stderr)
+
+    def test_variable_api_skips_backlog_check_although_config_says_files(self):
+        self.write_config(backend="files")
+        write_backlog(self.todo_dir, [item("STORY-001", Priority="Wrong")])
+        env = {"CLAUDE_HARNESS_TODO_BACKEND": "api"}
+        self.edit(self.todo_dir / "TODO.md", extra_env=env)
+        result = self.stop(extra_env=env)
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stderr, "")
 

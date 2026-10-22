@@ -146,6 +146,8 @@ class HarnessConfig:
     semver_paths: tuple[PurePosixPath, ...] = (PurePosixPath("."),)
     todo_backend: str = DEFAULT_TODO_BACKEND
     todo_api_url: str = DEFAULT_TODO_API_URL
+    # Why todo_backend differs from the config file ("cloud session; config.toml says api"); empty when it does not.
+    todo_backend_note: str = ""
     # The project keeps a copy of the plugin for cloud sessions (see cloud_export.py).
     cloud_export: bool = False
 
@@ -235,21 +237,23 @@ def load_config(root: Path, *, subproject: bool = False) -> HarnessConfig | None
     except tomllib.TOMLDecodeError as exc:
         raise ConfigError(f"{CONFIG_RELATIVE_PATH}: invalid TOML: {exc}") from exc
     config = parse_config(data, subproject=subproject)
-    backend = effective_todo_backend(config.todo_backend)
-    return config if backend == config.todo_backend else replace(config, todo_backend=backend)
+    override = _backend_override(os.environ)
+    if override is None or override[0] == config.todo_backend:
+        return config
+    backend, source = override
+    return replace(config, todo_backend=backend, todo_backend_note=f"{source}; config.toml says {config.todo_backend}")
 
 
-def effective_todo_backend(configured: str, env: Mapping[str, str] | None = None) -> str:
-    """The backend that applies here: TODO_BACKEND_ENV, else files in a cloud session, else the configured one."""
-    env = os.environ if env is None else env
-    override = env.get(TODO_BACKEND_ENV, "")
-    if override:
-        if override not in TODO_BACKENDS:
-            raise ConfigError(
-                f"{TODO_BACKEND_ENV} must be one of {', '.join(TODO_BACKENDS)}, got {override!r}"
-            )
-        return override
-    return "files" if env.get(CLOUD_ENV) == "true" else configured
+def _backend_override(env: Mapping[str, str]) -> tuple[str, str] | None:
+    """The backend the environment forces and why, or None when the config decides."""
+    value = env.get(TODO_BACKEND_ENV, "")
+    if value:
+        if value not in TODO_BACKENDS:
+            raise ConfigError(f"{TODO_BACKEND_ENV} must be one of {', '.join(TODO_BACKENDS)}, got {value!r}")
+        return value, TODO_BACKEND_ENV
+    if env.get(CLOUD_ENV) == "true":
+        return "files", "cloud session"
+    return None
 
 
 def _api_base(url: str) -> str:
