@@ -136,10 +136,12 @@ Read only what the task needs:
 ## Notes
 
 Reminders, open questions, observations, and ideas without a completion
-definition are not backlog work; they are notes ([notes.md](notes.md), only
-with the `api` backend; read it when asked to remember, remind, or look
-at due notes). Turning a note into an item and an item back into a note runs
-through it. A backlog item's notes entries
+definition are not backlog work; they are notes. With the `api` backend they
+live in the ToDo-Viewer ([notes.md](notes.md)), with `files` as Markdown files
+below the backlog folder ([notes-files.md](notes-files.md)); read the matching
+file when asked to remember, remind, or look at due notes. Turning a note into
+an item and an item back into a note runs through the viewer ([notes.md](notes.md)).
+A backlog item's notes entries
 (`<ID>_notes.md`) are not those notes; when unclear which is meant, ask.
 A reminder at a fixed time is an alarm in the viewer ([alarms.md](alarms.md),
 only with `api`; read it when asked to remind at a time).
