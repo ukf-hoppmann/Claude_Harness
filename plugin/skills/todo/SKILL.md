@@ -94,7 +94,11 @@ Read only what the task needs:
     your turn blocks while the head of notes you changed is `stale` or
     `missing` (API: it relies on what the helper reported; files: on the
     stamp); update it (`put-state`) or confirm it (`confirm-state`, files:
-    `backlog.py --confirm-state`) to continue.
+    `backlog.py --confirm-state`) to continue. The head has exactly the
+    English markers `- Goal/Status:`, `- Next step:`, `- Open:`,
+    `- Decided:`, `- References:` in this order; their content is in the
+    project's language, one point per line with its date
+    ([format.md](format.md#notes)).
   - **Reminder:** an item you work on (set `In progress`, or its spec read)
     that gets no notes entry for 5 prompts triggers a short reminder (again
     after every further 5). It is no block: write the entry if something was
