@@ -81,7 +81,7 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
-| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: beim wirksamen Backend `api` (siehe Konfiguration, Umgebungsvariablen) Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis; wählt die Umgebung das Backend abweichend von der Config, steht dahinter `(backend <Wert>: <Grund>; config.toml says <Wert>)`), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` eine statische Notes-Zeile mit Skill-Hinweis, ohne Abfrage von Fälligem: bei Backend `api` mit API-URL, bei `files` mit dem Ordner `<todo.path>/notes/` (der Ordner wird nicht angelegt); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung | stdout → Kontext |
+| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: beim wirksamen Backend `api` (siehe Konfiguration, Umgebungsvariablen) Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis; wählt die Umgebung das Backend abweichend von der Config, steht dahinter `(backend <Wert>: <Grund>; config.toml says <Wert>)`), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` eine statische Notes-Zeile mit Skill-Hinweis, ohne Abfrage von Fälligem: bei Backend `api` mit API-URL, bei `files` mit dem Ordner `<todo.path>/notes/` (der Ordner wird nicht angelegt); bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung. In einer Cloud-Sitzung (`CLAUDE_CODE_REMOTE=true`) beim Start (`startup`) mit `cloud.sync = true` (Root-Projekt) gleicht er zuerst den aktuellen Branch mit `origin` ab ([Skript `cloud_sync.py`](#skript-cloud_syncpy)); dessen Zeile steht vor allen anderen, und nach einem Abgleich liest er Config und Dokumente neu | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört. Eine geänderte Notes-Datei (`items/<ID>/<ID>_notes.md`) merkt er sich zusätzlich einzeln (und setzt den Reminder-Zähler eines aktiven Items auf 0), eine geänderte Datei im Ordner `notes/` des Backlogs (Notes als Dateien) das Projekt in einer eigenen Marke | keine |
 | PostToolUse (`Bash`) | `mark_notes_state.py` | Nur beim wirksamen Backend `api` und nur nach einem erfolgreichen Aufruf von `backlog_api.py` (ohne `--source`; mit `--project <Name>` für dieses Projekt): liest die `[harness]`-Zeilen aus `tool_response.stdout`/`stderr` (`notes-state <ID> <Zustand>`, `active <ID>`) und legt je Projekt und Item Zustand des Notes-Kopfs und, für aktive Items, den Zähler „Prompts seit dem letzten Notes-Eintrag“ ab (ein Notes-Schreibvorgang setzt ihn auf 0); Änderungen am Merker-Speicher sind gesperrt und ersetzen die Datei atomar, weil die Hooks paralleler Bash-Aufrufe gleichzeitig laufen (`state.edit_notes_marks`); kein Netzwerk | keine |
@@ -474,6 +474,40 @@ JSON auf stdin.
   des Projekts werden verweigert.
 - Exit-Code 0; 1 bei Fehlern (Zeile `error: …` auf stdout, nichts
   geschrieben); 2 bei falschem Aufruf.
+
+## Skript `cloud_sync.py`
+
+- Zweck: Eine Cloud-Sitzung kann auf einem veralteten, gecachten Clone
+  starten. Das Modul bringt den aktuellen Branch auf den Stand von `origin`
+  oder meldet, wie weit er abweicht. Es überschreibt nie etwas.
+- Aufruf: kein CLI; `session_start.py` ruft `sync_branch(root,
+  fetch_timeout=15)` nur in einer Cloud-Sitzung beim Start (`startup`) mit
+  `cloud.sync = true` auf. Rückgabe: eine Zeile für den Kontext oder `None`.
+  Netz und Vorspulen sind eine freigegebene Ausnahme von den
+  Architekturregeln 2 und 5.
+- Ablauf: Branch über `git symbolic-ref` (detached HEAD, kein Repository oder
+  kein Remote `origin`: nichts tun); dann
+  `git fetch --no-tags --no-recurse-submodules origin
+  +refs/heads/<Branch>:refs/remotes/origin/<Branch>`, nur dieser Branch, ohne
+  `--unshallow` und ohne `--depth`, mit Zeitlimit (15 s, der Hook hat 30 s;
+  Git läuft in einer eigenen Prozessgruppe, die bei Zeitüberschreitung ganz
+  beendet wird, `GIT_TERMINAL_PROMPT=0`). Ein Branch, den es auf `origin`
+  nicht gibt, ist kein Fehler.
+- Fälle und Ausgabe (eine Zeile, Präfix `Git:`):
+
+| Fall | Aktion | Meldung |
+|---|---|---|
+| Gleicher Stand | keine | keine |
+| HEAD ist Vorfahr von `origin/<Branch>`, keine Änderungen an versionierten Dateien (unversionierte zählen nicht) | `git merge --ff-only` | `fast-forwarded <Branch> from <alt> to <neu> (<n> new commit(s) from origin)` |
+| HEAD ist Vorfahr, Arbeitsbaum geändert | keine | Zahl der fehlenden Commits und `git merge --ff-only origin/<Branch>` nach Commit oder Stash |
+| Vorspulen scheitert (z. B. unversionierte Datei im Weg) | keine | Grund und `git merge --ff-only origin/<Branch>` |
+| Nur lokale Commits voraus | keine | keine (normaler Zustand vor einem Push) |
+| Commits auf beiden Seiten | keine | Zahl je Seite, `git rebase origin/<Branch>`; `git reset --hard origin/<Branch>` nur, wenn der Nutzer es verlangt |
+| Kein gemeinsamer Vorfahr (Shallow Clone nach Force-Push oder alter Cache) | keine | Hash und Datum beider Stände (Zahlen sind dort nicht verlässlich), Hinweis, den Nutzer vor der Arbeit zu informieren, `git reset --hard origin/<Branch>` nur auf Wunsch |
+| Fetch scheitert oder dauert zu lange | keine | `could not fetch origin/<Branch> (<Grund>); the checkout may be stale.` |
+
+- Hängt ein lokaler Git-Aufruf oder fehlt Git, gibt es keine Zeile; der
+  Session-Start läuft weiter.
 
 ## Skript `worktree.py`
 

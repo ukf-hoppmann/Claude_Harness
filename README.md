@@ -99,6 +99,12 @@ Backlogs (und damit im Repository), Alarme gibt es dort nicht. Mit der Variable
 festlegen. Skills und Hooks der Kopie kosten lokal
 zusätzlich je Skill eine Beschreibung im Kontext.
 
+Startet eine Cloud-Sitzung auf einem veralteten Clone, holt der Session-Start
+den aktuellen Branch von `origin` und spult bei sauberem Arbeitsbaum vor;
+sonst meldet er die Abweichung in einer Zeile und überschreibt nichts
+(`cloud.sync`, Standard `true`). Nach einem Plugin-Update mit dieser Funktion
+braucht jedes Projekt ein `/claude-harness:update`, damit die Kopie sie erhält.
+
 Ablauf zwischen Cloud und lokalem Viewer (Regeln im Skill `todo`, Datei
 `sync-flow.md`): Der Viewer spiegelt den Backlog-Ordner samt `notes/` in das
 Repository (Auto-Sync an). Vor der Cloud-Sitzung wird der Ordner als

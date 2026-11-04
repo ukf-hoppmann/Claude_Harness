@@ -70,5 +70,74 @@ class CloudHookCommandTest(unittest.TestCase):
         self.assertEqual(local.returncode, 0)
 
 
+GIT_ENV = {
+    "GIT_AUTHOR_NAME": "Test",
+    "GIT_AUTHOR_EMAIL": "test@example.invalid",
+    "GIT_COMMITTER_NAME": "Test",
+    "GIT_COMMITTER_EMAIL": "test@example.invalid",
+    "GIT_CONFIG_GLOBAL": os.devnull,
+    "GIT_CONFIG_NOSYSTEM": "1",
+}
+
+
+class CloudSessionStartSyncTest(unittest.TestCase):
+    """End to end: the exported SessionStart hook brings a stale cloud clone up to date before it reports."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        base = Path(self.tmp.name)
+        self.env = {"PATH": os.environ["PATH"], "HOME": self.tmp.name, **GIT_ENV}
+        origin, self.upstream, self.clone = base / "origin.git", base / "upstream", base / "clone"
+        self.git(base, "init", "-q", "--bare", str(origin))
+        self.git(base, "init", "-q", str(self.upstream))
+        shutil.copytree(
+            PLUGIN / "scripts", self.upstream / RUNTIME_DIR.as_posix() / "scripts",
+            ignore=shutil.ignore_patterns("__pycache__"),
+        )
+        self.write_config(self.upstream, "todo = true")
+        self.git(self.upstream, "add", "-A")
+        self.git(self.upstream, "commit", "-q", "-m", "copy")
+        self.git(self.upstream, "remote", "add", "origin", str(origin))
+        self.git(self.upstream, "push", "-q", "origin", "main")
+        self.git(base, "clone", "-q", str(origin), str(self.clone))
+
+    def git(self, cwd, *args):
+        subprocess.run(["git", "-c", "init.defaultBranch=main", *args], cwd=cwd, env=self.env, check=True,
+                       capture_output=True, text=True)
+
+    @staticmethod
+    def write_config(project: Path, modules: str):
+        path = project / ".claude-harness/config.toml"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(f'version = 1\n\n[modules]\n{modules}\n\n[todo]\nbackend = "files"\n', encoding="utf-8")
+
+    def session_start(self, source: str):
+        env = {**self.env, "CLAUDE_CODE_REMOTE": "true", "CLAUDE_PROJECT_DIR": str(self.clone)}
+        return subprocess.run(
+            ["sh", "-c", command_of("SessionStart")], input=json.dumps({"source": source, "cwd": str(self.clone)}),
+            env=env, cwd=self.clone, capture_output=True, text=True, timeout=30,
+        )
+
+    def test_startup_fast_forwards_and_reports_the_new_state(self):
+        self.write_config(self.upstream, "todo = true\ndaily = true")
+        self.git(self.upstream, "commit", "-q", "-am", "daily on")
+        self.git(self.upstream, "push", "-q", "origin", "main")
+        result = self.session_start("startup")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        lines = result.stdout.splitlines()
+        self.assertIn("Git: fast-forwarded main", lines[0])
+        self.assertIn("daily=on", lines[1])
+
+    def test_resume_does_not_sync(self):
+        self.write_config(self.upstream, "todo = true\ndaily = true")
+        self.git(self.upstream, "commit", "-q", "-am", "daily on")
+        self.git(self.upstream, "push", "-q", "origin", "main")
+        result = self.session_start("resume")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertNotIn("Git:", result.stdout)
+        self.assertNotIn("daily=on", result.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()

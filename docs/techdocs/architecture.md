@@ -21,7 +21,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Hook-Registrierung | Verknüpft Ereignisse mit Skripten | `plugin/hooks/hooks.json` |
 | Config-Lader | Liest und validiert `.claude-harness/config.toml` | `plugin/scripts/harness_config.py` |
 | Projekte | Lädt das Root-Projekt und die in `[projects]` eingetragenen Teilprojekte und ordnet jede Datei ihrem Projekt zu | `plugin/scripts/projects.py` |
-| Session-Start | Meldet aktive Module, Sprache, fehlende Dateien und Backlog-Fehler, bei Teilprojekten pro Projekt; meldet eine Cloud-Kopie, die nicht zu `cloud.export` passt | `plugin/scripts/session_start.py` |
+| Session-Start | Meldet aktive Module, Sprache, fehlende Dateien und Backlog-Fehler, bei Teilprojekten pro Projekt; meldet eine Cloud-Kopie, die nicht zu `cloud.export` passt; gleicht in einer Cloud-Sitzung beim Start zuerst den Branch mit `origin` ab | `plugin/scripts/session_start.py` |
 | Modul `todo` | Skill mit Backlog-Regeln und, als Unterdatei, den Regeln für Notes und Topics (Erinnerungen, Fragen, Beobachtungen, Ideen) im ToDo-Viewer; Backend `api`: Helfer für die HTTP-API des ToDo-Viewers (der Server prüft Format und Regeln); Backend `files`: Formatprüfung und Prüf-Hooks; der Weg des Backlogs zwischen Cloud-Sitzung (Dateien, Branch `claude/<Name>`), Git (Pull Request, `git pull`) und lokalem Viewer (Spiegel-Ordner, Auto-Sync, Konflikte im Sync-Dialog) steht als Unterdatei `sync-flow.md` im Skill | `plugin/skills/todo/`, `plugin/scripts/backlog_api.py`, `notes_api.py`, `backlog.py`, `mark_backlog_dirty.py`, `check_backlog.py` |
 | Notes (Teil von `todo`) | Backend `api`: Skript `notes_api.py` für die HTTP-API des Viewers; die Notes liegen nur in der Datenbank des Viewers, der Viewer entscheidet über Fälligkeit und Auslöser. Backend `files` (auch in der Cloud): Notes und Topics als Markdown-Dateien in `notes/` unter dem Backlog-Ordner im Dateiformat Version 2 des Viewers, der sie beim Sync liest; Index und Fälligkeit nach Review- und Topic-Datum liefert `notes_files.py`, die Formatprüfung nach den Regeln des Viewer-Decoders `notes_format.py` (CLI `--check`; der Stop-Hook `check_backlog.py` ruft sie, wenn in der Session eine Datei unter `notes/` geändert wurde). In beiden Fällen prüft der Harness nichts und hat keinen Hook außer der statischen Zeile beim Session-Start | `plugin/skills/todo/notes.md`, `notes-api.md`, `notes-files.md`, `plugin/scripts/notes_api.py`, `notes_files.py`, `notes_format.py` |
 | Wecker (Teil von `todo`) | Nur Backend `api`: Skript `alarms_api.py` für die Wecker des Viewers (Erinnerung zu einem festen Zeitpunkt, frei oder an Items und Notes gebunden). Der Viewer lässt sie klingeln, lässt sie erlöschen und räumt sie auf; der Harness prüft nichts | `plugin/skills/todo/alarms.md`, `plugin/scripts/alarms_api.py` |
@@ -37,6 +37,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Befehl `init` | Richtet den Harness in einem Projekt oder Teilprojekt ein, auf Wunsch auch die Cloud-Kopie | `plugin/skills/init/` |
 | Befehl `update` | Bringt die Config eines Projekts auf den aktuellen Stand: Migrationen, Abgleich mit der Config-Vorlage; hält die Cloud-Kopie aktuell oder nimmt sie wieder heraus | `plugin/skills/update/`, `plugin/scripts/config_update.py` |
 | Cloud-Kopie | Erzeugt aus dem Plugin eine eingecheckte Kopie im Projekt (Skills, Skripte, Vorlagen, Hooks), weil Cloud-Sitzungen das Plugin nicht laden, wohl aber den Inhalt des Repositories; Manifest, Vorschau mit Diff, Rückbau | `plugin/scripts/cloud_export.py` |
+| Branch-Abgleich in der Cloud | Beim Start einer Cloud-Sitzung (`cloud.sync`): aktuellen Branch von `origin` holen, bei sauberem Arbeitsbaum vorspulen, sonst die Abweichung melden; aufgerufen vom Session-Start (freigegebene Ausnahme von den Architekturregeln 2 und 5) | `plugin/scripts/cloud_sync.py` |
 | Vorlagen | Config, Backlog, Tagesbericht, Systemdoku, Architekturregeln | `plugin/templates/` |
 | Sitzungszustand | Pfade für Merker pro Session | `plugin/scripts/state.py` |
 
@@ -112,6 +113,15 @@ gelten die Hooks des Plugins, und der Exit-Code eines blockierenden Hooks
 bleibt in der Cloud erhalten. Die Hooks der Kopie gelten nur in Sitzungen mit
 einem Repository; bei mehreren Repositories lädt die Cloud keine Hooks aus
 deren `settings.json`.
+
+Eine Cloud-Sitzung kann auf einem gecachten, veralteten Clone starten. Beim
+Start (`startup`) gleicht der Session-Start deshalb zuerst den aktuellen Branch
+mit `origin` ab (`cloud_sync.py`, abschaltbar mit `cloud.sync = false`): nur
+dieser Branch, ohne `--unshallow`, mit Zeitlimit; bei sauberem Arbeitsbaum ein
+Fast-Forward, sonst eine Zeile mit Abweichung und passendem Befehl. Erst danach
+entstehen die übrigen Zeilen, damit sie den neuen Stand zeigen. Es ist der
+einzige Hook mit Netz und der einzige, der den Arbeitsbaum ändert (freigegebene
+Ausnahme von den Architekturregeln 2 und 5).
 
 Den ToDo-Viewer erreicht eine Cloud-Sitzung nicht. Beim Laden der Config
 (`load_config`) gilt deshalb dort das Backend `files`, auch wenn

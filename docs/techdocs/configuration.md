@@ -34,6 +34,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `semver.paths` | Liste von Pfaden | `["."]` | nein | Was zum ausgelieferten Produkt zählt, relativ zum Projekt; nur Commits unter diesen Pfaden gelten als unveröffentlicht. Beim Root-Projekt zählen Ordner von Teilprojekten nicht mit |
 | `projects.<Name>` | Pfad | – | nein | Trägt ein Teilprojekt ein: Name → Ordner relativ zum Projekt-Root. Nur in der Konfiguration des Root-Projekts erlaubt; siehe „Teilprojekte“ |
 | `cloud.export` | Boolean | `false` | nein | Das Projekt hält eine eingecheckte Kopie des Plugins für Cloud-Sitzungen (claude.ai/code), die `/claude-harness:init` anlegt und `/claude-harness:update` aktuell hält (Skills unter `.claude/skills/harness-*`, Skripte unter `.claude-harness/runtime/`, Hooks in `.claude/settings.json`). Nur im Root-Projekt erlaubt; ein Teilprojekt mit `[cloud]` meldet einen Fehler. Ist die Option aus, aber eine Kopie da, oder umgekehrt, meldet der Session-Start es. Aufbau, Vorschau und Rückbau: [Schnittstellen, Skript `cloud_export.py`](interfaces.md#skript-cloud_exportpy). Bei `true` müssen `.claude-harness/` und `.claude/` eingecheckt sein |
+| `cloud.sync` | Boolean | `true` | nein | Nur in Cloud-Sitzungen (`CLAUDE_CODE_REMOTE=true`) beim Start (`startup`): Der Session-Start holt den aktuellen Branch von `origin` (ohne `--unshallow`, mit Zeitlimit) und spult bei sauberem Arbeitsbaum per Fast-Forward vor. Weicht der Stand anders ab (unsauberer Arbeitsbaum, Commits auf beiden Seiten, kein gemeinsamer Vorfahr, Fetch gescheitert), ändert er nichts und meldet eine Zeile mit der Abweichung und dem passenden Befehl. `false` schaltet den Abgleich ab. Nur im Root-Projekt erlaubt. Ablauf und Meldungen: [Schnittstellen, Skript `cloud_sync.py`](interfaces.md#skript-cloud_syncpy) |
 | `harness.repo` | Liste von Pfaden | `[]` | nein | Mögliche Orte des Claude_Harness-Repos, einer pro Rechner; absolut oder mit `~` beginnend. Gilt der erste, der auf dem Rechner existiert und das Harness-Repo ist. Wird für die Übergabe von Harness-Wünschen an den Harness-Backlog gebraucht (Skill `claude-harness:conflicts`); ohne passenden Eintrag gibt die AI den Auftrag als Text aus |
 
 Nicht aufgeführte Module sind aus. Teilbereiche der Suite `development` sind
@@ -56,7 +57,7 @@ nichts):
   Buchstaben beginnen, andere Zeichen als Buchstaben, Ziffern, `_` und `-`
   enthalten oder `root` heißen; Projektpfade, die leer, absolut, `.` oder mit
   `..` sind; Projektpfade, die gleich sind oder ineinander liegen;
-- `cloud.export`, das kein Boolean ist;
+- `cloud.export` oder `cloud.sync`, das kein Boolean ist;
 - `[projects]`, `[harness]` oder `[cloud]` in der Konfiguration eines Teilprojekts.
 
 `harness.repo` enthält rechnerspezifische Pfade in einer eingecheckten Datei.
