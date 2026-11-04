@@ -2,8 +2,8 @@
 
 ## State
 
-- Goal/Status: Harness und ToDo-Viewer über claude.ai nutzen. Alle Kriterien erfüllt (042 bis 047 Completed, Kriterium 4 mit my_story_game in einer echten Cloud-Sitzung belegt, Bericht der Sitzung gelesen). Wartet auf Bestätigung.
-- Next step: Owner bestätigt das Epic; Testeintrag TASK-052 und Test-Note NOTE-001 in my_story_game beenden; my_story_game pushen (schließt Pull Request #2).
+- Goal/Status: Harness und ToDo-Viewer über claude.ai nutzen. 2026-11-04 wieder geöffnet: Cloud-Sessions starten teils auf veraltetem Branch-Stand; neue Pflicht-Story STORY-052. 042 bis 047 abgeschlossen.
+- Next step: STORY-052 umsetzen. Außerdem in my_story_game: Testeintrag TASK-052 und Test-Note NOTE-001 beenden, main pushen (schließt Pull Request #2).
 - Open:
   - Stop-Hooks der Kopie in der Cloud nicht beobachtet (kein Formatfehler zum Prüfen provoziert)
   - Pull Request, Konflikt und Merge-Marker im Sync nicht erprobt (lokales Merge statt Pull Request)
@@ -12,10 +12,11 @@
   - Weg A: Harness als eingecheckte Kopie im Projekt (2026-10-16)
   - Lokal API, Cloud Dateien, Cloud-Erkennung automatisch (2026-10-16)
   - Rückweg nach main per Pull Request, Durchspielung am echten Backlog (2026-10-22)
-  - Kriterium 4 mit my_story_game belegt: Eintrag mit Platzhalter wurde TASK-052, Note wurde NOTE-001, Sync ohne Konflikt (2026-10-22)
-- References: STORY-042 bis STORY-047; sync-flow.md; README, Abschnitt Cloud-Sitzungen
+  - Kriterium 4 mit my_story_game belegt (2026-10-22)
+  - Wieder geöffnet für den Branch-Abgleich beim Start der Cloud-Session (STORY-052); Ausnahme von Architekturregel 2 und 5 freigegeben (2026-11-04)
+- References: STORY-042 bis STORY-047, STORY-052; sync-flow.md; README, Abschnitt Cloud-Sitzungen
 
-State confirmed after entry 2026-10-22 — Bericht der Cloud-Sitzung von my_story_game ausgewertet (fe8b403395d7)
+State confirmed after entry 2026-11-04 — Wieder geöffnet: Cloud-Session startet auf veraltetem Branch-Stand (a7637c6815cb)
 
 ## 2026-10-14 — Ausgangslage und offene Fragen
 
@@ -168,3 +169,15 @@ State confirmed after entry 2026-10-22 — Bericht der Cloud-Sitzung von my_stor
 
 - Stop-Hooks der Kopie in der Cloud wurden nicht beobachtet; ein Test mit einem absichtlichen Formatfehler würde es belegen.
 - Pull Request #2 in my_story_game ist offen, bis main gepusht wird.
+
+## 2026-11-04 — Wieder geöffnet: Cloud-Session startet auf veraltetem Branch-Stand
+
+### Discussed
+
+- In ezf-ui (Branch modularRefactor, Kopie 0.12.7) startete eine Cloud-Session auf einem gecachten Shallow Clone vom 2026-11-02, während origin 86 Commits weiter war (kein gemeinsamer Vorfahr, Fetch als forced update). Die Hooks der Kopie gleichen den Branch nicht ab; das betrifft jedes Projekt mit cloud.export.
+- Optionen: Setup-Skript der Cloud-Umgebung auf claude.ai (pro Projekt von Hand, nicht im Plugin) oder Abgleich im Session-Start des Plugins (zentral, wirkt nach einem Export überall).
+
+### Decided
+
+- Epic wieder geöffnet, weil die Lösung zu seinem Ziel gehört (Harness über claude.ai nutzen); kein neues Epic. Neue Pflicht-Story für den Abgleich beim Start der Cloud-Session.
+- Abgleich im Session-Start des Plugins; die nötige Ausnahme von Architekturregel 2 (kein Netz) und 5 (nicht ins Projekt schreiben), eng auf Cloud-Sessions begrenzt, hat der Besitzer freigegeben.
