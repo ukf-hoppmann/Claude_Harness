@@ -140,6 +140,12 @@ class ParseConfigTest(unittest.TestCase):
         self.assertTrue(parse_config({"version": 1, "cloud": {"export": True}}).cloud_export)
         self.assertFalse(parse_config({"version": 1, "cloud": {"export": False}}).cloud_export)
 
+    def test_cloud_sync(self):
+        self.assertTrue(parse_config({"version": 1}).cloud_sync)
+        self.assertTrue(parse_config({"version": 1, "cloud": {}}).cloud_sync)
+        self.assertTrue(parse_config({"version": 1, "cloud": {"sync": True}}).cloud_sync)
+        self.assertFalse(parse_config({"version": 1, "cloud": {"export": True, "sync": False}}).cloud_sync)
+
     def test_semver(self):
         config = parse_config({"version": 1})
         self.assertFalse(config.enabled("semver"))
@@ -237,6 +243,8 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "harness": "x"},
             {"version": 1, "cloud": {"export": "yes"}},
             {"version": 1, "cloud": {"export": 1}},
+            {"version": 1, "cloud": {"sync": "yes"}},
+            {"version": 1, "cloud": {"sync": 0}},
             {"version": 1, "cloud": {"other": True}},
             {"version": 1, "cloud": "x"},
             {"version": 1, "modules": {"semver": "on"}},
