@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from collections.abc import Callable
 from pathlib import Path, PurePosixPath
@@ -8,8 +9,10 @@ from pathlib import Path, PurePosixPath
 from architecture import inherited_files, load_scopes, reset_read, rules_path
 from backlog import TODO_FILE, validate_backlog
 from cloud_export import copy_problem
+from cloud_sync import sync_branch
 from techdocs import document_paths
 from harness_config import (
+    CLOUD_ENV,
     CONFIG_RELATIVE_PATH,
     README,
     ROOT_PROJECT,
@@ -76,26 +79,50 @@ def main() -> int:
     if session_id and hook_input.get("source") in ("compact", "clear"):
         # Rules read earlier may no longer be in context.
         reset_read(session_id)
-    try:
-        projects = load_projects(root)
-    except ConfigOutdated as exc:
-        print(outdated_message(exc))
+    projects = _load(root)
+    if isinstance(projects, str):
+        print(projects)
         return 0
-    except ConfigError as exc:
-        print(f"Claude_Harness: invalid configuration — {exc}. Tell the user; do not guess values.")
-        return 0
-    if projects is None:
-        print(
-            f"Claude_Harness: plugin active but no {CONFIG_RELATIVE_PATH} in this project. "
-            "Set it up with /claude-harness:init if the user wants the harness here."
-        )
-        return 0
+    root_project = projects.get(ROOT_PROJECT)
+    sync_lines = cloud_sync_lines(hook_input, root_project.config, projects.session_root) if root_project else []
+    if sync_lines:
+        # A fast-forward may have changed the config and the documents the lines below report on.
+        projects = _load(root)
+        if isinstance(projects, str):
+            print("\n".join([*sync_lines, projects]))
+            return 0
     if projects.has_subprojects():
         lines = _several_projects(projects)
     else:
         lines = _single_project(root, projects)
-    print("\n".join(lines))
+    print("\n".join([*sync_lines, *lines]))
     return 0
+
+
+def _load(root: Path) -> ProjectSet | str:
+    """The projects, or the one line that replaces all others when there are none or the config is unusable."""
+    try:
+        projects = load_projects(root)
+    except ConfigOutdated as exc:
+        return outdated_message(exc)
+    except ConfigError as exc:
+        return f"Claude_Harness: invalid configuration — {exc}. Tell the user; do not guess values."
+    if projects is None:
+        return (
+            f"Claude_Harness: plugin active but no {CONFIG_RELATIVE_PATH} in this project. "
+            "Set it up with /claude-harness:init if the user wants the harness here."
+        )
+    return projects
+
+
+def cloud_sync_lines(
+    hook_input: dict, config: HarnessConfig, session_root: Path, sync: Callable[[Path], str | None] = sync_branch
+) -> list[str]:
+    """At the start of a cloud session with cloud.sync on: bring the branch up to date (cloud_sync.py) first."""
+    if os.environ.get(CLOUD_ENV) != "true" or hook_input.get("source") != "startup" or not config.cloud_sync:
+        return []
+    line = sync(session_root)
+    return [line] if line else []
 
 
 def _single_project(root: Path, projects: ProjectSet) -> list[str]:
