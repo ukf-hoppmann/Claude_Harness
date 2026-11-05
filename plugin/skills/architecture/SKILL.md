@@ -16,7 +16,8 @@ description: Rules for working with the project's binding architecture rules (de
    (default `docs/development/architecture.md`). Scopes listed in its
    `## Scopes` table live in `architecture/<Scope>.md` next to it.
 3. If the rules file does not exist, tell the user and ask before creating it
-   from `${CLAUDE_PLUGIN_ROOT}/templates/development/architecture.md`.
+   from `${CLAUDE_PLUGIN_ROOT}/templates/development/architecture.md` (scope files:
+   `scope.md` there).
 
 ## Working with the rules
 
@@ -35,6 +36,24 @@ description: Rules for working with the project's binding architecture rules (de
   while implementing.
 - If a requirement or design does not fit the rules, load skill
   `claude-harness:conflicts` and follow it.
+
+## What belongs into the architecture
+
+The architecture says *what belongs where* and *what is mandatory*; it never
+says *how*. The how lives in the interface docs (skill
+`claude-harness:interfaces`) and is linked from the rules, not repeated.
+
+- **Required reading** (scope column, `Required on use` tables) is what you
+  must read before changing or using something; the hook enforces it. A link
+  in a rule is for looking up when needed; nothing enforces it. Make a file
+  required only when changing or using the code without it would go wrong.
+- Keep required files short: each one is read in full before every first
+  change. Split long files and require only the part that matters.
+- At most two levels of scopes (area, part). The Scopes table is the only
+  list of what is mandatory; do not repeat it in prose elsewhere.
+- Per area, a scope file starts from `scope.md` of the templates: a table of
+  responsibilities (who owns a concern, what others do and must not do, link
+  to the details), then the rules.
 
 ## Writing and changing rules
 
@@ -95,8 +114,5 @@ them all the same.
 
 ## Public API reminder
 
-If `[development].public_api` lists patterns and a file matching one was
-changed, a Stop hook reminds you once per session and project. Then check that
-the architecture responsibilities, the catalog of reusable building blocks, the
-interface docs below the development folder, and their links still match the
-change; update what does not. If nothing needs to change, say so briefly.
+A Stop hook reminds you when a file listed in `[development].public_api` was
+changed; the steps are in skill `claude-harness:interfaces`.

@@ -74,7 +74,10 @@ are relative to it.
    (e.g. `.harness/architecture-rules.md`, `ARCHITECTURE.md`) and mention
    them. Ask separately whether to create `architecture.md` from
    `${CLAUDE_PLUGIN_ROOT}/templates/development/architecture.md`. It stays in
-   English regardless of `docs.language`. Never overwrite existing files. For
+   English regardless of `docs.language`. Offer `interfaces.md` the same way
+   (template `interfaces.md` there; scope files, interface docs, and catalogs
+   start from `scope.md`, `interface.md`, `catalog.md` later, see skill
+   `claude-harness:interfaces`). Never overwrite existing files. For
    a subproject, ask whether rules of the root project should apply as well;
    if so, list them under `## Inherited rules`.
 10. If `semver` is enabled, set it up as described under "Setup" in skill

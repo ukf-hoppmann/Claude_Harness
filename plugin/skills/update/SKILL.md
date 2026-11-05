@@ -56,7 +56,7 @@ the script itself.
      `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <target folder>/<docs.root>/<todo.path>`
      and report the result.
    - For each module enabled in step 5, offer the documents `init` would set
-     up for it (its steps 7 to 10), with the same rules: ask first, never
+     up for it (its steps 7 to 10, including the interface docs of step 9), with the same rules: ask first, never
      overwrite.
 8. Cloud copy (project root only; a subproject has none): `cloud_export.py`
    below means

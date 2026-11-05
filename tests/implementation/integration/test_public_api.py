@@ -52,6 +52,7 @@ class PublicApiHookTest(unittest.TestCase):
         first = self.stop()
         self.assertEqual(first.returncode, 2)
         self.assertIn("claude-harness:architecture", first.stderr)
+        self.assertIn("claude-harness:interfaces", first.stderr)
         self.assertIn("1 file", first.stderr)
         self.assertIn("src/core/index.ts", first.stderr)
         self.edit("src/plugins/a/index.ts")

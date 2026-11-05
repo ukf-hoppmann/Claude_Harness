@@ -39,9 +39,15 @@ TECHDOCS_HINT = (
     "rules in skill claude-harness:techdocs (load it when changing documented behavior, interfaces, "
     "configuration, or architecture, or when reminded)."
 )
+TECHDOCS_LABEL = "Technical docs (for people)"
 ARCHITECTURE_HINT = (
     "(binding; read it before planning, designing, or changing code); "
     "rules in skill claude-harness:architecture."
+)
+INTERFACES_LINE = (
+    "Interface docs and catalog of reusable building blocks (for the AI): rules in skill "
+    "claude-harness:interfaces (load it when designing, using, or changing an interface or a shared "
+    "building block)."
 )
 DECOMPOSITION_LINE = (
     "Decomposition: rules in skill claude-harness:decomposition (load it when planning or "
@@ -155,7 +161,7 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
     if config.enabled("daily"):
         lines.append(f"Daily reports: {config.daily_path}/; {DAILY_HINT}")
     if config.enabled("techdocs"):
-        lines.append(f"Technical docs: README.md and {config.techdocs_path}/; {TECHDOCS_HINT}")
+        lines.append(f"{TECHDOCS_LABEL}: README.md and {config.techdocs_path}/; {TECHDOCS_HINT}")
         lines += _techdocs_missing(root, config, show)
     if config.part_enabled("architecture"):
         rules = rules_path(config)
@@ -165,6 +171,7 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
             lines.append(f"Architecture rules: {rules} {ARCHITECTURE_HINT}")
             lines += _scope_problems(root, config)
             lines += _inherited_problems(projects, project)
+        lines.append(INTERFACES_LINE)
     lines += _doclink_problems(root, config)
     if config.part_enabled("decomposition"):
         lines.append(DECOMPOSITION_LINE)
@@ -200,12 +207,13 @@ def _several_projects(projects: ProjectSet) -> list[str]:
     if any(c.enabled("daily") for c in configs):
         lines.append(f"Daily reports: {DAILY_HINT}")
     if any(c.enabled("techdocs") for c in configs):
-        lines.append(f"Technical docs: {TECHDOCS_HINT}")
+        lines.append(f"{TECHDOCS_LABEL}: {TECHDOCS_HINT}")
     if any(c.part_enabled("architecture") for c in configs):
         lines.append(
             "Architecture rules: binding per project; read a project's rules before planning, designing, "
             "or changing its code; rules in skill claude-harness:architecture."
         )
+        lines.append(INTERFACES_LINE)
     if any(c.part_enabled("decomposition") for c in configs):
         lines.append(DECOMPOSITION_LINE)
     if any(c.part_enabled("testing") for c in configs):

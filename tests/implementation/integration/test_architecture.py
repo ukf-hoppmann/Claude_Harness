@@ -460,6 +460,12 @@ class ArchitectureHookTest(unittest.TestCase):
         self.assertIn("architecture/llm.md", out)
         self.assertIn("missing", out)
 
+    def test_session_start_mentions_interfaces_skill_with_architecture(self):
+        start = {"session_id": "s1", "source": "startup"}
+        self.assertIn("claude-harness:interfaces", self.run_hook("session_start.py", start).stdout)
+        self.write_config(suite=True, architecture=False)
+        self.assertNotIn("claude-harness:interfaces", self.run_hook("session_start.py", start).stdout)
+
     def test_session_start_mentions_decomposition(self):
         start = {"session_id": "s1", "source": "startup"}
         self.assertIn("claude-harness:decomposition", self.run_hook("session_start.py", start).stdout)

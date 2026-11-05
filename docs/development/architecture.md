@@ -53,7 +53,8 @@ RFC 2119 meaning.
 
 ### 6. Language
 
-- Skills, templates for AI rules, and hook messages MUST be in English.
+- Skills, templates for AI rules, hook messages, and the development
+  documents (architecture rules, interface docs, catalogs) MUST be in English.
 - Documents for people (backlog, daily reports, technical docs) MUST be written
   in `docs.language`; machine-checked field names and headings stay English.
 

@@ -12,6 +12,7 @@ EXPECTED_SKILLS = {
     "conflicts",
     "daily",
     "decomposition",
+    "interfaces",
     "semver",
     "techdocs",
     "testing",
@@ -134,3 +135,15 @@ class RealPluginTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class RealPluginExportTest(unittest.TestCase):
+    """The cloud copy carries the interfaces skill and the development templates of the real plugin."""
+
+    def test_interfaces_skill_and_development_templates_are_exported(self):
+        plugin = PLUGIN
+        self.assertIn("interfaces", cloud_export.exported_skill_names(plugin))
+        self.assertIn(".claude/skills/harness-interfaces/SKILL.md", skill_files(plugin))
+        runtime = cloud_export.runtime_files(plugin)
+        for name in ("architecture", "scope", "interfaces", "interface", "catalog"):
+            self.assertIn(f".claude-harness/runtime/templates/development/{name}.md", runtime)
