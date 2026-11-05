@@ -14,7 +14,8 @@ from state import architecture_read_file
 RULES_FILE = "architecture.md"
 SCOPES_HEADING = "## Scopes"
 INHERITED_HEADING = "## Inherited rules"
-_SCOPE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+# One or more segments separated by '/'; the file is architecture/<name>.md.
+_SCOPE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*")
 _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 _SEPARATOR_ROW = re.compile(r"\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?")
 
@@ -56,7 +57,7 @@ def parse_scopes(text: str) -> tuple[list[Scope], list[str]]:
             continue
         name, paths = cells[0], cells[1]
         if not _SCOPE_NAME.fullmatch(name):
-            errors.append(f"invalid scope name {name!r} (lowercase letters, digits, '-')")
+            errors.append(f"invalid scope name {name!r} (segments of lowercase letters, digits, '-', separated by '/')")
             continue
         patterns = tuple(p.strip() for p in re.findall(r"`([^`]+)`", paths) if p.strip())
         if not patterns:
