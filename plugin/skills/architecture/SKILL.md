@@ -46,7 +46,11 @@ description: Rules for working with the project's binding architecture rules (de
   direction, naming, forbidden imports), propose an architecture test and let
   the rule name it: `Enforced by: <test path>`.
 - Scope table format: one row per scope, `| Scope | Paths | Covers |`. Scope
-  names use lowercase letters, digits, and `-`. Paths are patterns relative to
+  names consist of one or more segments of lowercase letters, digits, and
+  `-`, separated by `/`; the file is `architecture/<Scope>.md`, so
+  `plugins/patient` lives in `architecture/plugins/patient.md`. A scope and a
+  folder of the same name may coexist (`plugins.md` next to `plugins/`). Use at
+  most two levels (area, part). Paths are patterns relative to
   the project root in backticks, comma-separated; `*` stays within one path
   part, `**` spans any number of parts. The session start reports errors in
   the table.

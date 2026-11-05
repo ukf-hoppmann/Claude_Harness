@@ -12,7 +12,9 @@ tests/architecture/test_layers.py". -->
 
 ## Scopes
 
-<!-- Areas with additional rules in architecture/<Scope>.md. A scope applies
+<!-- Areas with additional rules in architecture/<Scope>.md. A scope name may
+contain subfolders separated by '/' (plugins/patient lives in
+architecture/plugins/patient.md; at most two levels). A scope applies
 in addition to this file, never instead of it. Paths: patterns relative to
 the project root in backticks, comma-separated; `*` stays within one path
 part, `**` spans any number of parts. Example row:

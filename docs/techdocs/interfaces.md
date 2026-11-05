@@ -88,7 +88,8 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 | PostToolUse (`Read`) | `mark_active_item.py` | Nur beim wirksamen Backend `files`: das Lesen von `items/<ID>/<ID>_spec.md` im Backlog-Ordner macht das Item aktiv (Zähler 0, ein laufender Zähler bleibt) | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_public_api.py` | Nur bei aktivem Teil `architecture` und nicht leerem `development.public_api`: Merker (Liste der Pfade), wenn die geänderte Datei auf ein Muster passt (Syntax der Scope-Pfade, relativ zum Projekt-Root); pro Projekt | keine |
-| PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
+| PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei (`.md` an beliebiger Stelle unterhalb von `architecture/`) vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
+>>>>>>> main
 | Stop | `check_backlog.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session. Für jede in der Session geänderte Notes-Datei: Kopf `missing` oder `stale` ist ein Fehler, bis er angepasst oder mit `backlog.py --confirm-state` bestätigt ist; Hinweise bei mehr als 15 Punkten unter `- Decided:`, wenn die Notes eines Epics oder einer Story geändert wurden, während eines ihrer Kinder `In progress` ist (Frage, ob die Besprechung dorthin gehört), und wenn ein älterer Protokolleintrag gegenüber dem letzten Commit geändert wurde (ohne Git kein Hinweis). Wurde in der Session eine Datei im Ordner `notes/` des Backlogs geändert, prüft er den ganzen Ordner nach Format Version 2 (`notes_format.py`): Fehler blockieren mit `notes/<Datei>:<Zeile>: <Code>: <Text>`, bis sie behoben sind; Hinweise (nicht gelesene Datei, Dokument ohne Note) einmal pro Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
 | Stop | `check_notes_state.py` | Nur beim wirksamen Backend `api`: blockiert, solange ein Item in der Session einen Notes-Kopf mit Zustand `stale` oder `missing` hat (nach der letzten Meldung des Helfers); die Meldung nennt jedes Item (bei Teilprojekten mit `--project <Name>`) und verweist auf `put-state`/`confirm-state`. Bestätigen oder Ersetzen meldet `current` und löst den Block. Kein Netzwerk; `stop_hook_active` verhindert eine Schleife; kennt der Viewer keinen Kopf oder ist er nicht erreichbar, scheitert der Helfer und es entsteht kein Merker. Der Files-Modus läuft über `check_backlog.py` | Exit 2 + stderr |
 | UserPromptSubmit | `remind_notes.py` | Beide Backends: zählt je Prompt für jedes aktive Item (auf `In progress` gesetzt oder Spec gelesen) den Zähler hoch und gibt bei 5, 10, 15 … auf stdout eine Erinnerung aus, im Notes-Protokoll festzuhalten, was geklärt, entschieden oder verworfen wurde; ein Notes-Eintrag setzt den Zähler zurück. Blockiert nie (Exit 0, Ausgabe als Kontext) | stdout → Kontext |
@@ -573,8 +574,13 @@ JSON auf stdin.
 | Release-Tag | annotierter Tag `<Präfix><Version>`, z. B. `v0.2.0`, `ezf-ui-v1.4.0` | Skill `semver` |
 | `architecture.md`, `architecture/<Scope>.md` | Markdown, englisch, Regeln mit MUST/SHOULD/MAY; Abschnitt `## Scopes` mit Tabelle `\| Scope \| Paths \| Covers \|`, optional `## Inherited rules` mit Tabelle `\| Project \| Rules \|` | `plugin/templates/development/architecture.md`, Skill `architecture` |
 
-Scope-Tabelle: Name aus Kleinbuchstaben, Ziffern und `-`; Datei
-`architecture/<Scope>.md` neben der Regeldatei. Pfadmuster relativ zum
+Scope-Tabelle: Name aus einem oder mehreren Segmenten aus Kleinbuchstaben,
+Ziffern und `-`, getrennt durch `/` (kein führendes oder abschließendes `/`,
+keine leeren Segmente); Datei `architecture/<Scope>.md` neben der Regeldatei,
+also `plugins/patient` in `architecture/plugins/patient.md`. Ein Scope `plugins`
+und ein Scope `plugins/patient` können nebeneinander bestehen; empfohlen sind
+höchstens zwei Ebenen. Dieselbe Namensregel gilt für die Tabelle der geerbten
+Regeln. Pfadmuster relativ zum
 Projekt-Root in Backticks, kommagetrennt; `*` und `?` innerhalb eines
 Pfadteils, `**` über beliebig viele Pfadteile. HTML-Kommentare werden
 ignoriert. Ein Scope gilt zusätzlich zur Regeldatei.
