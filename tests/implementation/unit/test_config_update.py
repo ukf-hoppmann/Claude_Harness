@@ -39,6 +39,13 @@ class CompleteTest(unittest.TestCase):
         self.assertLess(result.text.index('path = "todo"'), result.text.index('backend = "api"'))
         keeps_lines(self, project, result.text)
 
+    def test_missing_public_api_gets_template_line(self):
+        project = TEMPLATE.replace("public_api = []\n", "")
+        result = complete(project, TEMPLATE)
+        self.assertIn("public_api = []\n", result.text)
+        self.assertEqual(tomllib.loads(result.text)["development"]["public_api"], [])
+        keeps_lines(self, project, result.text)
+
     def test_backend_is_a_decision_when_todo_is_on(self):
         project = TEMPLATE.replace('backend = "api"\n', "")
         pending = decisions(complete(project, TEMPLATE))["todo.backend"]

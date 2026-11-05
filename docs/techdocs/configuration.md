@@ -28,6 +28,7 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `development.worktree` | Boolean | `true` | nein | Teilbereich Change-Workflow (Skill `claude-harness:worktree`): Changes mit freigegebenem Plan laufen in einem Worktree vom aktuellen Branch und werden von der AI zurückgemerged; nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `development.testing` | Boolean | `true` | nein | Teilbereich Tests (Skill `claude-harness:testing`): Ablage und Gliederung des Testordners, Implementierungs- und Funktionalitätstests; nur wirksam, wenn die Suite an ist; `false` schaltet ihn ab |
 | `development.tests` | Pfad | `"tests"` | nein | Testordner, relativ zum Projekt-Root (nicht zu `docs.root`); in der Regel neben dem Quellordner |
+| `development.public_api` | Liste von Mustern | `[]` | nein | Dateien der öffentlichen APIs des Projekts; Muster relativ zum Projekt-Root in der Syntax der Scope-Pfade (`*` innerhalb eines Pfadteils, `**` über mehrere; kein führendes `/`, kein `..`). Wird eine passende Datei per Write/Edit geändert, erinnert der Hook `check_public_api.py` einmal je Session und Projekt daran, Zuständigkeiten, Katalog, Schnittstellen-Doku und Verweise zu prüfen; nur wirksam, wenn der Teilbereich `architecture` an ist. Leer = keine Erinnerung |
 | `techdocs.documents` | Liste | `["architecture", "interfaces", "configuration"]` | nein | Geführte Dokumente; erlaubt sind `architecture`, `interfaces`, `configuration`, `operations`; Dateiname `<Art>.md`. `README.md` im Projekt-Root gehört immer dazu |
 | `semver.file` | Pfad | `"VERSION"` | nein | Versionsdatei, relativ zu `docs.root`; enthält nur die Version `MAJOR.MINOR.PATCH` |
 | `semver.sync` | Liste von Pfaden | `[]` | nein | Spiegel-Dateien, relativ zum Projekt, z. B. `["package.json"]`; jede muss die Version aus der Versionsdatei enthalten |
@@ -94,6 +95,7 @@ documents = ["architecture", "interfaces", "configuration"]
 [development]
 path = "development"
 architecture = true
+public_api = ["src/core/index.ts", "src/plugins/*/index.ts"]
 
 [harness]
 repo = ["~/Documents/GitHub/Claude_Harness"]
