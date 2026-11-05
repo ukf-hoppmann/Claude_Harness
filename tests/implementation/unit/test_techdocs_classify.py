@@ -53,7 +53,7 @@ class ClassifyTest(unittest.TestCase):
     def test_custom_development_path(self):
         project = self.project('[development]\npath = "dev"\n')
         self.assertEqual(self.kind(project, "docs/dev/interfaces/a.md"), "docs")
-        self.assertIsNone(self.kind(project, "docs/development/interfaces/a.md"))
+        self.assertEqual(self.kind(project, "docs/development/interfaces/a.md"), "project")
 
     def test_existing_classes_unchanged(self):
         project = self.project()
