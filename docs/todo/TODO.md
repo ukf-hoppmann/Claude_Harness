@@ -132,7 +132,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
 - `EPIC-011` **Hierarchische Architektur- und Schnittstellen-Doku für die AI**
   - Uid: 37382d27-0b2a-4d59-b52f-4401524a99b2.
   - Type: Epic.
-  - Status: Awaiting confirmation.
+  - Status: In progress.
   - Created: 2026-11-05.
   - Area: Architektur.
   - Priority: Important.

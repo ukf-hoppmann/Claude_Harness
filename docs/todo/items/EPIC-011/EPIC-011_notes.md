@@ -2,15 +2,16 @@
 
 ## State
 
-- Goal/Status: Alle Pflicht-Stories abgeschlossen (v0.13.0); Epic wartet auf Bestätigung (2026-11-05)
-- Next step: Über STORY-059 entscheiden, dann Epic schließen; ezf-ui auf den neuen Harness umstellen (2026-11-05)
-- Open: STORY-059 offen, blockiert das Schließen des Epics (2026-11-05)
+- Goal/Status: Alle Pflicht-Stories abgeschlossen (v0.13.0); Epic bleibt offen für STORY-059 (2026-11-05)
+- Next step: STORY-059 bei Bedarf umsetzen, dann Epic schließen; ezf-ui auf den neuen Harness umstellen (2026-11-05)
+- Open: keine (2026-11-05)
+- Decided: STORY-059 bleibt im Epic; Epic bleibt In progress bis 059 erledigt oder abgelehnt (2026-11-05)
 - Decided: development für die AI, techdocs für Menschen; Schnittstellen-Doku und Katalog in development (2026-11-05)
 - Decided: E1 X.md neben X/, E2 Pfade ab Projekt-Root, E3 Markdown-Links, E4 nur public_api (2026-11-05)
 - Decided: keine Umbenennung der Module; Pflicht über Nutzung statt Rückfrage-Hook (2026-11-05)
 - References: STORY-053 bis STORY-059; Release v0.13.0 (2026-11-05)
 
-State confirmed after entry 2026-11-05 — Umsetzung abgeschlossen (47f30b2b6b3b)
+State confirmed after entry 2026-11-05 — STORY-059 im Epic (792cdc4ca782)
 
 ## 2026-11-05 — Entwurf aus ezf-ui gegen den Harness geprüft
 
@@ -47,3 +48,13 @@ State confirmed after entry 2026-11-05 — Umsetzung abgeschlossen (47f30b2b6b3b
 ### Open
 
 - STORY-059 (optional) ist noch offen und verhindert das Schließen des Epics: aus dem Epic lösen oder hier lassen.
+
+## 2026-11-05 — STORY-059 im Epic
+
+### Discussed
+
+- STORY-059 (optional, offen) verhindert das Schließen des Epics. Optionen: aus dem Epic lösen (Epic sofort schließbar) oder im Epic lassen (Epic bleibt offen bis 059 erledigt oder abgelehnt).
+
+### Decided
+
+- Besitzer: STORY-059 bleibt im Epic. Das Epic bleibt In progress, bis STORY-059 abgeschlossen oder abgelehnt ist.
