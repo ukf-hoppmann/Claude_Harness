@@ -1967,3 +1967,36 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Resolution: Vom Besitzer am 2026-11-05 bestätigt; umgesetzt und in main
     gemergt (bis v0.13.0), Tests grün, Gesamtablauf in einem Testprojekt
     geprüft.
+
+- `STORY-059` **Techdocs als Zusammenfassung der development-Doku**
+  - Uid: af537863-8cbf-4786-879c-1a3eff58b8a9.
+  - Type: Story.
+  - Parent: `EPIC-011`.
+  - Required for parent: No.
+  - Status: Completed.
+  - Created: 2026-11-05.
+  - Area: Dokumentation.
+  - Priority: Prospective.
+  - Dependencies: `STORY-058`.
+  - Goal: Eine allgemeine Regel für alle Projekte: Die Techdocs (für
+    Menschen, in docs.language) sind eine zusammenfassende Übersicht.
+    Elemente, die die englische development-Doku beschreibt, werden
+    zusammengefasst und verlinkt statt dupliziert; ohne development-Doku
+    beschreiben die Techdocs sie vollständig. Die README verweist auf alle
+    Techdocs.
+  - Completion criteria: 1. Skill techdocs regelt je Dokument, was
+    zusammenfasst und verlinkt (architecture, interfaces) und was
+    vollständig bleibt (README, configuration, operations), sowie die
+    schrittweise Umstellung bestehender Projekte.
+    2. Die README verweist auf alle vorhandenen Techdocs; Skill und Vorlage
+    readme.md sagen das.
+    3. Die Vorlagen architecture.md und interfaces.md der Techdocs sind
+    angepasst (Übersicht mit Links).
+    4. Eine Änderung unter development/interfaces zählt für die
+    Techdocs-Erinnerung als Doku-Pflege; Unit-Tests decken das ab.
+    5. Techdocs des Harness beschreiben das geänderte Verhalten der
+    Erinnerung.
+  - Summary: Später: Die Doku für Menschen soll die Doku für die AI
+    zusammenfassen und darauf verweisen, statt sie doppelt zu führen.
+  - Resolution: Vom Besitzer am 2026-11-05 bestätigt; umgesetzt und in main
+    gemergt (v0.13.1), 796 Tests grün.

@@ -163,34 +163,3 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     Bausteine wiederverwendet. Das Epic baut die nötigen Mechanismen in den
     Harness: Scopes in Unterordnern, Pflichtlektüre, Linkprüfung,
     Pflege-Erinnerung, Pflicht über Nutzung, Vorlagen und Skills.
-
-- `STORY-059` **Techdocs als Zusammenfassung der development-Doku**
-  - Uid: af537863-8cbf-4786-879c-1a3eff58b8a9.
-  - Type: Story.
-  - Parent: `EPIC-011`.
-  - Required for parent: No.
-  - Status: Awaiting confirmation.
-  - Created: 2026-11-05.
-  - Area: Dokumentation.
-  - Priority: Prospective.
-  - Dependencies: `STORY-058`.
-  - Goal: Eine allgemeine Regel für alle Projekte: Die Techdocs (für
-    Menschen, in docs.language) sind eine zusammenfassende Übersicht.
-    Elemente, die die englische development-Doku beschreibt, werden
-    zusammengefasst und verlinkt statt dupliziert; ohne development-Doku
-    beschreiben die Techdocs sie vollständig. Die README verweist auf alle
-    Techdocs.
-  - Completion criteria: 1. Skill techdocs regelt je Dokument, was
-    zusammenfasst und verlinkt (architecture, interfaces) und was
-    vollständig bleibt (README, configuration, operations), sowie die
-    schrittweise Umstellung bestehender Projekte.
-    2. Die README verweist auf alle vorhandenen Techdocs; Skill und Vorlage
-    readme.md sagen das.
-    3. Die Vorlagen architecture.md und interfaces.md der Techdocs sind
-    angepasst (Übersicht mit Links).
-    4. Eine Änderung unter development/interfaces zählt für die
-    Techdocs-Erinnerung als Doku-Pflege; Unit-Tests decken das ab.
-    5. Techdocs des Harness beschreiben das geänderte Verhalten der
-    Erinnerung.
-  - Summary: Später: Die Doku für Menschen soll die Doku für die AI
-    zusammenfassen und darauf verweisen, statt sie doppelt zu führen.
