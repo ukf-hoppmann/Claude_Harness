@@ -74,3 +74,11 @@ session:
 Harness files (`README.md`, `.claude-harness/`, the document folders) are not
 checked. The hook does not see changes made through Bash; the rules apply to
 them all the same.
+
+## Public API reminder
+
+If `[development].public_api` lists patterns and a file matching one was
+changed, a Stop hook reminds you once per session and project. Then check that
+the architecture responsibilities, the catalog of reusable building blocks, the
+interface docs below the development folder, and their links still match the
+change; update what does not. If nothing needs to change, say so briefly.

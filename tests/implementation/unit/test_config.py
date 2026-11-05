@@ -128,6 +128,15 @@ class ParseConfigTest(unittest.TestCase):
         # Relative to the project root, not to docs.root.
         self.assertEqual(config.tests_path, PurePosixPath("backend/tests"))
 
+    def test_public_api(self):
+        self.assertEqual(parse_config({"version": 1}).public_api, ())
+        config = parse_config({
+            "version": 1,
+            "development": {"public_api": ["src/core/index.ts", "src/plugins/*/index.ts"]},
+        })
+        self.assertEqual(config.public_api, ("src/core/index.ts", "src/plugins/*/index.ts"))
+        self.assertEqual(parse_config({"version": 1, "development": {"public_api": []}}).public_api, ())
+
     def test_harness_repo(self):
         self.assertEqual(parse_config({"version": 1}).harness_repos, ())
         config = parse_config({"version": 1, "harness": {"repo": ["/abs/harness", "~/code/harness"]}})
@@ -235,6 +244,11 @@ class ParseConfigTest(unittest.TestCase):
             {"version": 1, "development": {"tests": "/abs"}},
             {"version": 1, "development": {"tests": "../tests"}},
             {"version": 1, "development": {"tests": 1}},
+            {"version": 1, "development": {"public_api": "src/index.ts"}},
+            {"version": 1, "development": {"public_api": ["/abs/index.ts"]}},
+            {"version": 1, "development": {"public_api": ["../index.ts"]}},
+            {"version": 1, "development": {"public_api": [""]}},
+            {"version": 1, "development": {"public_api": [1]}},
             {"version": 1, "harness": {"repo": "/abs/harness"}},
             {"version": 1, "harness": {"repo": ["relative/harness"]}},
             {"version": 1, "harness": {"repo": [""]}},
