@@ -17,8 +17,11 @@ contain subfolders separated by '/' (plugins/patient lives in
 architecture/plugins/patient.md; at most two levels). A scope applies
 in addition to this file, never instead of it. Paths: patterns relative to
 the project root in backticks, comma-separated; `*` stays within one path
-part, `**` spans any number of parts. Example row:
-| llm-integration | `src/llm/**`, `src/prompts/*.py` | Model calls and prompts | -->
+part, `**` spans any number of parts. Optional column "Required reading":
+files (paths relative to the project root in backticks, comma-separated, must
+exist) that must also be read in full before changing a file of the scope;
+keep it short. Without the column, the table has three columns. Example row:
+| llm-integration | `src/llm/**`, `src/prompts/*.py` | `docs/development/interfaces/llm.md` | Model calls and prompts | -->
 
 | Scope | Paths | Covers |
 |---|---|---|

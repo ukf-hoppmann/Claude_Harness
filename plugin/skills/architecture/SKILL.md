@@ -54,6 +54,13 @@ description: Rules for working with the project's binding architecture rules (de
   the project root in backticks, comma-separated; `*` stays within one path
   part, `**` spans any number of parts. The session start reports errors in
   the table.
+- Optional column `Required reading` (recognized by its header, between or
+  after `Paths`, e.g. `| Scope | Paths | Required reading | Covers |`): files
+  that must also be read in full before changing a file of the scope, e.g. its
+  interface docs. Paths relative to the project root in backticks,
+  comma-separated, no patterns, no leading `/`, no `..`; the files must exist.
+  The hook requires them like the scope file, also for inherited scopes. Keep
+  the list short: every listed file is read in full before each first change.
 - Inherited rules table format: `| Project | Rules |`. Project is a name from
   `[projects]` of the root config or `root`; Rules are `architecture.md` or
   scope names of that project, in backticks. An inherited scope applies

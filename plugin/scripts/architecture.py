@@ -17,6 +17,7 @@ INHERITED_HEADING = "## Inherited rules"
 # One or more segments separated by '/'; the file is architecture/<name>.md.
 _SCOPE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*")
 _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
+READING_HEADER = "required reading"
 _SEPARATOR_ROW = re.compile(r"\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?")
 
 
@@ -24,6 +25,8 @@ _SEPARATOR_ROW = re.compile(r"\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?")
 class Scope:
     name: str
     patterns: tuple[str, ...]
+    # Files relative to the project root that must be read before changing a file of the scope.
+    required_reading: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -50,6 +53,7 @@ def parse_scopes(text: str) -> tuple[list[Scope], list[str]]:
     scopes: list[Scope] = []
     errors: list[str] = []
     rows = _table_rows(text, SCOPES_HEADING)
+    reading_column = _reading_column(rows[0]) if rows else None
     for row in rows[1:]:  # rows[0] is the header
         cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
         if len(cells) < 2:
@@ -70,8 +74,36 @@ def parse_scopes(text: str) -> tuple[list[Scope], list[str]]:
         if any(scope.name == name for scope in scopes):
             errors.append(f"scope {name!r} is listed twice")
             continue
-        scopes.append(Scope(name, patterns))
+        reading: tuple[str, ...] = ()
+        if reading_column is not None and reading_column < len(cells):
+            reading, reading_errors = _parse_reading(name, cells[reading_column])
+            errors += reading_errors
+        scopes.append(Scope(name, patterns, reading))
     return scopes, errors
+
+
+def _reading_column(header: str) -> int | None:
+    cells = [cell.strip().lower() for cell in header.strip().strip("|").split("|")]
+    return cells.index(READING_HEADER) if READING_HEADER in cells else None
+
+
+def _parse_reading(scope: str, cell: str) -> tuple[tuple[str, ...], list[str]]:
+    """Paths in backticks of a Required reading cell; invalid ones are dropped and reported."""
+    if not cell:
+        return (), []
+    entries = [e.strip() for e in re.findall(r"`([^`]+)`", cell) if e.strip()]
+    if not entries:
+        return (), [f"scope {scope!r}: required reading must be file paths in backticks: {cell}"]
+    valid: list[str] = []
+    errors: list[str] = []
+    for entry in entries:
+        parts = PurePosixPath(entry).parts
+        if entry.startswith("/") or ".." in parts or re.search(r"[*?\[\]]", entry):
+            errors.append(f"scope {scope!r}: required reading must be a file path relative to the project "
+                          f"root without '..' or patterns: {entry}")
+        elif entry not in valid:
+            valid.append(entry)
+    return tuple(valid), errors
 
 
 def parse_inherited(text: str) -> tuple[list[Inherited], list[str]]:
@@ -124,7 +156,7 @@ def inherited_files(projects: ProjectSet, project: Project) -> tuple[list[PurePo
         if not other.config.part_enabled("architecture") or not (other.root / other_rules).is_file():
             errors.append(f"project {entry.project!r} has no active architecture rules")
             continue
-        scopes = {scope.name for scope in load_scopes(other.root, other.config)[0]}
+        scopes = {scope.name: scope for scope in load_scopes(other.root, other.config)[0]}
         for name in entry.rules:
             if name == RULES_FILE:
                 files.append(other.path / other_rules)
@@ -132,6 +164,11 @@ def inherited_files(projects: ProjectSet, project: Project) -> tuple[list[PurePo
                 errors.append(f"project {entry.project!r} has no scope {name!r}")
             elif (other.root / scope_path(other.config, name)).is_file():
                 files.append(other.path / scope_path(other.config, name))
+                for reading in scopes[name].required_reading:
+                    path = other.path / reading
+                    files.append(path)
+                    if not (other.root / reading).is_file():
+                        errors.append(f"required reading {path} of scope {name!r} is missing")
             else:
                 errors.append(f"scope file {other.path / scope_path(other.config, name)} is missing")
     return files, errors
@@ -181,6 +218,9 @@ def load_scopes(root: Path, config: HarnessConfig) -> tuple[list[Scope], list[st
     for scope in scopes:
         if not (root / scope_path(config, scope.name)).is_file():
             errors.append(f"scope file {scope_path(config, scope.name)} is missing")
+        for reading in scope.required_reading:
+            if not (root / reading).is_file():
+                errors.append(f"required reading {reading} of scope {scope.name!r} is missing")
     return scopes, errors
 
 
@@ -194,7 +234,27 @@ def required_files(root: Path, config: HarnessConfig, rel: PurePosixPath) -> lis
         path = scope_path(config, scope.name)
         if (root / path).is_file() and any(match_path(p, rel) for p in scope.patterns):
             required.append(path)
+        # A missing reading file stays required, so the hook can name it.
+        if any(match_path(p, rel) for p in scope.patterns):
+            required += [PurePosixPath(r) for r in scope.required_reading if PurePosixPath(r) not in required]
     return required
+
+
+def counted_reads(projects: ProjectSet) -> set[str]:
+    """Files (relative to the session root) whose complete Read counts besides rules and scope files.
+
+    Required reading of the scopes of every project and of the scopes it inherits. Other
+    stories add the files they require here.
+    """
+    files: set[str] = set()
+    for project in projects.projects:
+        config = project.config
+        if not config.part_enabled("architecture") or not (project.root / rules_path(config)).is_file():
+            continue
+        for scope in load_scopes(project.root, config)[0]:
+            files.update((project.path / r).as_posix() for r in scope.required_reading)
+        files.update(p.as_posix() for p in inherited_files(projects, project)[0])
+    return files
 
 
 def read_files(session_id: str) -> set[str]:
