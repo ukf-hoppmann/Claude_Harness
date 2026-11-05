@@ -2,8 +2,8 @@
 
 ## State
 
-- Goal/Status: Regel freigegeben, Spec geschrieben; bereit zur Umsetzung (2026-11-05)
-- Next step: Umsetzung in einer Sonnet-Session (2026-11-05)
+- Goal/Status: Umgesetzt, gemerged und als v0.13.1 released; wartet auf Bestätigung (2026-11-05)
+- Next step: Bestätigung durch den Besitzer (2026-11-05)
 - Open: keine (2026-11-05)
 - Decided:
   - Allgemeine Regel für alle Projekte statt Überarbeitung dieses Repos; Kriterium 3 entfällt (2026-11-05)
@@ -11,9 +11,10 @@
   - README verweist auf alle Techdocs (2026-11-05)
   - Änderungen unter development/interfaces zählen für die Techdocs-Erinnerung (2026-11-05)
   - Sprache bleibt docs.language, im Init abgefragt (2026-11-05)
-- References: Spec STORY-059_spec.md; EPIC-011 (2026-11-05)
+  - Release als Patch v0.13.1 (2026-11-05)
+- References: Spec STORY-059_spec.md; EPIC-011; Commit 3080186, Release 23a15d0 (2026-11-05)
 
-State confirmed after entry 2026-11-05 — Regel für Techdocs freigegeben (1ae803986d2c)
+State confirmed after entry 2026-11-05 — Umsetzung abgeschlossen (338435fc2766)
 
 ## 2026-11-05 — Ziel der Story geklärt: allgemeine Regel für Techdocs
 
@@ -48,3 +49,15 @@ State confirmed after entry 2026-11-05 — Regel für Techdocs freigegeben (1ae8
 - Ergänzung des Besitzers: Die README verweist auf alle vorhandenen Techdocs, damit z. B. die Konfiguration auffindbar ist.
 - Kriterium 3 (Techdocs dieses Repos überarbeiten) entfällt; ersetzt durch die Regel und ihre Prüfung.
 - Sprache der Techdocs bleibt über docs.language konfigurierbar; keine Code-Änderung.
+
+## 2026-11-05 — Umsetzung abgeschlossen
+
+### Discussed
+
+- Umsetzung nach Spec: classify zählt interfaces.md und interfaces/** als Doku-Pflege (nur bei aktivem Teil architecture), Skill techdocs mit Regel und Rollen-Tabelle, Vorlagen readme/architecture/interfaces, Techdocs des Harness nachgezogen
+- Release als Patch v0.13.1 (neue Regel in bestehendem Skill, Verfeinerung eines bestehenden Hooks)
+- Alle 796 Implementierungstests grün auf main
+
+### Decided
+
+- Keine Abweichung von der Spec

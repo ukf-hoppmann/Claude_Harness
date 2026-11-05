@@ -169,7 +169,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Story.
   - Parent: `EPIC-011`.
   - Required for parent: No.
-  - Status: Open.
+  - Status: Awaiting confirmation.
   - Created: 2026-11-05.
   - Area: Dokumentation.
   - Priority: Prospective.
