@@ -30,7 +30,7 @@ def main() -> int:
 
     config = project.config
     rel = project.relative(file_path)
-    if rel != rules_path(config) and rel.parent != scopes_dir(config):
+    if rel != rules_path(config) and not (rel.is_relative_to(scopes_dir(config)) and rel.suffix == ".md"):
         return 0
     if not _complete_read(project.root / rel, tool_input):
         return 0
