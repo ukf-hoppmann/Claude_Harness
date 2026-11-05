@@ -87,12 +87,14 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 | PostToolUse (`Bash`) | `mark_notes_state.py` | Nur beim wirksamen Backend `api` und nur nach einem erfolgreichen Aufruf von `backlog_api.py` (ohne `--source`; mit `--project <Name>` für dieses Projekt): liest die `[harness]`-Zeilen aus `tool_response.stdout`/`stderr` (`notes-state <ID> <Zustand>`, `active <ID>`) und legt je Projekt und Item Zustand des Notes-Kopfs und, für aktive Items, den Zähler „Prompts seit dem letzten Notes-Eintrag“ ab (ein Notes-Schreibvorgang setzt ihn auf 0); Änderungen am Merker-Speicher sind gesperrt und ersetzen die Datei atomar, weil die Hooks paralleler Bash-Aufrufe gleichzeitig laufen (`state.edit_notes_marks`); kein Netzwerk | keine |
 | PostToolUse (`Read`) | `mark_active_item.py` | Nur beim wirksamen Backend `files`: das Lesen von `items/<ID>/<ID>_spec.md` im Backlog-Ordner macht das Item aktiv (Zähler 0, ein laufender Zähler bleibt) | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
+| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_doclinks.py` | Merkt je Session die geänderten Dokumente, deren Links geprüft werden (siehe Abschnitt „Linkprüfung“); Projekt und Pfad stehen in der Zustandsdatei `doclinks-changed-<Session>.json` | – |
 | PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln oder eine Scope-Datei vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
 | Stop | `check_backlog.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session. Für jede in der Session geänderte Notes-Datei: Kopf `missing` oder `stale` ist ein Fehler, bis er angepasst oder mit `backlog.py --confirm-state` bestätigt ist; Hinweise bei mehr als 15 Punkten unter `- Decided:`, wenn die Notes eines Epics oder einer Story geändert wurden, während eines ihrer Kinder `In progress` ist (Frage, ob die Besprechung dorthin gehört), und wenn ein älterer Protokolleintrag gegenüber dem letzten Commit geändert wurde (ohne Git kein Hinweis). Wurde in der Session eine Datei im Ordner `notes/` des Backlogs geändert, prüft er den ganzen Ordner nach Format Version 2 (`notes_format.py`): Fehler blockieren mit `notes/<Datei>:<Zeile>: <Code>: <Text>`, bis sie behoben sind; Hinweise (nicht gelesene Datei, Dokument ohne Note) einmal pro Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
 | Stop | `check_notes_state.py` | Nur beim wirksamen Backend `api`: blockiert, solange ein Item in der Session einen Notes-Kopf mit Zustand `stale` oder `missing` hat (nach der letzten Meldung des Helfers); die Meldung nennt jedes Item (bei Teilprojekten mit `--project <Name>`) und verweist auf `put-state`/`confirm-state`. Bestätigen oder Ersetzen meldet `current` und löst den Block. Kein Netzwerk; `stop_hook_active` verhindert eine Schleife; kennt der Viewer keinen Kopf oder ist er nicht erreichbar, scheitert der Helfer und es entsteht kein Merker. Der Files-Modus läuft über `check_backlog.py` | Exit 2 + stderr |
 | UserPromptSubmit | `remind_notes.py` | Beide Backends: zählt je Prompt für jedes aktive Item (auf `In progress` gesetzt oder Spec gelesen) den Zähler hoch und gibt bei 5, 10, 15 … auf stdout eine Erinnerung aus, im Notes-Protokoll festzuhalten, was geklärt, entschieden oder verworfen wurde; ein Notes-Eintrag setzt den Zähler zurück. Blockiert nie (Exit 0, Ausgabe als Kontext) | stdout → Kontext |
 | Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Branch, in den gemerged wird (Orte wie bei `daily.py`; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
 | Stop | `check_techdocs.py` | Erinnert einmal pro Projekt und Session, wenn Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden; mit Teilprojekten nennt die Meldung jedes betroffene Projekt mit seinen Doku-Pfaden | Exit 2 + stderr |
+| Stop | `check_doclinks.py` | Prüft die in der Session geänderten Dokumente (siehe „Linkprüfung“); tote Links stehen als `<Datei>:<Zeile>: <Ziel>: <Grund>` in der Meldung (höchstens 20, bei Teilprojekten mit Projektordner davor). Die Liste bleibt, bis alle Links stimmen; danach wird sie geleert | Exit 2 + stderr |
 | Stop | `check_semver.py` | Nur in einem Git-Repo. Meldet pro Projekt mit Modul `semver`: Versionsdatei fehlt oder enthält keine gültige Version; Version liegt unter dem letzten Release oder mehr als einen Schritt darüber; eine Spiegel-Datei fehlt oder enthält die Version nicht. Derselbe Befund wird einmal pro Projekt und Session gemeldet; mit Teilprojekten nennt die Meldung jedes Projekt samt Aufruf `semver.py status --project <Name>` | Exit 2 + stderr |
 
 Bei gesetztem `stop_hook_active` bleiben die Stop-Hooks still, damit keine
@@ -534,6 +536,37 @@ JSON auf stdin.
 - Exit-Code: 0; 1 bei Fehlern (nicht in einem Worktree, Haupt-Checkout
   detached, kein Ausgangsbranch gespeichert) und bei `check`, wenn `clean`
   `no` oder `merge_in` `none` ist; 2 bei falschem Aufruf.
+
+## Linkprüfung (`doclinks.py`)
+
+Gemeinsamer Helfer für Sitzungsstart und Stop-Hook; nur Standardbibliothek,
+kein Netz. Manuell: `python3 plugin/scripts/doclinks.py [Projekt-Root]` gibt die
+toten Links aus (Exit 1) oder `No dead links.`.
+
+- **Geprüfte Dokumente je Projekt:** `README.md` und alle `.md` unter
+  `techdocs.path`, wenn das Modul `techdocs` aktiv ist; alle `.md` unter
+  `development.path`, wenn der Teil `architecture` aktiv ist.
+- **Linkformen:** Inline-Links `[Text](ziel.md#anker)`, Bilder, Ziele in
+  `<…>` (mit Leerzeichen), Titel werden abgeschnitten, `%20` wird
+  dekodiert, `?query` entfällt, Referenz-Definitionen `[id]: ziel` werden
+  geprüft (`[^fußnote]:` nicht). Das Ziel ist relativ zur verweisenden Datei
+  (`/x.md` relativ zum Projekt-Root); `#anker` allein meint die eigene Datei.
+- **Nicht geprüft:** Links mit Schema (`https:`, `mailto:` …) oder `//`, Links in
+  Code-Blöcken (```` ``` ````/`~~~`) und Inline-Code, eingerückte Code-Blöcke werden
+  nicht erkannt.
+- **Fehler:** Ziel liegt außerhalb des Projekts; Datei oder Ordner fehlt;
+  Anker fehlt in einer `.md`-Zieldatei (ohne Beachtung der Groß-/Kleinschreibung).
+- **Anker:** Slug wie bei GitHub: Überschrift klein, alles außer Buchstaben
+  (auch Umlaute), Ziffern, `-`, `_` und Leerzeichen entfernt, Leerzeichen zu
+  `-`; Duplikate bekommen `-1`, `-2`; Überschriften in Code-Blöcken zählen
+  nicht; `<a id="…">` und `<a name="…">` zählen als Anker. Setext-Überschriften
+  gelten.
+- **Sitzungsstart:** je Projekt `Dead links in docs: <n>` mit den ersten fünf
+  Meldungen und `- … <m> more`; bei Teilprojekten mit dem Projektnamen
+  davor.
+- **Stop-Hook:** prüft nur die in der Session geänderten Dokumente (Änderungen
+  über Bash sieht `mark_doclinks.py` nicht). Links anderer Dateien, die auf eine
+  geänderte oder gelöschte Datei zeigen, meldet nur der Sitzungsstart.
 
 ## Skript `semver.py`
 

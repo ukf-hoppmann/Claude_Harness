@@ -37,6 +37,11 @@
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/mark_techdocs.py\"",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/mark_doclinks.py\"",
+            "timeout": 10
           }
         ]
       },
@@ -98,6 +103,11 @@
           {
             "type": "command",
             "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/check_techdocs.py\"",
+            "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/check_doclinks.py\"",
             "timeout": 30
           },
           {
