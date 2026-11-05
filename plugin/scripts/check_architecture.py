@@ -61,7 +61,10 @@ def main() -> int:
         return 0
     required = [(project.path / p).as_posix() for p in required_files(project.root, config, rel)]
     required += [p.as_posix() for p in inherited_files(projects, project)[0]]
-    missing = [p for p in required if p not in done]
+    missing = [
+        p if (projects.session_root / p).is_file() else f"{p} (missing)"
+        for p in dict.fromkeys(required) if p not in done
+    ]
     if missing:
         _deny(
             f"before changing {shown_rel}, read the binding architecture rules in full with the Read "

@@ -92,6 +92,54 @@ class ParseScopesTest(unittest.TestCase):
             (root / "docs/development/architecture/plugins/patient.md").write_text("# P\n")
             self.assertEqual(load_scopes(root, config)[1], [])
 
+    def test_required_reading_column(self):
+        text = ("## Scopes\n\n| Scope | Paths | Required reading | Covers |\n|---|---|---|---|\n"
+                "| a | `x/**` | `docs/i/a.md`, `docs/i/b.md` | A |\n"
+                "| b | `y/**` | | B |\n"
+                "| c | `z/**` |\n")
+        scopes, errors = parse_scopes(text)
+        self.assertEqual(errors, [])
+        self.assertEqual([s.required_reading for s in scopes], [("docs/i/a.md", "docs/i/b.md"), (), ()])
+        self.assertEqual([s.patterns for s in scopes], [("x/**",), ("y/**",), ("z/**",)])
+
+    def test_required_reading_header_is_found_by_name(self):
+        text = ("## Scopes\n\n| Scope | Paths | Covers | required READING |\n|---|---|---|---|\n"
+                "| a | `x/**` | A | `docs/a.md` |\n")
+        scopes, errors = parse_scopes(text)
+        self.assertEqual((errors, scopes[0].required_reading), ([], ("docs/a.md",)))
+
+    def test_three_column_table_has_no_required_reading(self):
+        scopes, errors = parse_scopes(RULES)
+        self.assertEqual((errors, scopes[0].required_reading), ([], ()))
+
+    def test_invalid_required_reading(self):
+        for cell in ("docs/a.md", "`/abs.md`", "`../a.md`", "`docs/*.md`", "`docs/a.md`, `./b/../../c.md`"):
+            text = ("## Scopes\n\n| Scope | Paths | Required reading | Covers |\n|---|---|---|---|\n"
+                    f"| a | `x/**` | {cell} | A |\n")
+            scopes, errors = parse_scopes(text)
+            with self.subTest(cell=cell):
+                self.assertEqual(len(errors), 1)
+                self.assertEqual(len(scopes), 1)  # the scope itself stays valid
+                self.assertNotIn("/abs.md", scopes[0].required_reading)
+                self.assertFalse(any(".." in r or "*" in r for r in scopes[0].required_reading))
+
+    def test_missing_required_reading_file_is_reported(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rules = root / "docs/development/architecture.md"
+            rules.parent.mkdir(parents=True)
+            rules.write_text("## Scopes\n\n| Scope | Paths | Required reading | Covers |\n|---|---|---|---|\n"
+                             "| a | `x/**` | `docs/i/a.md` | |\n")
+            (root / "docs/development/architecture").mkdir()
+            (root / "docs/development/architecture/a.md").write_text("# A\n")
+            (root / ".claude-harness").mkdir()
+            (root / ".claude-harness/config.toml").write_text("version = 1\n[modules]\ndevelopment = true\n")
+            config = load_config(root)
+            self.assertEqual(load_scopes(root, config)[1], ["required reading docs/i/a.md of scope 'a' is missing"])
+            (root / "docs/i").mkdir()
+            (root / "docs/i/a.md").write_text("# I\n")
+            self.assertEqual(load_scopes(root, config)[1], [])
+
     def test_template_is_valid(self):
         text = (REPO_ROOT / "plugin/templates/development/architecture.md").read_text()
         self.assertIn("## Scopes", text)
@@ -276,6 +324,57 @@ class ArchitectureHookTest(unittest.TestCase):
         reason = self.edit("src/prompts/story.py")
         self.assertIn("docs/development/architecture.md", reason)
         self.assertIn("docs/development/architecture/llm.md", reason)
+
+    def use_required_reading(self, cell="`docs/development/interfaces/llm.md`"):
+        self.rules.write_text(RULES.replace(
+            "| Scope | Paths | Covers |\n|---|---|---|\n| llm | `src/llm/**`, `src/prompts/*.py` | Model calls |",
+            "| Scope | Paths | Required reading | Covers |\n|---|---|---|---|\n"
+            f"| llm | `src/llm/**`, `src/prompts/*.py` | {cell} | Model calls |"))
+        doc = self.project / "docs/development/interfaces/llm.md"
+        doc.parent.mkdir(parents=True, exist_ok=True)
+        doc.write_text("# LLM interface\n\nOne\nTwo\n")
+        return doc
+
+    def test_required_reading_is_required_and_marked(self):
+        doc = self.use_required_reading()
+        self.read(self.rules)
+        self.read(self.scope)
+        self.assertIsNone(self.edit("src/app.py"))  # outside the scope's paths
+        reason = self.edit("src/llm/client.py")
+        self.assertIn("docs/development/interfaces/llm.md", reason)
+        self.read(doc, limit=1)
+        self.assertIsNotNone(self.edit("src/llm/client.py"))
+        self.read(doc, offset=2)
+        self.assertIsNotNone(self.edit("src/llm/client.py"))
+        self.read(doc)
+        self.assertIsNone(self.edit("src/llm/client.py"))
+        self.assertIsNotNone(self.edit("src/llm/client.py", session="s2"))
+
+    def test_unlisted_file_is_not_marked(self):
+        self.use_required_reading()
+        other = self.project / "docs/development/interfaces/other.md"
+        other.write_text("# Other\n")
+        self.read(other)
+        state = [f for f in self.data.rglob("*") if f.is_file()] if self.data.exists() else []
+        self.assertFalse(any("other.md" in f.read_text() for f in state))
+
+    def test_missing_required_reading_is_named(self):
+        self.use_required_reading("`docs/nope.md`")
+        self.read(self.rules)
+        self.read(self.scope)
+        reason = self.edit("src/llm/client.py")
+        self.assertIn("docs/nope.md (missing)", reason)
+
+    def test_old_table_format_still_works(self):
+        self.read(self.rules)
+        self.read(self.scope)
+        self.assertIsNone(self.edit("src/llm/client.py"))
+
+    def test_session_start_reports_required_reading_errors(self):
+        self.use_required_reading("`docs/nope.md`, `/abs.md`")
+        out = self.run_hook("session_start.py", {"session_id": "s1", "source": "startup"}).stdout
+        self.assertIn("docs/nope.md", out)
+        self.assertIn("/abs.md", out)
 
     def test_tests_count_as_project_files(self):
         self.assertIsNotNone(self.edit("tests/test_app.py"))
@@ -518,6 +617,44 @@ class SubprojectArchitectureTest(unittest.TestCase):
         self.assertIn("docs/development/architecture/plugins/patient.md", reason)
         self.read(self.project / "docs/development/architecture/plugins/patient.md")
         self.assertIsNone(self.edit("Plugins/A/src/filter.py"))
+
+    def test_inherited_scope_brings_its_required_reading(self):
+        self.write(self.project / "docs/development/interfaces/llm.md", "# I\n")
+        self.root_rules.write_text(RULES.replace(
+            "| Scope | Paths | Covers |\n|---|---|---|\n| llm | `src/llm/**`, `src/prompts/*.py` | Model calls |",
+            "| Scope | Paths | Required reading | Covers |\n|---|---|---|---|\n"
+            "| llm | `nothing/**` | `docs/development/interfaces/llm.md` | Model calls |"))
+        self.inherit("| root | `llm` |\n")
+        self.read(self.plugin_rules)
+        self.read(self.project / "docs/development/architecture/llm.md")
+        reason = self.edit("Plugins/A/src/filter.py")
+        self.assertIn("docs/development/interfaces/llm.md", reason)
+        self.read(self.project / "docs/development/interfaces/llm.md")
+        self.assertIsNone(self.edit("Plugins/A/src/filter.py"))
+
+    def test_inherited_required_reading_is_relative_to_defining_project(self):
+        self.write(self.plugin / "docs/development/architecture/x.md", "# X\n")
+        self.write(self.plugin / "docs/i/x.md", "# I\n")
+        self.plugin_rules.write_text(
+            "## Scopes\n\n| Scope | Paths | Required reading | Covers |\n|---|---|---|---|\n"
+            "| x | `nothing/**` | `docs/i/x.md` | X |\n")
+        self.root_rules.write_text(
+            "# Core\n\n## Inherited rules\n\n| Project | Rules |\n|---|---|\n| A | `x` |\n")
+        self.read(self.root_rules)
+        self.read(self.plugin / "docs/development/architecture/x.md")
+        reason = self.edit("src/app.py")
+        self.assertIn("Plugins/A/docs/i/x.md", reason)
+        self.read(self.plugin / "docs/i/x.md")
+        self.assertIsNone(self.edit("src/app.py"))
+
+    def test_missing_inherited_required_reading_is_reported(self):
+        self.root_rules.write_text(RULES.replace(
+            "| Scope | Paths | Covers |\n|---|---|---|\n| llm | `src/llm/**`, `src/prompts/*.py` | Model calls |",
+            "| Scope | Paths | Required reading | Covers |\n|---|---|---|---|\n"
+            "| llm | `x/**` | `docs/nope.md` | Model calls |"))
+        self.inherit("| root | `llm` |\n")
+        out = self.run_hook("session_start.py", {}).stdout
+        self.assertIn("A: Inherited rules: required reading docs/nope.md of scope 'llm' is missing", out)
 
     def test_broken_inheritance_is_skipped_and_reported(self):
         self.inherit("| Nope | `architecture.md` |\n| A | `architecture.md` |\n| root | `missing` |\n")
