@@ -167,3 +167,10 @@ def architecture_read_file(session_id: str) -> Path:
 
 def semver_reported_file(session_id: str) -> Path:
     return state_dir() / f"semver-reported-{_safe(session_id)}.json"
+
+
+def public_api_file(session_id: str, kind: str, project: str = ROOT_PROJECT) -> Path:
+    """kind: 'changed' (JSON list of changed public API files) or 'reminded'; per project."""
+    if project == ROOT_PROJECT:
+        return state_dir() / f"public-api-{kind}-{_safe(session_id)}"
+    return state_dir() / f"public-api-{kind}-{_safe(project)}--{_safe(session_id)}"

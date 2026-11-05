@@ -45,7 +45,7 @@ TABLE_KEYS = {
     "todo": {"path", "backend", "api_url"},
     "daily": {"path"},
     "techdocs": {"path", "documents"},
-    "development": {"path", "tests", *DEVELOPMENT_PARTS},
+    "development": {"path", "tests", "public_api", *DEVELOPMENT_PARTS},
     "harness": {"repo"},
     "semver": {"file", "sync", "paths"},
     "cloud": {"export", "sync"},
@@ -152,6 +152,8 @@ class HarnessConfig:
     cloud_export: bool = False
     # Cloud sessions bring the current branch up to date with origin at startup (see cloud_sync.py).
     cloud_sync: bool = True
+    # Patterns (like architecture scope paths, relative to the project root) of the project's public API files.
+    public_api: tuple[str, ...] = ()
 
     def enabled(self, module: str) -> bool:
         return self.modules.get(module, False)
@@ -336,6 +338,8 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
         else:
             errors.append(f"development.{part} must be true or false")
 
+    public_api = _pattern_list(raw_development, "public_api", "development", errors)
+
     harness_repos = _harness_repos(_table(data, "harness", errors).get("repo", []), errors)
     raw_cloud = _table(data, "cloud", errors)
     cloud_export = raw_cloud.get("export", False)
@@ -378,6 +382,7 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
         todo_api_url=_api_base(todo_api_url),
         cloud_export=cloud_export,
         cloud_sync=cloud_sync,
+        public_api=public_api,
     )
 
 
@@ -472,6 +477,23 @@ def _path_list(
         except ConfigError as exc:
             errors.append(f"{table_name}.{key} entry {entry!r} {exc}")
     return tuple(paths)
+
+
+def _pattern_list(table: dict[str, Any], key: str, table_name: str, errors: list[str]) -> tuple[str, ...]:
+    """A list of path patterns (relative to the project root, no '..'); empty when absent."""
+    if key not in table:
+        return ()
+    value = table[key]
+    if not isinstance(value, list):
+        errors.append(f"{table_name}.{key} must be a list of path patterns")
+        return ()
+    patterns = []
+    for entry in value:
+        try:
+            patterns.append(_relative_path(entry).as_posix())
+        except ConfigError as exc:
+            errors.append(f"{table_name}.{key} entry {entry!r} {exc}")
+    return tuple(patterns)
 
 
 def _relative_path(value: Any) -> PurePosixPath:

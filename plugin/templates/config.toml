@@ -44,6 +44,11 @@ documents = ["architecture", "interfaces", "configuration"]
 # with an approved plan run in a worktree and are merged back by the AI),
 # testing (where tests live and how the test folder is structured). tests: the
 # test folder relative to the project root, next to the source folder.
+# public_api: patterns (like architecture scope paths, relative to the project
+# root) of the files that make up the project's public APIs. A change to a
+# matching file reminds the AI once per session to check the architecture
+# responsibilities, the catalog, the interface docs, and their links. Empty =
+# no reminder.
 [development]
 path = "development"
 architecture = true
@@ -51,6 +56,7 @@ decomposition = true
 worktree = true
 testing = true
 tests = "tests"
+public_api = []
 
 # Release versions (SemVer). file: version file relative to docs.root, holding
 # only MAJOR.MINOR.PATCH. sync: files relative to the project root that must

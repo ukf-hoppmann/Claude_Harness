@@ -28,7 +28,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | API-Client | Gemeinsamer HTTP-Client für die Helfer `backlog_api.py`, `notes_api.py` und `alarms_api.py`: Aufruf, Fehlertexte und Exit-Codes, Projektwahl aus der Config, Auffinden des Viewer-Projekts über den Spiegel-Ordner des Backlog-Ordners (Registrieren nur auf Befehl), Auflösen von Labels in `uid`s | `plugin/scripts/viewer_api.py` |
 | Modul `daily` | Skill, Git-Auswertung, Erinnerungs-Hook | `plugin/skills/daily/`, `plugin/scripts/daily.py`, `check_daily.py` |
 | Modul `techdocs` | Skill, Dateiklassifikation, Erinnerungs-Hooks | `plugin/skills/techdocs/`, `plugin/scripts/techdocs.py`, `mark_techdocs.py`, `check_techdocs.py` |
-| Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, geerbte Regeln anderer Projekte, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py` |
+| Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, geerbte Regeln anderer Projekte, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py`, `mark_public_api.py`, `check_public_api.py` |
 | Suite `development`, Teil `decomposition` | Skill mit Kriterien zur Zerlegung von Epics in Stories, von Stories in Tasks und von Plänen in Abschnitte, Regeln, wann der Test zuerst entsteht (TDD), Dimensions-Checkliste; Ausführen von Tests verweist auf Teil `testing` | `plugin/skills/decomposition/` |
 | Suite `development`, Teil `testing` | Skill mit Regeln zu Testordner (`development.tests`), Gliederung, Implementierungs- und Funktionalitätstests und zum Ausführen von Tests; Zeile beim Session-Start | `plugin/skills/testing/` |
 | Suite `development`, Teil `worktree` | Skill für den Change-Workflow im Worktree, Skript für Ausgangsbranch, Spiegeln ignorierter Dateien und Vorprüfung vor dem Merge, Prüfung von `worktree.baseRef` beim Session-Start | `plugin/skills/worktree/`, `plugin/scripts/worktree.py` |
@@ -84,7 +84,9 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
    gelesene Regel- und Scope-Dateien.
 4. **PostToolUse (Write/Edit/MultiEdit):** `mark_backlog_dirty.py` merkt sich
    Änderungen im Backlog-Ordner; `mark_techdocs.py` merkt sich, ob
-   Projektdateien oder Systemdoku geändert wurden.
+   Projektdateien oder Systemdoku geändert wurden; `mark_public_api.py`
+   merkt sich Änderungen an Dateien, die auf ein Muster aus
+   `development.public_api` passen.
 5. **Stop:** Die Prüf-Hooks laufen nacheinander. Melden sie etwas, beenden sie
    sich mit Exit-Code 2; Claude Code gibt die Meldung an Claude zurück, das
    daraufhin weiterarbeitet.
@@ -96,6 +98,9 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
      Backlog-Ordner ändern, zählen nicht, der Backlog dokumentiert sich selbst.
    - `check_techdocs.py`: erinnert einmal pro Projekt und Session, wenn
      Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden.
+   - `check_public_api.py`: erinnert einmal pro Projekt und Session, wenn eine
+     öffentliche API-Datei (`development.public_api`) geändert wurde, daran,
+     Zuständigkeiten, Katalog, Schnittstellen-Doku und Verweise zu prüfen.
    - `check_semver.py`: prüft pro Projekt Versionsdatei, Schritt seit dem
      letzten Release-Tag und Spiegel-Dateien; derselbe Befund einmal pro
      Session.
@@ -134,7 +139,7 @@ wirksamen Backend; die Config-Datei bleibt unverändert.
 | Zustand | Ort | Lebensdauer |
 |---|---|---|
 | Projektkonfiguration | `.claude-harness/config.toml` | im Repo versioniert |
-| Merker pro Session (Backlog geändert, Hinweise gemeldet, Doku-Erinnerung, gelesene Architekturregeln, gemeldete SemVer-Befunde, Zustand des Notes-Kopfs und aktive Items samt Zähler für den Reminder, abgelegt von `mark_notes_state.py` und `mark_active_item.py`) | `$CLAUDE_PLUGIN_DATA`, sonst `<tmp>/claude-harness/` | pro Session |
+| Merker pro Session (Backlog geändert, Hinweise gemeldet, Doku-Erinnerung, Erinnerung an geänderte öffentliche API-Dateien, gelesene Architekturregeln, gemeldete SemVer-Befunde, Zustand des Notes-Kopfs und aktive Items samt Zähler für den Reminder, abgelegt von `mark_notes_state.py` und `mark_active_item.py`) | `$CLAUDE_PLUGIN_DATA`, sonst `<tmp>/claude-harness/` | pro Session |
 | Ausgangsbranch eines Worktrees | Git-Config `branch.<worktree-branch>.harnessBase` | bis der Branch gelöscht wird |
 | Bestätigter Stand des Tagesberichts, eine Zeile `<Commit> <Branch>` pro Branch | `.git/claude-harness/daily-ack`, für ein Projekt unterhalb des Git-Roots `daily-ack-<Ordner mit _ statt />` | pro Klon und Projektordner, nie committet |
 | Release-Tags | Tags `<Präfix><Version>` | im Repo, nur lokal, bis der Owner sie pusht |
