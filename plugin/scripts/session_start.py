@@ -6,7 +6,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path, PurePosixPath
 
-from architecture import inherited_files, load_scopes, reset_read, rules_path
+from architecture import inherited_files, inherited_uses, load_scopes, load_uses, reset_read, rules_path
 from backlog import TODO_FILE, validate_backlog
 from cloud_export import copy_problem
 from cloud_sync import sync_branch
@@ -333,13 +333,18 @@ def _architecture_missing(config: HarnessConfig, show: Show) -> str:
 
 def _scope_problems(root: Path, config: HarnessConfig) -> list[str]:
     _, scope_errors = load_scopes(root, config)
-    if not scope_errors:
-        return []
-    return [f"Architecture scope table has {len(scope_errors)} errors:"] + _limited(scope_errors)
+    _, use_errors = load_uses(root, config)
+    lines: list[str] = []
+    if scope_errors:
+        lines += [f"Architecture scope table has {len(scope_errors)} errors:"] + _limited(scope_errors)
+    if use_errors:
+        lines += [f"Architecture 'Required on use' tables have {len(use_errors)} errors:"] + _limited(use_errors)
+    return lines
 
 
 def _inherited_problems(projects: ProjectSet, project: Project) -> list[str]:
-    return [f"Inherited rules: {error}" for error in inherited_files(projects, project)[1]]
+    errors = inherited_files(projects, project)[1] + inherited_uses(projects, project)[1]
+    return [f"Inherited rules: {error}" for error in errors]
 
 
 def _doclink_problems(root: Path, config: HarnessConfig, prefix: PurePosixPath = PurePosixPath(".")) -> list[str]:

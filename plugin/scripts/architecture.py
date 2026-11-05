@@ -18,6 +18,9 @@ INHERITED_HEADING = "## Inherited rules"
 _SCOPE_NAME = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*(?:/[a-z0-9]+(?:-[a-z0-9]+)*)*")
 _COMMENT = re.compile(r"<!--.*?-->", re.DOTALL)
 READING_HEADER = "required reading"
+USES_HEADING = "## Required on use"
+# Characters of an identifier; at least one letter.
+_IDENTIFIER = re.compile(r"[A-Za-z0-9_$.]*[A-Za-z][A-Za-z0-9_$.]*")
 _SEPARATOR_ROW = re.compile(r"\|?\s*:?-+:?\s*(\|\s*:?-+:?\s*)*\|?")
 
 
@@ -27,6 +30,14 @@ class Scope:
     patterns: tuple[str, ...]
     # Files relative to the project root that must be read before changing a file of the scope.
     required_reading: tuple[str, ...] = ()
+
+
+@dataclass(frozen=True)
+class Usage:
+    """Row of a 'Required on use' table: using one of the identifiers requires reading the files."""
+    uses: tuple[str, ...]
+    # Files relative to the project root (to the session root once returned by the inherited_* helpers).
+    read: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -94,16 +105,49 @@ def _parse_reading(scope: str, cell: str) -> tuple[tuple[str, ...], list[str]]:
     entries = [e.strip() for e in re.findall(r"`([^`]+)`", cell) if e.strip()]
     if not entries:
         return (), [f"scope {scope!r}: required reading must be file paths in backticks: {cell}"]
+    valid, invalid = _split_paths(entries)
+    errors = [f"scope {scope!r}: required reading must be a file path relative to the project "
+              f"root without '..' or patterns: {entry}" for entry in invalid]
+    return valid, errors
+
+
+def _split_paths(entries: list[str]) -> tuple[tuple[str, ...], list[str]]:
+    """File paths relative to the project root without '..' or patterns, and the invalid entries."""
     valid: list[str] = []
-    errors: list[str] = []
+    invalid: list[str] = []
     for entry in entries:
         parts = PurePosixPath(entry).parts
         if entry.startswith("/") or ".." in parts or re.search(r"[*?\[\]]", entry):
-            errors.append(f"scope {scope!r}: required reading must be a file path relative to the project "
-                          f"root without '..' or patterns: {entry}")
+            invalid.append(entry)
         elif entry not in valid:
             valid.append(entry)
-    return tuple(valid), errors
+    return tuple(valid), invalid
+
+
+def parse_uses(text: str) -> tuple[list[Usage], list[str]]:
+    """Read the table below '## Required on use'. Returns usages and error messages."""
+    usages: list[Usage] = []
+    errors: list[str] = []
+    for row in _table_rows(text, USES_HEADING)[1:]:
+        cells = [cell.strip() for cell in row.strip().strip("|").split("|")]
+        if len(cells) < 2:
+            errors.append(f"required on use row needs Uses and Read: {row.strip()}")
+            continue
+        names = [n.strip() for n in re.findall(r"`([^`]+)`", cells[0]) if n.strip()]
+        files = [f.strip() for f in re.findall(r"`([^`]+)`", cells[1]) if f.strip()]
+        if not names:
+            errors.append(f"required on use: uses must be identifiers in backticks: {cells[0]}")
+        if not files:
+            errors.append(f"required on use: read must be file paths in backticks: {cells[1]}")
+        uses = tuple(dict.fromkeys(n for n in names if _IDENTIFIER.fullmatch(n)))
+        errors += [f"required on use: invalid identifier {n!r} (letters, digits, '_', '$', '.', at least one letter)"
+                   for n in names if not _IDENTIFIER.fullmatch(n)]
+        read, invalid = _split_paths(files)
+        errors += [f"required on use {', '.join(names)}: read must be a file path relative to the project "
+                   f"root without '..' or patterns: {entry}" for entry in invalid]
+        if uses and read:
+            usages.append(Usage(uses, read))
+    return usages, errors
 
 
 def parse_inherited(text: str) -> tuple[list[Inherited], list[str]]:
@@ -134,8 +178,10 @@ def parse_inherited(text: str) -> tuple[list[Inherited], list[str]]:
     return entries, errors
 
 
-def inherited_files(projects: ProjectSet, project: Project) -> tuple[list[PurePosixPath], list[str]]:
-    """Rule files (relative to the session root) that project inherits, plus errors.
+def _resolve_inherited(
+    projects: ProjectSet, project: Project
+) -> tuple[list[tuple[Project, str, Scope | None]], list[str]]:
+    """Inherited rule files as (defining project, RULES_FILE or scope name, scope), plus errors.
 
     Entries with errors are skipped; inherited files are not inherited further.
     """
@@ -143,7 +189,7 @@ def inherited_files(projects: ProjectSet, project: Project) -> tuple[list[PurePo
     if not rules.is_file():
         return [], []
     entries, errors = parse_inherited(rules.read_text(encoding="utf-8"))
-    files: list[PurePosixPath] = []
+    resolved: list[tuple[Project, str, Scope | None]] = []
     for entry in entries:
         if entry.project == project.name:
             errors.append(f"project {entry.project!r} cannot inherit from itself")
@@ -159,19 +205,44 @@ def inherited_files(projects: ProjectSet, project: Project) -> tuple[list[PurePo
         scopes = {scope.name: scope for scope in load_scopes(other.root, other.config)[0]}
         for name in entry.rules:
             if name == RULES_FILE:
-                files.append(other.path / other_rules)
+                resolved.append((other, name, None))
             elif name not in scopes:
                 errors.append(f"project {entry.project!r} has no scope {name!r}")
             elif (other.root / scope_path(other.config, name)).is_file():
-                files.append(other.path / scope_path(other.config, name))
-                for reading in scopes[name].required_reading:
-                    path = other.path / reading
-                    files.append(path)
-                    if not (other.root / reading).is_file():
-                        errors.append(f"required reading {path} of scope {name!r} is missing")
+                resolved.append((other, name, scopes[name]))
             else:
                 errors.append(f"scope file {other.path / scope_path(other.config, name)} is missing")
+    return resolved, errors
+
+
+def inherited_files(projects: ProjectSet, project: Project) -> tuple[list[PurePosixPath], list[str]]:
+    """Rule files (relative to the session root) that project inherits, plus errors."""
+    resolved, errors = _resolve_inherited(projects, project)
+    files: list[PurePosixPath] = []
+    for other, name, scope in resolved:
+        if scope is None:
+            files.append(other.path / rules_path(other.config))
+            continue
+        files.append(other.path / scope_path(other.config, name))
+        for reading in scope.required_reading:
+            path = other.path / reading
+            files.append(path)
+            if not (other.root / reading).is_file():
+                errors.append(f"required reading {path} of scope {name!r} is missing")
     return files, errors
+
+
+def inherited_uses(projects: ProjectSet, project: Project) -> tuple[list[Usage], list[str]]:
+    """'Required on use' rows of the inherited rule files, files relative to the session root, plus errors."""
+    resolved, _ = _resolve_inherited(projects, project)
+    usages: list[Usage] = []
+    errors: list[str] = []
+    for other, name, scope in resolved:
+        path = rules_path(other.config) if scope is None else scope_path(other.config, name)
+        found, found_errors = _file_uses(other.root, path, other.path / path)
+        usages += [Usage(u.uses, tuple((other.path / r).as_posix() for r in u.read)) for u in found]
+        errors += found_errors
+    return usages, errors
 
 
 def _table_rows(text: str, heading: str) -> list[str]:
@@ -240,11 +311,47 @@ def required_files(root: Path, config: HarnessConfig, rel: PurePosixPath) -> lis
     return required
 
 
+def _file_uses(root: Path, path: PurePosixPath, shown: PurePosixPath) -> tuple[list[Usage], list[str]]:
+    """'Required on use' rows of one rules file; errors name the file and include missing read files."""
+    file = root / path
+    if not file.is_file():
+        return [], []
+    usages, errors = parse_uses(file.read_text(encoding="utf-8"))
+    errors = [f"{shown}: {error}" for error in errors]
+    for usage in usages:
+        errors += [f"{shown}: required on use {', '.join(usage.uses)}: {r} is missing"
+                   for r in usage.read if not (root / r).is_file()]
+    return usages, errors
+
+
+def load_uses(root: Path, config: HarnessConfig, rel: PurePosixPath | None = None) -> tuple[list[Usage], list[str]]:
+    """'Required on use' rows of the rules file and of the scopes that match rel, plus errors.
+
+    Without rel, every scope counts (to validate all tables).
+    """
+    rules = root / rules_path(config)
+    if not rules.is_file():
+        return [], []
+    usages, errors = _file_uses(root, rules_path(config), rules_path(config))
+    for scope in parse_scopes(rules.read_text(encoding="utf-8"))[0]:
+        if rel is None or any(match_path(p, rel) for p in scope.patterns):
+            path = scope_path(config, scope.name)
+            found, found_errors = _file_uses(root, path, path)
+            usages += found
+            errors += found_errors
+    return usages, errors
+
+
+def use_pattern(identifier: str) -> re.Pattern[str]:
+    """Identifier as a literal ('.' included) that is not part of a longer name."""
+    return re.compile(rf"(?<![A-Za-z0-9_$]){re.escape(identifier)}(?![A-Za-z0-9_$])")
+
+
 def counted_reads(projects: ProjectSet) -> set[str]:
     """Files (relative to the session root) whose complete Read counts besides rules and scope files.
 
-    Required reading of the scopes of every project and of the scopes it inherits. Other
-    stories add the files they require here.
+    Required reading of the scopes and the files of the 'Required on use' tables of every
+    project (inherited rules belong to the projects defining them).
     """
     files: set[str] = set()
     for project in projects.projects:
@@ -253,6 +360,8 @@ def counted_reads(projects: ProjectSet) -> set[str]:
             continue
         for scope in load_scopes(project.root, config)[0]:
             files.update((project.path / r).as_posix() for r in scope.required_reading)
+        for usage in load_uses(project.root, config)[0]:
+            files.update((project.path / r).as_posix() for r in usage.read)
         files.update(p.as_posix() for p in inherited_files(projects, project)[0])
     return files
 
