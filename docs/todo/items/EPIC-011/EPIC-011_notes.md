@@ -2,15 +2,15 @@
 
 ## State
 
-- Goal/Status: Epic und Stories angelegt, Specs geschrieben; Umsetzung in Sonnet-Sessions (2026-11-05)
-- Next step: STORY-053, STORY-055, STORY-056 parallel umsetzen; danach STORY-054, STORY-057, STORY-058 (2026-11-05)
-- Open: keine (2026-11-05)
+- Goal/Status: Alle Pflicht-Stories abgeschlossen (v0.13.0); Epic wartet auf Bestätigung (2026-11-05)
+- Next step: Über STORY-059 entscheiden, dann Epic schließen; ezf-ui auf den neuen Harness umstellen (2026-11-05)
+- Open: STORY-059 offen, blockiert das Schließen des Epics (2026-11-05)
 - Decided: development für die AI, techdocs für Menschen; Schnittstellen-Doku und Katalog in development (2026-11-05)
 - Decided: E1 X.md neben X/, E2 Pfade ab Projekt-Root, E3 Markdown-Links, E4 nur public_api (2026-11-05)
 - Decided: keine Umbenennung der Module; Pflicht über Nutzung statt Rückfrage-Hook (2026-11-05)
-- References: STORY-053 bis STORY-059; Vorschlag /Users/hoppmann/Documents/data/00-fastq/harness-prompt.md (2026-11-05)
+- References: STORY-053 bis STORY-059; Release v0.13.0 (2026-11-05)
 
-State confirmed after entry 2026-11-05 — Entwurf aus ezf-ui gegen den Harness geprüft (1d8d649bd7c3)
+State confirmed after entry 2026-11-05 — Umsetzung abgeschlossen (47f30b2b6b3b)
 
 ## 2026-11-05 — Entwurf aus ezf-ui gegen den Harness geprüft
 
@@ -33,3 +33,17 @@ State confirmed after entry 2026-11-05 — Entwurf aus ezf-ui gegen den Harness 
 - Pflichtlektüre wird aus der einen Scope-Tabelle berechnet, nicht über Verweisketten; höchstens zwei Ebenen unter der Wurzel empfohlen. Kein automatisches Einspielen von index.md bei Ordnerzugriff.
 - Pflicht über Nutzung wird als STORY-057 umgesetzt.
 - Umsetzung mit Sonnet in eigenen Sessions, je Story ein Worktree.
+
+## 2026-11-05 — Umsetzung abgeschlossen
+
+### Discussed
+
+- STORY-053 bis 058 in Sonnet-Sessions umgesetzt und in main gemergt (v0.12.9 bis v0.13.0); 788 Tests grün; Gesamtablauf in einem Testprojekt nach dem Muster von ezf-ui geprüft (Pflichtlektüre, Unterordner-Scope, Required on use, tote Links, Pflege-Erinnerung).
+
+### Decided
+
+- Besitzer hat STORY-053 bis 058 am 2026-11-05 bestätigt.
+
+### Open
+
+- STORY-059 (optional) ist noch offen und verhindert das Schließen des Epics: aus dem Epic lösen oder hier lassen.
