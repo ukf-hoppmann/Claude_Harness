@@ -1,9 +1,15 @@
 ---
 name: techdocs
-description: Rules for the project's technical documentation (README, architecture, interfaces, configuration, operations) describing the current state. Use when a change affects usage, components, APIs/CLIs/file formats/hooks, settings, or operations, when the techdocs hook reminds you, or when creating these documents.
+description: Rules for the project's technical documentation for people (README, architecture, interfaces, configuration, operations) describing the current state. Use when a change affects usage, components, APIs/CLIs/file formats/hooks, settings, or operations, when the techdocs hook reminds you, or when creating these documents.
 ---
 
 # Technical documentation
+
+These documents are for people and are written in `docs.language`. The
+binding documentation for the AI (architecture rules, interface docs, catalog)
+is English, lives in the development folder, and follows skills
+`claude-harness:architecture` and `claude-harness:interfaces`. A change can
+affect both; duplicates are allowed for now.
 
 ## Before you start
 

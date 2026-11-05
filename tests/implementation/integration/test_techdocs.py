@@ -48,6 +48,10 @@ class TechdocsHookTest(unittest.TestCase):
     def stop(self, session="s1", active=False):
         return self.run_hook("check_techdocs.py", {"session_id": session, "stop_hook_active": active})
 
+    def test_session_start_names_the_audience(self):
+        out = self.run_hook("session_start.py", {"session_id": "s1", "source": "startup"}).stdout
+        self.assertIn("Technical docs (for people)", out)
+
     def test_code_change_without_docs_reminds_once_per_session(self):
         self.edit("src/app.py")
         first = self.stop()

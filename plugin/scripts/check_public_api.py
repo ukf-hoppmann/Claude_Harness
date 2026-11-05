@@ -35,7 +35,7 @@ def main() -> int:
             f"Claude_Harness architecture: public API files changed {_summary(changed)}. "
             "Check that the architecture responsibilities, the catalog of reusable building blocks, "
             f"the interface docs in {project.config.development_path}/ and their links still match. "
-            "Load skill claude-harness:architecture. (Shown once per session.)",
+            "Load skills claude-harness:architecture and claude-harness:interfaces. (Shown once per session.)",
             file=sys.stderr,
         )
         return 2
@@ -46,7 +46,7 @@ def main() -> int:
         "Claude_Harness architecture: public API files changed: "
         f"{listed}. Check that the architecture responsibilities, the catalog of reusable building blocks, "
         "the interface docs and their links of each project still match. "
-        "Load skill claude-harness:architecture. (Shown once per project and session.)",
+        "Load skills claude-harness:architecture and claude-harness:interfaces. (Shown once per project and session.)",
         file=sys.stderr,
     )
     return 2
