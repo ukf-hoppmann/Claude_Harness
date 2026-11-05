@@ -10,6 +10,7 @@ from architecture import inherited_files, load_scopes, reset_read, rules_path
 from backlog import TODO_FILE, validate_backlog
 from cloud_export import copy_problem
 from cloud_sync import sync_branch
+from doclinks import check_project as dead_doc_links
 from techdocs import document_paths
 from harness_config import (
     CLOUD_ENV,
@@ -164,6 +165,7 @@ def _single_project(root: Path, projects: ProjectSet) -> list[str]:
             lines.append(f"Architecture rules: {rules} {ARCHITECTURE_HINT}")
             lines += _scope_problems(root, config)
             lines += _inherited_problems(projects, project)
+    lines += _doclink_problems(root, config)
     if config.part_enabled("decomposition"):
         lines.append(DECOMPOSITION_LINE)
     if config.part_enabled("testing"):
@@ -273,6 +275,7 @@ def _project_problems(projects: ProjectSet, project: Project) -> list[str]:
         else:
             problems += _scope_problems(root, config)
             problems += _inherited_problems(projects, project)
+    problems += _doclink_problems(root, config, project.path)
     return problems
 
 
@@ -337,6 +340,11 @@ def _scope_problems(root: Path, config: HarnessConfig) -> list[str]:
 
 def _inherited_problems(projects: ProjectSet, project: Project) -> list[str]:
     return [f"Inherited rules: {error}" for error in inherited_files(projects, project)[1]]
+
+
+def _doclink_problems(root: Path, config: HarnessConfig, prefix: PurePosixPath = PurePosixPath(".")) -> list[str]:
+    dead = dead_doc_links(root, config, prefix=prefix)
+    return [f"Dead links in docs: {len(dead)}"] + _limited(dead) if dead else []
 
 
 def _limited(problems: list[str]) -> list[str]:

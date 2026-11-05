@@ -26,6 +26,7 @@ Jedes Modul prüft selbst, ob es in der Projektkonfiguration eingeschaltet ist.
 | Notes (Teil von `todo`) | Backend `api`: Skript `notes_api.py` für die HTTP-API des Viewers; die Notes liegen nur in der Datenbank des Viewers, der Viewer entscheidet über Fälligkeit und Auslöser. Backend `files` (auch in der Cloud): Notes und Topics als Markdown-Dateien in `notes/` unter dem Backlog-Ordner im Dateiformat Version 2 des Viewers, der sie beim Sync liest; Index und Fälligkeit nach Review- und Topic-Datum liefert `notes_files.py`, die Formatprüfung nach den Regeln des Viewer-Decoders `notes_format.py` (CLI `--check`; der Stop-Hook `check_backlog.py` ruft sie, wenn in der Session eine Datei unter `notes/` geändert wurde). In beiden Fällen prüft der Harness nichts und hat keinen Hook außer der statischen Zeile beim Session-Start | `plugin/skills/todo/notes.md`, `notes-api.md`, `notes-files.md`, `plugin/scripts/notes_api.py`, `notes_files.py`, `notes_format.py` |
 | Wecker (Teil von `todo`) | Nur Backend `api`: Skript `alarms_api.py` für die Wecker des Viewers (Erinnerung zu einem festen Zeitpunkt, frei oder an Items und Notes gebunden). Der Viewer lässt sie klingeln, lässt sie erlöschen und räumt sie auf; der Harness prüft nichts | `plugin/skills/todo/alarms.md`, `plugin/scripts/alarms_api.py` |
 | API-Client | Gemeinsamer HTTP-Client für die Helfer `backlog_api.py`, `notes_api.py` und `alarms_api.py`: Aufruf, Fehlertexte und Exit-Codes, Projektwahl aus der Config, Auffinden des Viewer-Projekts über den Spiegel-Ordner des Backlog-Ordners (Registrieren nur auf Befehl), Auflösen von Labels in `uid`s | `plugin/scripts/viewer_api.py` |
+| Linkprüfung (Teil von `techdocs` und `development`) | Prüft relative Markdown-Links und Anker in README, techdocs und development; Meldung beim Session-Start und Stop-Hook über die in der Session geänderten Dokumente | `plugin/scripts/doclinks.py`, `mark_doclinks.py`, `check_doclinks.py` |
 | Modul `daily` | Skill, Git-Auswertung, Erinnerungs-Hook | `plugin/skills/daily/`, `plugin/scripts/daily.py`, `check_daily.py` |
 | Modul `techdocs` | Skill, Dateiklassifikation, Erinnerungs-Hooks | `plugin/skills/techdocs/`, `plugin/scripts/techdocs.py`, `mark_techdocs.py`, `check_techdocs.py` |
 | Suite `development`, Teil `architecture` | Skill, Scope-Tabelle, geerbte Regeln anderer Projekte, Lese-Merker, Hook vor Änderungen | `plugin/skills/architecture/`, `plugin/scripts/architecture.py`, `mark_architecture_read.py`, `check_architecture.py`, `mark_public_api.py`, `check_public_api.py` |
@@ -84,7 +85,8 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
    gelesene Regel- und Scope-Dateien.
 4. **PostToolUse (Write/Edit/MultiEdit):** `mark_backlog_dirty.py` merkt sich
    Änderungen im Backlog-Ordner; `mark_techdocs.py` merkt sich, ob
-   Projektdateien oder Systemdoku geändert wurden; `mark_public_api.py`
+   Projektdateien oder Systemdoku geändert wurden; `mark_doclinks.py` merkt
+   sich geänderte Dokumente für die Linkprüfung; `mark_public_api.py`
    merkt sich Änderungen an Dateien, die auf ein Muster aus
    `development.public_api` passen.
 5. **Stop:** Die Prüf-Hooks laufen nacheinander. Melden sie etwas, beenden sie
@@ -98,6 +100,8 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
      Backlog-Ordner ändern, zählen nicht, der Backlog dokumentiert sich selbst.
    - `check_techdocs.py`: erinnert einmal pro Projekt und Session, wenn
      Projektdateien, aber keine Systemdoku desselben Projekts geändert wurden.
+   - `check_doclinks.py`: prüft die Links der in der Session geänderten
+     Dokumente (`doclinks.py`).
    - `check_public_api.py`: erinnert einmal pro Projekt und Session, wenn eine
      öffentliche API-Datei (`development.public_api`) geändert wurde, daran,
      Zuständigkeiten, Katalog, Schnittstellen-Doku und Verweise zu prüfen.
