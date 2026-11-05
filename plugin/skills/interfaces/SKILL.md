@@ -26,7 +26,7 @@ These documents are for the AI and are always English, whatever `docs.language`
 is. They say *how* (signatures, formats, usage). *What belongs where* and what
 is mandatory is decided by the architecture rules (skill
 `claude-harness:architecture`); people read the technical docs (skill
-`claude-harness:techdocs`).
+`claude-harness:techdocs`), which summarize these docs and link to them.
 
 ## Rules
 

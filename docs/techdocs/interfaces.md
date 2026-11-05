@@ -103,8 +103,12 @@ Bei gesetztem `stop_hook_active` bleiben die Stop-Hooks still, damit keine
 Schleife entsteht.
 
 Klassifikation für `techdocs`: Als Doku zählen `README.md` im Projekt-Root und
-Dateien im techdocs-Ordner. Nicht berücksichtigt werden Dateien außerhalb des
-Projekts, im Backlog-, Daily- oder development-Ordner, unter `.git/` und
+Dateien im techdocs-Ordner; ebenso `interfaces.md` und `interfaces/**` im
+development-Ordner, solange der Teil `architecture` aktiv ist (die Techdocs
+fassen die Schnittstellen-Doku zusammen und verlinken sie; Änderungen an
+`architecture.md` und den Scopes zählen nicht). Nicht berücksichtigt werden
+Dateien außerhalb des Projekts, im Backlog-, Daily- oder übrigen
+development-Ordner, unter `.git/` und
 `.claude-harness/` sowie Tests (Pfadteil `test`/`tests`, Dateiname `test_*`, `*_test.*`,
 `*.test.*`). Alles andere im Projekt zählt als Projektänderung. Änderungen über Bash statt Write/Edit
 erkennt der Hook nicht.

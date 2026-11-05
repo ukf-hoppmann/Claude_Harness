@@ -137,6 +137,21 @@ class TechdocsHookTest(unittest.TestCase):
                 self.edit(path, session=session)
                 self.assertEqual(self.stop(session=session).returncode, 0)
 
+    def test_interface_docs_count_as_docs_but_architecture_rules_do_not(self):
+        (self.project / ".claude-harness/config.toml").write_text(
+            'version = 1\n[docs]\nroot = "docs"\n[modules]\ntechdocs = true\ndevelopment = true\n'
+        )
+        for path, code in (
+            ("docs/development/interfaces.md", 0),
+            ("docs/development/interfaces/core/api.md", 0),
+            ("docs/development/architecture.md", 2),
+        ):
+            with self.subTest(path=path):
+                session = f"i-{path}"
+                self.edit("src/app.py", session=session)
+                self.edit(path, session=session)
+                self.assertEqual(self.stop(session=session).returncode, code)
+
     def test_files_outside_project_are_ignored(self):
         self.run_hook(
             "mark_techdocs.py",

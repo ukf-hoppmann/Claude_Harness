@@ -9,7 +9,8 @@ These documents are for people and are written in `docs.language`. The
 binding documentation for the AI (architecture rules, interface docs, catalog)
 is English, lives in the development folder, and follows skills
 `claude-harness:architecture` and `claude-harness:interfaces`. A change can
-affect both; duplicates are allowed for now.
+affect both. The technical docs are an overview: they summarize and link what
+the development docs describe, see "Summarize or describe in full".
 
 ## Before you start
 
@@ -40,6 +41,31 @@ No update is needed when nothing visible from outside changes: refactoring
 without behavior change, tests only, typos, formatting, internal renames,
 dependency updates without behavior change. When in doubt, read the affected
 document and check.
+
+## Summarize or describe in full
+
+An element (interface, building block, area rule) that the development docs
+describe gets one summarizing sentence in `docs.language` and a relative
+Markdown link to the development file in the technical docs. The summary must
+give an overview without following the link; links from `docs.language` docs
+to English files are fine. If the development docs do not cover the element
+(no development suite, or no file for it), the technical docs describe it in
+full.
+
+| Document | Role |
+|---|---|
+| `README.md` | In full (introduction, installation, use). Links to every existing technical doc, so e.g. the configuration can be found |
+| `architecture` | Overview of components, data flow, decisions. For binding rules link `<development.path>/architecture.md` and the scopes |
+| `interfaces` | Overview table, one row per interface or area: purpose plus a link to the development file. Details only without development docs |
+| `configuration` | In full (people set the settings) |
+| `operations` | In full |
+
+Existing projects: nothing is forced. Whoever edits a section that duplicates
+the development docs replaces it with a summary and a link.
+
+A change below `<development.path>/interfaces.md` or `interfaces/**` counts as
+documentation upkeep for the reminder while the architecture part is on;
+changes to the architecture rules do not.
 
 ## Rules
 
