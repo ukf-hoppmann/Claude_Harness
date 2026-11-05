@@ -61,6 +61,14 @@ description: Rules for working with the project's binding architecture rules (de
   comma-separated, no patterns, no leading `/`, no `..`; the files must exist.
   The hook requires them like the scope file, also for inherited scopes. Keep
   the list short: every listed file is read in full before each first change.
+- Optional section `## Required on use` with the table `| Uses | Read |`, in
+  the rules file (all project files) or in a scope file (only the scope's
+  paths): `Uses` are identifiers in backticks (letters, digits, `_`, `$`, `.`),
+  `Read` are files relative to the project root in backticks. When new code
+  contains an identifier as a whole word, the hook blocks until those files
+  were read in full. Use it for solutions that must not be rebuilt (e.g. the
+  one error-reporting function). Inherited rules bring their tables along. The
+  session start reports errors in the tables.
 - Inherited rules table format: `| Project | Rules |`. Project is a name from
   `[projects]` of the root config or `root`; Rules are `architecture.md` or
   scope names of that project, in backticks. An inherited scope applies
@@ -76,7 +84,10 @@ session:
 - writing a backlog spec (`<ID>_spec.md`, `<ID>_spec_<topic>.md`), because it
   is the input for an implementation plan;
 - the first change to a project file; here the file of every scope matching
-  that path must have been read as well.
+  that path must have been read as well;
+- new code that contains an identifier from a `Required on use` table, until
+  its `Read` files were read in full (checked on the new text of Write, Edit,
+  MultiEdit, NotebookEdit).
  After the context is compacted or cleared, read them again.
 Harness files (`README.md`, `.claude-harness/`, the document folders) are not
 checked. The hook does not see changes made through Bash; the rules apply to

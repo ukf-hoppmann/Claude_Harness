@@ -26,6 +26,18 @@ keep it short. Without the column, the table has three columns. Example row:
 | Scope | Paths | Covers |
 |---|---|---|
 
+## Required on use
+
+<!-- Optional. Files that must be read in full before new code uses certain
+identifiers (functions, constants) from them; here for the whole project, in a
+scope file only for the paths of the scope. Uses: identifiers in backticks,
+comma-separated (letters, digits, '_', '$', '.'; matched as whole words);
+Read: files relative to the project root in backticks, must exist. Example:
+| `reportError`, `modals.alert` | `docs/development/interfaces/core/errors.md` | -->
+
+| Uses | Read |
+|---|---|
+
 ## Inherited rules
 
 <!-- Only in a repository with subprojects: rules of another project that
