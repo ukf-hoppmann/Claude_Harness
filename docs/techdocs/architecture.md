@@ -79,10 +79,12 @@ sind Architektur-Scopes. Die Root-`CLAUDE.md` schreibt das Plugin nie.
 2. **PreToolUse (Write/Edit/MultiEdit/NotebookEdit/ExitPlanMode):**
    `check_architecture.py` lehnt das Vorlegen eines Plans, das Schreiben einer
    Backlog-Spec und die Änderung einer Projektdatei ab, bis die
-   Architekturregeln (bei Projektdateien auch passende Scope-Dateien) in der
+   Architekturregeln (bei Projektdateien auch passende Scope-Dateien und deren
+   Pflichtlektüre) in der
    Session vollständig gelesen wurden.
 3. **PostToolUse (Read):** `mark_architecture_read.py` merkt sich vollständig
-   gelesene Regel- und Scope-Dateien.
+   gelesene Regel- und Scope-Dateien sowie Pflichtlektüre (`counted_reads` in
+   `architecture.py` ist der Erweiterungspunkt für weitere zählende Dateien).
 4. **PostToolUse (Write/Edit/MultiEdit):** `mark_backlog_dirty.py` merkt sich
    Änderungen im Backlog-Ordner; `mark_techdocs.py` merkt sich, ob
    Projektdateien oder Systemdoku geändert wurden; `mark_doclinks.py` merkt
