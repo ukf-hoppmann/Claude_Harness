@@ -7,7 +7,8 @@ import unittest
 from pathlib import Path, PurePosixPath
 
 from helpers import REPO_ROOT, SCRIPTS
-from architecture import match_path, parse_inherited, parse_scopes
+from architecture import load_scopes, match_path, parse_inherited, parse_scopes, scope_path
+from harness_config import load_config
 
 RULES = """# Architecture rules
 
@@ -56,6 +57,41 @@ class ParseScopesTest(unittest.TestCase):
         self.assertEqual(len(scopes), 1)
         self.assertEqual(len(errors), 1)
 
+    def test_scope_names_with_subfolders(self):
+        valid = ["plugins", "plugins/patient", "a/b/c", "a-b/c-1"]
+        invalid = ["a//b", "/a", "a/", "A/b", "a/../b", "a/./b", "a/-b", "a b/c"]
+        for name in valid + invalid:
+            text = f"## Scopes\n\n| Scope | Paths | Covers |\n|---|---|---|\n| {name} | `x/**` | |\n"
+            scopes, errors = parse_scopes(text)
+            with self.subTest(name=name):
+                if name in valid:
+                    self.assertEqual((len(scopes), errors), (1, []))
+                else:
+                    self.assertEqual((scopes, len(errors)), ([], 1))
+
+    def test_flat_and_nested_scope_side_by_side(self):
+        text = ("## Scopes\n\n| Scope | Paths | Covers |\n|---|---|---|\n"
+                "| plugins | `p/**` | |\n| plugins/patient | `p/patient/**` | |\n")
+        scopes, errors = parse_scopes(text)
+        self.assertEqual(([s.name for s in scopes], errors), (["plugins", "plugins/patient"], []))
+
+    def test_scope_path_and_missing_nested_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            rules = root / "docs/development/architecture.md"
+            rules.parent.mkdir(parents=True)
+            rules.write_text("## Scopes\n\n| Scope | Paths | Covers |\n|---|---|---|\n| plugins/patient | `p/**` | |\n")
+            (root / ".claude-harness").mkdir()
+            (root / ".claude-harness/config.toml").write_text("version = 1\n[modules]\ndevelopment = true\n")
+            config = load_config(root)
+            self.assertEqual(scope_path(config, "plugins/patient").as_posix(),
+                             "docs/development/architecture/plugins/patient.md")
+            self.assertEqual(load_scopes(root, config)[1],
+                             ["scope file docs/development/architecture/plugins/patient.md is missing"])
+            (root / "docs/development/architecture/plugins").mkdir(parents=True)
+            (root / "docs/development/architecture/plugins/patient.md").write_text("# P\n")
+            self.assertEqual(load_scopes(root, config)[1], [])
+
     def test_template_is_valid(self):
         text = (REPO_ROOT / "plugin/templates/development/architecture.md").read_text()
         self.assertIn("## Scopes", text)
@@ -72,6 +108,13 @@ class ParseInheritedTest(unittest.TestCase):
         self.assertEqual(errors, [])
         self.assertEqual([(e.project, e.rules) for e in entries],
                          [("root", ("architecture.md", "plugin-api")), ("Other_1", ("architecture.md",))])
+
+    def test_nested_scope_names(self):
+        text = "## Inherited rules\n\n| Project | Rules |\n|---|---|\n| root | `plugins/patient`, `plugins` |\n"
+        entries, errors = parse_inherited(text)
+        self.assertEqual((errors, entries[0].rules), ([], ("plugins/patient", "plugins")))
+        bad = "## Inherited rules\n\n| Project | Rules |\n|---|---|\n| root | `plugins//patient` |\n"
+        self.assertEqual(len(parse_inherited(bad)[1]), 1)
 
     def test_no_section(self):
         self.assertEqual(parse_inherited(RULES), ([], []))
@@ -206,6 +249,28 @@ class ArchitectureHookTest(unittest.TestCase):
         self.assertNotIn("architecture.md,", reason)
         self.read(self.scope)
         self.assertIsNone(self.edit("src/llm/client.py"))
+
+    def test_nested_scope_file_is_marked_and_required(self):
+        self.rules.write_text(RULES.replace(
+            "| llm | `src/llm/**`, `src/prompts/*.py` | Model calls |",
+            "| llm | `src/llm/**` | Model calls |\n| llm/sub | `src/llm/sub/**` | Sub |"))
+        nested = self.project / "docs/development/architecture/llm/sub.md"
+        nested.parent.mkdir()
+        nested.write_text("# Sub\n\n- Be typed.\n")
+        self.read(self.rules)
+        self.read(self.scope)
+        reason = self.edit("src/llm/sub/x.py")
+        self.assertIn("docs/development/architecture/llm/sub.md", reason)
+        self.read(nested, limit=1)
+        self.assertIsNotNone(self.edit("src/llm/sub/x.py"))
+        self.read(nested)
+        self.assertIsNone(self.edit("src/llm/sub/x.py"))
+        # A file of another type below the scopes folder is not a scope file.
+        other = self.project / "docs/development/architecture/llm/notes.txt"
+        other.write_text("x\n")
+        self.read(other)
+        state = list((self.data).rglob("*")) if self.data.exists() else []
+        self.assertFalse(any("notes.txt" in f.read_text() for f in state if f.is_file()))
 
     def test_rules_and_scope_named_together(self):
         reason = self.edit("src/prompts/story.py")
@@ -439,6 +504,20 @@ class SubprojectArchitectureTest(unittest.TestCase):
         reason = self.edit("Plugins/A/src/filter.py")
         self.assertIn("docs/development/architecture/llm.md", reason)
         self.assertNotIn("docs/development/architecture.md", reason)
+
+    def test_inherited_nested_scope(self):
+        self.write(self.project / "docs/development/architecture/plugins/patient.md", "# P\n")
+        self.write(self.project / ".claude-harness/config.toml",
+                   'version = 1\n[modules]\ndevelopment = true\n[projects]\nA = "Plugins/A"\n')
+        self.root_rules.write_text(RULES.replace(
+            "| llm | `src/llm/**`, `src/prompts/*.py` | Model calls |",
+            "| llm | `src/llm/**` | Model calls |\n| plugins/patient | `nothing/**` | P |"))
+        self.inherit("| root | `plugins/patient` |\n")
+        self.read(self.plugin_rules)
+        reason = self.edit("Plugins/A/src/filter.py")
+        self.assertIn("docs/development/architecture/plugins/patient.md", reason)
+        self.read(self.project / "docs/development/architecture/plugins/patient.md")
+        self.assertIsNone(self.edit("Plugins/A/src/filter.py"))
 
     def test_broken_inheritance_is_skipped_and_reported(self):
         self.inherit("| Nope | `architecture.md` |\n| A | `architecture.md` |\n| root | `missing` |\n")
