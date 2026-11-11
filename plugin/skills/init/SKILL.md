@@ -48,6 +48,13 @@ are relative to it.
      Explain that a cloud session loads the repository but not the plugin, so
      with `true` the project holds a committed copy of the plugin (step 11).
      A subproject config must not contain `[cloud]`.
+   When you ask with a selection dialog (AskUserQuestion), it allows at most
+   4 options per question. Never squeeze options together or drop some to fit:
+   one option stands for exactly one module, part, or document. If a list is
+   longer than 4, split it into several questions (pages) of at most 4 options
+   each, in the same dialog call or in follow-up calls, so the list stays
+   valid however many entries are added later. Defaults stay as stated above
+   (e.g. `semver` is not pre-selected).
 4. Before proposing a backlog folder, search the target folder for existing
    backlog files (e.g. `TODO.md`, `todo.md`, `BACKLOG.md`) and mention what
    you find.
