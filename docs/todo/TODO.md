@@ -157,7 +157,5 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     nachgezogen.
     6. Die Kopie des Harness im Projekt ist neu exportiert, falls vorhanden,
     und der alte Ordner docs/todo/notes/ ist entfernt.
-  - Summary: Der ToDo-Viewer nennt den Eintragstyp mit Wiedervorlage jetzt
-    Memo (MEMO-001) statt Note, den Hinweis Hint statt Notice. Der Harness
-    spricht noch die alten Routen /api/notes und den Ordner notes/ und muss
-    gleichzeitig umgestellt werden.
+  - Summary: Umstellung des Harness auf die Begriffe Memo und Hint des
+    ToDo-Viewers ab 0.10.0.
