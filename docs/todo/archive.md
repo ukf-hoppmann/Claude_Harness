@@ -2000,3 +2000,41 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     zusammenfassen und darauf verweisen, statt sie doppelt zu führen.
   - Resolution: Vom Besitzer am 2026-11-05 bestätigt; umgesetzt und in main
     gemergt (v0.13.1), 796 Tests grün.
+
+- `EPIC-011` **Hierarchische Architektur- und Schnittstellen-Doku für die AI**
+  - Uid: 37382d27-0b2a-4d59-b52f-4401524a99b2.
+  - Type: Epic.
+  - Status: Completed.
+  - Created: 2026-11-05.
+  - Area: Architektur.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Projekte können ihre verbindlichen Regeln für die AI (development)
+    als Baum führen: Architektur sagt, was wohin gehört und was Pflicht ist;
+    eine Schnittstellen-Doku mit Katalog wiederverwendbarer Bausteine sagt,
+    wie es geht. Der Harness stellt sicher, dass die AI die passenden
+    Dokumente liest (Pflicht über Pfade und über Nutzung), dass Verweise
+    gültig bleiben und dass bei Änderungen an öffentlichen APIs an die
+    Pflege erinnert wird. Bestehende Projekte mit flachen Scopes
+    funktionieren unverändert.
+  - Completion criteria: 1. Scopes können in Unterordnern liegen
+    (STORY-053).
+    2. Scopes können Pflichtlektüre außerhalb der Architektur nennen, der
+    Hook erzwingt sie (STORY-054).
+    3. Tote relative Links in development- und techdocs-Dateien werden
+    gemeldet (STORY-055).
+    4. Änderungen an konfigurierten öffentlichen API-Dateien lösen eine
+    Pflege-Erinnerung aus (STORY-056).
+    5. Nutzung bestimmter Bezeichner erzwingt das Lesen der zugehörigen Doku
+    (STORY-057).
+    6. Vorlagen und Skills beschreiben den Aufbau; Projekte ohne die neuen
+    Teile laufen unverändert (STORY-058).
+  - Summary: Aus ezf-ui kam der Wunsch, Architektur und Schnittstellen nicht
+    in großen Einzeldateien, sondern als Baum zu führen, und
+    sicherzustellen, dass die AI die passenden Teile liest und vorhandene
+    Bausteine wiederverwendet. Das Epic baut die nötigen Mechanismen in den
+    Harness: Scopes in Unterordnern, Pflichtlektüre, Linkprüfung,
+    Pflege-Erinnerung, Pflicht über Nutzung, Vorlagen und Skills.
+  - Resolution: Vom Besitzer am 2026-11-05 bestätigt; STORY-053 bis
+    STORY-059 umgesetzt (v0.12.9 bis v0.13.1), Gesamtablauf in einem
+    Testprojekt geprüft.

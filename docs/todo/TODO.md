@@ -129,37 +129,35 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     den Branch von origin, aktualisiert ihn, wenn das gefahrlos geht, und
     meldet sonst die Abweichung.
 
-- `EPIC-011` **Hierarchische Architektur- und Schnittstellen-Doku für die AI**
-  - Uid: 37382d27-0b2a-4d59-b52f-4401524a99b2.
-  - Type: Epic.
-  - Status: Awaiting confirmation.
-  - Created: 2026-11-05.
-  - Area: Architektur.
+- `STORY-060` **Notes heißen Memos: Harness an den umbenannten Viewer anpassen**
+  - Uid: b14b4a8c-5f7c-4c38-8f3e-fb90b681f663.
+  - Type: Story.
+  - Parent: `EPIC-008`.
+  - Required for parent: No.
+  - Status: In progress.
+  - Created: 2026-11-12.
+  - Area: Entwicklung.
   - Priority: Important.
   - Dependencies: None.
-  - Goal: Projekte können ihre verbindlichen Regeln für die AI (development)
-    als Baum führen: Architektur sagt, was wohin gehört und was Pflicht ist;
-    eine Schnittstellen-Doku mit Katalog wiederverwendbarer Bausteine sagt,
-    wie es geht. Der Harness stellt sicher, dass die AI die passenden
-    Dokumente liest (Pflicht über Pfade und über Nutzung), dass Verweise
-    gültig bleiben und dass bei Änderungen an öffentlichen APIs an die
-    Pflege erinnert wird. Bestehende Projekte mit flachen Scopes
-    funktionieren unverändert.
-  - Completion criteria: 1. Scopes können in Unterordnern liegen
-    (STORY-053).
-    2. Scopes können Pflichtlektüre außerhalb der Architektur nennen, der
-    Hook erzwingt sie (STORY-054).
-    3. Tote relative Links in development- und techdocs-Dateien werden
-    gemeldet (STORY-055).
-    4. Änderungen an konfigurierten öffentlichen API-Dateien lösen eine
-    Pflege-Erinnerung aus (STORY-056).
-    5. Nutzung bestimmter Bezeichner erzwingt das Lesen der zugehörigen Doku
-    (STORY-057).
-    6. Vorlagen und Skills beschreiben den Aufbau; Projekte ohne die neuen
-    Teile laufen unverändert (STORY-058).
-  - Summary: Aus ezf-ui kam der Wunsch, Architektur und Schnittstellen nicht
-    in großen Einzeldateien, sondern als Baum zu führen, und
-    sicherzustellen, dass die AI die passenden Teile liest und vorhandene
-    Bausteine wiederverwendet. Das Epic baut die nötigen Mechanismen in den
-    Harness: Scopes in Unterordnern, Pflichtlektüre, Linkprüfung,
-    Pflege-Erinnerung, Pflicht über Nutzung, Vorlagen und Skills.
+  - Goal: Der Harness arbeitet mit Memos, Topics und Hints des ToDo-Viewers
+    (ab 0.10.0) über die Routen /api/memos, im Dateimodus mit dem Ordner
+    memos/. Der Begriff Note bezeichnet im Harness nur noch die Notiz zu
+    einem Backlog-Item.
+  - Completion criteria: 1. Der Helfer für Memos (memos_api.py) nutzt die
+    Routen /api/memos/… und die neuen Feldnamen (memos, memo_count, hints,
+    active_memos); notices heißt hints.
+    2. Dateimodus (memos_files.py, memos_format.py): Ordner memos/, Dateien
+    MEMO-…, Verweise memo:.
+    3. Sitzungsstart, Konfiguration und der Hook für geänderte
+    Backlog-Dateien sprechen von Memos und erkennen den Ordner memos/.
+    4. Der todo-Skill (memos.md, memos-api.md, memos-files.md, SKILL.md,
+    sync-flow.md, format.md, alarms.md) benutzt Memo und Hint; Item-Notizen
+    sind klar abgegrenzt.
+    5. Tests und Fixtures sind umbenannt und grün; Techdocs sind
+    nachgezogen.
+    6. Die Kopie des Harness im Projekt ist neu exportiert, falls vorhanden,
+    und der alte Ordner docs/todo/notes/ ist entfernt.
+  - Summary: Der ToDo-Viewer nennt den Eintragstyp mit Wiedervorlage jetzt
+    Memo (MEMO-001) statt Note, den Hinweis Hint statt Notice. Der Harness
+    spricht noch die alten Routen /api/notes und den Ordner notes/ und muss
+    gleichzeitig umgestellt werden.
