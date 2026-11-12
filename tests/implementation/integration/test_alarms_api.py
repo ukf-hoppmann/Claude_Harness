@@ -68,11 +68,11 @@ class AlarmsApiTest(unittest.TestCase):
         self.viewer.add_project("p2", "other")
         self.viewer.add_label("p2", "STORY-009", "u-foreign")
         self.route("POST", A, {"label": "ALARM-002"}, status=201)
-        stdin = '{"at": "2026-10-20T09:00:00+02:00", "targets": ["NOTE-001", "other:STORY-009"]}'
+        stdin = '{"at": "2026-10-20T09:00:00+02:00", "targets": ["MEMO-001", "other:STORY-009"]}'
         result = self.run_api("create", stdin=stdin)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.last()["body"], {"project": "p1", "fields": {
-            "at": "2026-10-20T09:00:00+02:00", "targets": ["NOTE-001", "u-foreign"]}})
+            "at": "2026-10-20T09:00:00+02:00", "targets": ["MEMO-001", "u-foreign"]}})
         self.run_api("create", stdin='{"at": "2026-10-20T09:00:00+02:00", "text": "Zahnarzt"}')
         self.assertEqual(self.last()["body"],
                          {"project": "p1", "fields": {"at": "2026-10-20T09:00:00+02:00", "text": "Zahnarzt"}})

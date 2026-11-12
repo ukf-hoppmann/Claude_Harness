@@ -491,7 +491,7 @@ class BacklogApiTest(unittest.TestCase):
 
     def test_trash_lists_only_backlog_items_of_the_project(self):
         self.viewer.routes[("GET", f"{API}/workspace/trash")] = (200, [
-            {"label": "STORY-003", "kind": "story"}, {"label": "NOTE-001", "kind": "note"},
+            {"label": "STORY-003", "kind": "story"}, {"label": "MEMO-001", "kind": "memo"},
         ])
         result = self.run_api("trash")
         self.assertEqual(json.loads(result.stdout), [{"label": "STORY-003", "kind": "story"}])
@@ -514,7 +514,7 @@ class BacklogApiTest(unittest.TestCase):
         self.viewer.routes[("GET", f"{API}/workspace/trash")] = (200, [
             {"label": "STORY-003", "kind": "story"},
             {"uid": "t-1", "label": "STORY-001", "kind": "document", "title": "STORY-001_spec.md"},
-            {"label": "NOTE-001", "kind": "note"},
+            {"label": "MEMO-001", "kind": "memo"},
         ])
         result = self.run_api("trash")
         self.assertEqual([e["kind"] for e in json.loads(result.stdout)], ["story", "document"])
