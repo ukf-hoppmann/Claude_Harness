@@ -151,7 +151,7 @@ class HookTest(unittest.TestCase):
         # Skill pointers appear once, however many projects use the module.
         # The todo skill is named by the Backlog line and the Notes line (notes are active with either backend).
         self.assertEqual(out.count("skill claude-harness:todo"), 2)
-        self.assertEqual(out.count("Notes: rules in skill claude-harness:todo"), 1)
+        self.assertEqual(out.count("Memos: rules in skill claude-harness:todo"), 1)
         self.assertEqual(out.count("skill claude-harness:techdocs"), 1)
         self.assertIn("A: Backlog: Plugins/A/docs/todo/TODO.md does not exist", out)
         self.assertIn("A: Missing technical docs: Plugins/A/README.md", out)
@@ -164,14 +164,14 @@ class HookTest(unittest.TestCase):
         self.assertIn("Backlog: docs/todo via ToDo-Viewer API (http://localhost:5411/api);", out)
         self.assertNotIn("errors", out)
 
-    def test_session_start_names_notes_module_without_network(self):
+    def test_session_start_names_memos_module_without_network(self):
         self.write_config(backend="api")
         out = self.run_hook("session_start.py", {}).stdout
-        self.assertIn("Notes: via ToDo-Viewer API (http://localhost:5411/api); rules in skill claude-harness:todo", out)
+        self.assertIn("Memos: via ToDo-Viewer API (http://localhost:5411/api); rules in skill claude-harness:todo", out)
         self.write_config(backend="files")
         out = self.run_hook("session_start.py", {}).stdout
-        self.assertIn("Notes: docs/todo/notes/ as files; rules in skill claude-harness:todo", out)
-        self.assertNotIn("ToDo-Viewer API", out.split("Notes:")[1])
+        self.assertIn("Memos: docs/todo/memos/ as files; rules in skill claude-harness:todo", out)
+        self.assertNotIn("ToDo-Viewer API", out.split("Memos:")[1])
 
     def test_session_start_api_backend_does_not_require_todo_file(self):
         self.write_config(backend="api")
@@ -191,7 +191,7 @@ class HookTest(unittest.TestCase):
         out = self.run_hook("session_start.py", {}, self.CLOUD).stdout
         self.assertIn("Backlog: docs/todo/TODO.md (backend files: cloud session; config.toml says api);", out)
         self.assertNotIn("ToDo-Viewer API", out)
-        self.assertIn("Notes: docs/todo/notes/ as files;", out)
+        self.assertIn("Memos: docs/todo/memos/ as files;", out)
 
     def test_session_start_variable_forces_api_over_files_config(self):
         self.write_config(backend="files")
@@ -483,61 +483,61 @@ class HookTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stderr, "")
 
-    NOTE = "# NOTE-001\nUid: u-1\nSummary: s\nStatus: waiting\n"
+    MEMO = "# MEMO-001\nUid: u-1\nSummary: s\nStatus: waiting\n"
 
-    def write_note_file(self, name="NOTE-001.md", text=NOTE):
-        path = self.todo_dir / "notes" / name
+    def write_memo_file(self, name="MEMO-001.md", text=MEMO):
+        path = self.todo_dir / "memos" / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(text)
         return path
 
-    def test_stop_blocks_a_notes_file_with_a_format_error_until_it_is_fixed(self):
+    def test_stop_blocks_a_memo_file_with_a_format_error_until_it_is_fixed(self):
         self.write_config()
         write_backlog(self.todo_dir, [item("STORY-001")])
-        path = self.write_note_file(text=self.NOTE + "Foo: x\n")
+        path = self.write_memo_file(text=self.MEMO + "Foo: x\n")
         self.edit(path)
         first = self.stop()
         self.assertEqual(first.returncode, 2)
-        self.assertIn("notes/NOTE-001.md:5: unknown_field", first.stderr)
-        self.assertIn("notes-files.md", first.stderr)
+        self.assertIn("memos/MEMO-001.md:5: unknown_field", first.stderr)
+        self.assertIn("memos-files.md", first.stderr)
         self.assertEqual(self.stop().returncode, 2)
-        path.write_text(self.NOTE)
+        path.write_text(self.MEMO)
         self.assertEqual(self.stop().returncode, 0)
 
-    def test_stop_accepts_a_valid_notes_folder(self):
+    def test_stop_accepts_a_valid_memos_folder(self):
         self.write_config()
         write_backlog(self.todo_dir, [item("STORY-001")])
-        self.edit(self.write_note_file())
-        self.write_note_file("topics.md", "- TOPIC-001 | Name | uid=t-1\n")
+        self.edit(self.write_memo_file())
+        self.write_memo_file("topics.md", "- TOPIC-001 | Name | uid=t-1\n")
         self.assertEqual(self.stop().returncode, 0)
 
     def test_stop_checks_the_whole_folder_after_a_change_in_it(self):
         self.write_config()
         write_backlog(self.todo_dir, [item("STORY-001")])
-        self.write_note_file("NOTE-002.md", "# NOTE-002\nUid: u-1\nSummary: s\nStatus: waiting\n")
-        self.edit(self.write_note_file())
+        self.write_memo_file("MEMO-002.md", "# MEMO-002\nUid: u-1\nSummary: s\nStatus: waiting\n")
+        self.edit(self.write_memo_file())
         result = self.stop()
         self.assertEqual(result.returncode, 2)
         self.assertIn("duplicate_uid", result.stderr)
 
-    def test_stop_does_not_check_notes_that_were_not_changed(self):
+    def test_stop_does_not_check_memos_that_were_not_changed(self):
         self.write_config()
         write_backlog(self.todo_dir, [item("STORY-001")])
-        self.write_note_file(text=self.NOTE + "Foo: x\n")
+        self.write_memo_file(text=self.MEMO + "Foo: x\n")
         self.edit(self.todo_dir / "TODO.md")
         self.assertEqual(self.stop().returncode, 0)
 
-    def test_api_backend_does_not_check_the_notes_folder(self):
+    def test_api_backend_does_not_check_the_memos_folder(self):
         self.write_config(backend="api")
-        self.edit(self.write_note_file(text=self.NOTE + "Foo: x\n"))
+        self.edit(self.write_memo_file(text=self.MEMO + "Foo: x\n"))
         result = self.stop()
         self.assertEqual(result.returncode, 0)
         self.assertEqual(result.stderr, "")
 
-    def test_notices_about_notes_files_come_once_per_session(self):
+    def test_notices_about_memo_files_come_once_per_session(self):
         self.write_config()
         write_backlog(self.todo_dir, [item("STORY-001")])
-        self.edit(self.write_note_file("readme.md", "x\n"))
+        self.edit(self.write_memo_file("readme.md", "x\n"))
         first = self.stop()
         self.assertEqual(first.returncode, 2)
         self.assertIn("ignored_file", first.stderr)

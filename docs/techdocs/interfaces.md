@@ -61,7 +61,7 @@ Dateiformate.
 
 | Skill | Wird geladen, wenn … |
 |---|---|
-| `claude-harness:todo` | mit dem Backlog gearbeitet wird, der Besitzer etwas merken oder sich erinnern lassen will, nach offenen oder fälligen Notes fragt oder eine Note in Backlog-Arbeit (oder zurück) umwandelt (Notes-Regeln in `notes.md` bzw. im Dateimodus `notes-files.md` des Skills, nur bei Bedarf) |
+| `claude-harness:todo` | mit dem Backlog gearbeitet wird, der Besitzer etwas merken oder sich erinnern lassen will, nach offenen oder fälligen Memos fragt oder ein Memo in Backlog-Arbeit (oder zurück) umwandelt (Memo-Regeln in `memos.md` bzw. im Dateimodus `memos-files.md` des Skills, nur bei Bedarf) |
 | `claude-harness:daily` | der Daily-Hook erinnert oder nach Tagesberichten gefragt wird |
 | `claude-harness:techdocs` | eine Änderung Nutzung, Komponenten, Schnittstellen, Einstellungen oder Betrieb betrifft oder der techdocs-Hook erinnert |
 | `claude-harness:architecture` | Code geplant oder geändert wird, Architekturregeln geändert werden, eine Anforderung den Regeln widerspricht oder der Architektur-Hook eine Änderung ablehnt |
@@ -81,16 +81,16 @@ dann aus dem Worktree gelesen und relativ zu ihm bewertet.
 
 | Ereignis | Skript | Verhalten | Ausgabe |
 |---|---|---|---|
-| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: beim wirksamen Backend `api` (siehe Konfiguration, Umgebungsvariablen) Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis; wählt die Umgebung das Backend abweichend von der Config, steht dahinter `(backend <Wert>: <Grund>; config.toml says <Wert>)`), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` eine statische Notes-Zeile mit Skill-Hinweis, ohne Abfrage von Fälligem: bei Backend `api` mit API-URL, bei `files` mit dem Ordner `<todo.path>/notes/` (der Ordner wird nicht angelegt); bei aktivem Teilbereich `architecture` eine Zeile mit dem Skill `interfaces` (Schnittstellen-Doku und Katalog, für die AI); die Zeile der Systemdoku heißt `Technical docs (for people)`; bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung. In einer Cloud-Sitzung (`CLAUDE_CODE_REMOTE=true`) beim Start (`startup`) mit `cloud.sync = true` (Root-Projekt) gleicht er zuerst den aktuellen Branch mit `origin` ab ([Skript `cloud_sync.py`](#skript-cloud_syncpy)); dessen Zeile steht vor allen anderen, und nach einem Abgleich liest er Config und Dokumente neu | stdout → Kontext |
+| SessionStart (`startup`, `resume`, `clear`, `compact`) | `session_start.py` | Kurzfassung von Config und Zustand (Backlog: beim wirksamen Backend `api` (siehe Konfiguration, Umgebungsvariablen) Ordner und API-URL ohne Formatprüfung, ohne Erreichbarkeitsprüfung und ohne Prüfung auf `TODO.md` (im API-Modus nicht erforderlich; der Server darf den Backlog in einer Datenbank halten), bei `files` Pfad von `TODO.md` samt Prüfergebnis; wählt die Umgebung das Backend abweichend von der Config, steht dahinter `(backend <Wert>: <Grund>; config.toml says <Wert>)`), Fehler der Scope-Tabelle und der Tabelle geerbter Regeln; bei aktivem Modul `todo` eine statische Memos-Zeile mit Skill-Hinweis, ohne Abfrage von Fälligem: bei Backend `api` mit API-URL, bei `files` mit dem Ordner `<todo.path>/memos/` (der Ordner wird nicht angelegt); bei aktivem Teilbereich `architecture` eine Zeile mit dem Skill `interfaces` (Schnittstellen-Doku und Katalog, für die AI); die Zeile der Systemdoku heißt `Technical docs (for people)`; bei aktivem Teilbereich `testing` der Testordner (`development.tests`) samt Hinweis auf den Skill; mit Teilprojekten (`[projects]`) eine Zeile pro Projekt (darin auch der Testordner), jeder Skill-Hinweis einmal, Meldungen mit Projektnamen, Zeile für jedes Teilprojekt ohne oder mit ungültiger Config; bei aktivem Teilbereich `worktree` in einem Git-Repo eine Fehlerzeile, wenn `worktree.baseRef` nicht `"head"` ist (gelesen aus `.claude/settings.local.json`, `.claude/settings.json` und `~/.claude/settings.json` in dieser Rangfolge; unlesbare Dateien zählen als nicht gesetzt); bei `clear` und `compact` werden die Lese-Merker der Architekturregeln gelöscht; im Root-Projekt eine Zeile `Cloud copy: …`, wenn die Cloud-Kopie nicht zu `cloud.export` passt (Kopie fehlt, veraltet, trotz `false` vorhanden, nicht prüfbar); läuft der Hook aus einer Kopie, entfällt diese Prüfung. In einer Cloud-Sitzung (`CLAUDE_CODE_REMOTE=true`) beim Start (`startup`) mit `cloud.sync = true` (Root-Projekt) gleicht er zuerst den aktuellen Branch mit `origin` ab ([Skript `cloud_sync.py`](#skript-cloud_syncpy)); dessen Zeile steht vor allen anderen, und nach einem Abgleich liest er Config und Dokumente neu | stdout → Kontext |
 | PreToolUse (`Write`, `Edit`, `MultiEdit`, `NotebookEdit`, `ExitPlanMode`) | `check_architecture.py` | Lehnt ab, solange die Architekturregeln in der Session nicht vollständig gelesen wurden: das Vorlegen eines Plans (`ExitPlanMode`), das Schreiben einer Backlog-Spec (`<ID>_spec.md`, `<ID>_spec_<Thema>.md`) und die Änderung einer Projektdatei; bei Projektdateien zusätzlich die Datei jedes passenden Scopes und dessen `Required reading`; danach bei Write, Edit, MultiEdit und NotebookEdit die `Read`-Dateien der Tabellen `Required on use`, deren Bezeichner im neuen Text vorkommen. Mit Teilprojekten gelten die Regeln des Projekts, zu dem die Datei gehört (bei einer Spec: dessen Backlog); ein Plan verlangt die Regeln jedes Projekts, dessen Pfad im Plantext vorkommt, sonst die des Root-Projekts. Dateien in unwirksamen Teilprojekten werden nicht geprüft | JSON mit `permissionDecision: deny` und Grund |
-| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört. Eine geänderte Notes-Datei (`items/<ID>/<ID>_notes.md`) merkt er sich zusätzlich einzeln (und setzt den Reminder-Zähler eines aktiven Items auf 0), eine geänderte Datei im Ordner `notes/` des Backlogs (Notes als Dateien) das Projekt in einer eigenen Marke | keine |
+| PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_backlog_dirty.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): Merker, wenn eine Datei im Backlog-Ordner geändert wurde; bei Teilprojekten mit dem Namen des Projekts, zu dem der Backlog gehört. Eine geänderte Notes-Datei (`items/<ID>/<ID>_notes.md`) merkt er sich zusätzlich einzeln (und setzt den Reminder-Zähler eines aktiven Items auf 0), eine geänderte Datei im Ordner `memos/` des Backlogs (Memos als Dateien) das Projekt in einer eigenen Marke | keine |
 | PostToolUse (`Bash`) | `mark_notes_state.py` | Nur beim wirksamen Backend `api` und nur nach einem erfolgreichen Aufruf von `backlog_api.py` (ohne `--source`; mit `--project <Name>` für dieses Projekt): liest die `[harness]`-Zeilen aus `tool_response.stdout`/`stderr` (`notes-state <ID> <Zustand>`, `active <ID>`) und legt je Projekt und Item Zustand des Notes-Kopfs und, für aktive Items, den Zähler „Prompts seit dem letzten Notes-Eintrag“ ab (ein Notes-Schreibvorgang setzt ihn auf 0); Änderungen am Merker-Speicher sind gesperrt und ersetzen die Datei atomar, weil die Hooks paralleler Bash-Aufrufe gleichzeitig laufen (`state.edit_notes_marks`); kein Netzwerk | keine |
 | PostToolUse (`Read`) | `mark_active_item.py` | Nur beim wirksamen Backend `files`: das Lesen von `items/<ID>/<ID>_spec.md` im Backlog-Ordner macht das Item aktiv (Zähler 0, ein laufender Zähler bleibt) | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_techdocs.py` | Merker „Projekt geändert“ bzw. „Doku geändert“, pro Projekt; `README.md` und Systemdoku zählen nur für ihr eigenes Projekt | keine |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_doclinks.py` | Merkt je Session die geänderten Dokumente, deren Links geprüft werden (siehe Abschnitt „Linkprüfung“); Projekt und Pfad stehen in der Zustandsdatei `doclinks-changed-<Session>.json` | – |
 | PostToolUse (`Write`, `Edit`, `MultiEdit`) | `mark_public_api.py` | Nur bei aktivem Teil `architecture` und nicht leerem `development.public_api`: Merker (Liste der Pfade), wenn die geänderte Datei auf ein Muster passt (Syntax der Scope-Pfade, relativ zum Projekt-Root); pro Projekt | keine |
 | PostToolUse (`Read`) | `mark_architecture_read.py` | Merker, wenn die Architekturregeln, eine Scope-Datei (`.md` an beliebiger Stelle unterhalb von `architecture/`) oder eine Datei aus `Required reading` eines Scopes oder aus `Read` einer Tabelle `Required on use` (`architecture.counted_reads`) vollständig gelesen wurden (kein `offset` > 1, kein `limit` unter der Zeilenzahl); zählt nur für das Projekt, in dem die Datei liegt | keine |
-| Stop | `check_backlog.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session. Für jede in der Session geänderte Notes-Datei: Kopf `missing` oder `stale` ist ein Fehler, bis er angepasst oder mit `backlog.py --confirm-state` bestätigt ist; Hinweise bei mehr als 15 Punkten unter `- Decided:`, wenn die Notes eines Epics oder einer Story geändert wurden, während eines ihrer Kinder `In progress` ist (Frage, ob die Besprechung dorthin gehört), und wenn ein älterer Protokolleintrag gegenüber dem letzten Commit geändert wurde (ohne Git kein Hinweis). Wurde in der Session eine Datei im Ordner `notes/` des Backlogs geändert, prüft er den ganzen Ordner nach Format Version 2 (`notes_format.py`): Fehler blockieren mit `notes/<Datei>:<Zeile>: <Code>: <Text>`, bis sie behoben sind; Hinweise (nicht gelesene Datei, Dokument ohne Note) einmal pro Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
+| Stop | `check_backlog.py` | Nur beim wirksamen Backend `files` (auch in Cloud-Sitzungen): prüft jeden in der Session geänderten Backlog (pro Projekt, Meldung mit Backlog-Pfad relativ zum Session-Root); neue Hinweise einmal pro Projekt und Session. Für jede in der Session geänderte Notes-Datei: Kopf `missing` oder `stale` ist ein Fehler, bis er angepasst oder mit `backlog.py --confirm-state` bestätigt ist; Hinweise bei mehr als 15 Punkten unter `- Decided:`, wenn die Notes eines Epics oder einer Story geändert wurden, während eines ihrer Kinder `In progress` ist (Frage, ob die Besprechung dorthin gehört), und wenn ein älterer Protokolleintrag gegenüber dem letzten Commit geändert wurde (ohne Git kein Hinweis). Wurde in der Session eine Datei im Ordner `memos/` des Backlogs geändert, prüft er den ganzen Ordner nach Format Version 2 (`memos_format.py`): Fehler blockieren mit `memos/<Datei>:<Zeile>: <Code>: <Text>`, bis sie behoben sind; Hinweise (nicht gelesene Datei, Dokument ohne Memo) einmal pro Session | Exit 2 + stderr bei Fehlern/neuen Hinweisen |
 | Stop | `check_notes_state.py` | Nur beim wirksamen Backend `api`: blockiert, solange ein Item in der Session einen Notes-Kopf mit Zustand `stale` oder `missing` hat (nach der letzten Meldung des Helfers); die Meldung nennt jedes Item (bei Teilprojekten mit `--project <Name>`) und verweist auf `put-state`/`confirm-state`. Bestätigen oder Ersetzen meldet `current` und löst den Block. Kein Netzwerk; `stop_hook_active` verhindert eine Schleife; kennt der Viewer keinen Kopf oder ist er nicht erreichbar, scheitert der Helfer und es entsteht kein Merker. Der Files-Modus läuft über `check_backlog.py` | Exit 2 + stderr |
 | UserPromptSubmit | `remind_notes.py` | Beide Backends: zählt je Prompt für jedes aktive Item (auf `In progress` gesetzt oder Spec gelesen) den Zähler hoch und gibt bei 5, 10, 15 … auf stdout eine Erinnerung aus, im Notes-Protokoll festzuhalten, was geklärt, entschieden oder verworfen wurde; ein Notes-Eintrag setzt den Zähler zurück. Blockiert nie (Exit 0, Ausgabe als Kontext) | stdout → Kontext |
 | Stop | `check_daily.py` | Erinnert bei neuen, nicht erfassten Commits auf dem Branch, in den gemerged wird (Orte wie bei `daily.py`; Commits nur im Daily- oder Backlog-Ordner zählen nicht), einmal pro HEAD, Projekt und Session; mit Teilprojekten eine Meldung, die jedes Projekt mit offenen Commits nennt, samt Aufruf `daily.py pending --project <Name>` | Exit 2 + stderr |
@@ -222,41 +222,41 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   wenn der Server nicht erreichbar ist; 4, wenn der Backlog-Ordner nicht als
   Viewer-Projekt registriert ist.
 
-## Skript `notes_api.py`
+## Skript `memos_api.py`
 
-- Zweck: Notes und Topics über die HTTP-API des ToDo-Viewers pflegen
-  (Teil des Moduls `todo`). Die Notes liegen nur in der Datenbank des Viewers; das
+- Zweck: Memos und Topics über die HTTP-API des ToDo-Viewers pflegen
+  (Teil des Moduls `todo`). Die Memos liegen nur in der Datenbank des Viewers; das
   Skript hat keinen Dateizugriff darauf. Maßgeblich für die API selbst ist
   die Doku des ToDo-Viewers (`docs/techdocs/neubau-server.md`, Plugin
-  `notes`, Routen unter `/notes/…`).
-- Aufruf: `python3 plugin/scripts/notes_api.py [--project <Name>] <befehl>
+  `memos`, Routen unter `/memos/…`).
+- Aufruf: `python3 plugin/scripts/memos_api.py [--project <Name>] <befehl>
   [argumente]` wie bei `backlog_api.py`: Projekt der Session, ohne
   `--project` das Root-Projekt, gefunden über den Spiegel-Ordner des
   Backlog-Ordners (Exit 4, wenn nicht registriert; `register` gibt es nur in
   `backlog_api.py`). Das Modul `todo` muss an sein und das Backend `api` haben
-  (Notes gibt es nur im Viewer). `--source <Name>` wie bei `backlog_api.py`
-  spricht die Notes eines anderen Projekts des Viewers an (Freigabe: Skill
+  (Memos gibt es nur im Viewer). `--source <Name>` wie bei `backlog_api.py`
+  spricht die Memos eines anderen Projekts des Viewers an (Freigabe: Skill
   `todo`).
-- Labels: Notes, Topics und Ziele von Ereignis-Auslösern im eigenen Projekt
+- Labels: Memos, Topics und Ziele von Ereignis-Auslösern im eigenen Projekt
   löst der Server selbst auf. Für Verknüpfungen (`POST /workspace/links`),
   Papierkorb und Auslöser-Ziele in anderen Projekten (`target_project`) löst
   das Skript die Labels in `uid`s auf. Die alten Namen `topic_due` (Art) und
   `target_status` (Feld) eines Auslösers werden als `topic_date` und `status`
   weitergegeben; Zeit-Auslöser lehnt das Skript ab (Exit 2, Hinweis auf
   `alarms_api.py`).
-- Befehle (vollständig: Aufruf ohne Argumente und `plugin/skills/todo/notes-api.md`):
+- Befehle (vollständig: Aufruf ohne Argumente und `plugin/skills/todo/memos-api.md`):
   Lesen: `health`, `sources`, `index` (kompakte Tabellen aus
-  `GET /notes/index/lines`, Filter `--status`, `--due`, `--archived`,
+  `GET /memos/index/lines`, Filter `--status`, `--due`, `--archived`,
   `--query`, `--all-projects`), `due` (alle Projekte), `show`, `topics`,
-  `topic` (Unter-Topics und Notes), `links`, `backlinks` (ausgehende bzw.
+  `topic` (Unter-Topics und Memos), `links`, `backlinks` (ausgehende bzw.
   eingehende Verknüpfungen aus `GET /workspace/elements/{uid}/links`),
-  `notes-of-item`, `docs`, `doc`, `notices` (einer Note, mit `--side item`
-  eines Items), `trash` (Notes und Topics des Projekts), `settings`.
+  `memos-of-item`, `docs`, `doc`, `hints` (eines Memos, mit `--side item`
+  eines Items), `trash` (Memos und Topics des Projekts), `settings`.
   Schreiben (JSON auf stdin, `<version>` als Zahl): `create`, `update`,
   `keep`, `snooze`, `finish` (`done` oder `dropped`), `move`, `delete`
   (Papierkorb über `workspace`), `restore` (aus dem Papierkorb über
-  `workspace`, aus dem Archiv über `notes`), `trigger-add`, `trigger-remove`,
-  `link-add`, `link-remove`, `put-doc`, `note-entry`, `decide`, `promote`
+  `workspace`, aus dem Archiv über `memos`), `trigger-add`, `trigger-remove`,
+  `link-add`, `link-remove`, `put-doc`, `memo-entry`, `decide`, `promote`
   (IDs in `parent` und `dependencies` wie bei `backlog_api.py`), `demote`,
   `topic-create`, `topic-update`, `topic-move`, `topic-archive`,
   `topic-reactivate`, `topic-delete` (mit der Wahl des Servers für den
@@ -266,36 +266,36 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 - Exit-Code: wie bei `backlog_api.py`; Exit 2 auch bei abgeschaltetem Modul
   `todo` oder Backend `files`.
 
-## Skript `notes_files.py`
+## Skript `memos_files.py`
 
-- Zweck: Index und Fälligkeit der Notes im Dateimodus (Teil des Moduls
+- Zweck: Index und Fälligkeit der Memos im Dateimodus (Teil des Moduls
   `todo`, Backend `files`), das Gegenstück zu `backlog.py --index`. Es liest
-  nur die Kopfzeilen der Dateien `notes/NOTE-<n>.md` und
-  `notes/new-<Name>.md` im Backlog-Ordner, nie den Langtext, die Dokumente
-  der Notes, `topics.md` oder `counters.md`. Das Format ist das Dateiformat
+  nur die Kopfzeilen der Dateien `memos/MEMO-<n>.md` und
+  `memos/new-<Name>.md` im Backlog-Ordner, nie den Langtext, die Dokumente
+  der Memos, `topics.md` oder `counters.md`. Das Format ist das Dateiformat
   Version 2 des ToDo-Viewers; der Helfer prüft es nicht vollständig (die
   Formatprüfung ist eine eigene Story) und schreibt nichts.
-- Aufruf: `python3 plugin/scripts/notes_files.py <Backlog-Ordner> [--index |
+- Aufruf: `python3 plugin/scripts/memos_files.py <Backlog-Ordner> [--index |
   --due [--today JJJJ-MM-TT] | --check]`. `--index` ist die Vorgabe.
 - `--index`: eine Kopfzeile `File | Status | Review | Topic | Summary`, dann
-  eine Zeile je Note, sortiert nach Dateiname. Das Topic steht mit Namen aus
+  eine Zeile je Memo, sortiert nach Dateiname. Das Topic steht mit Namen aus
   `topics.md` (Sonderzeichen so, wie sie dort stehen, `|` als `\|`), ein
-  Topic ohne Label als `new:<Name>` aufgelöst, fehlende Werte als `-`. Notes im
-  Papierkorb (`Deleted:` gesetzt) und archivierte Notes fehlen.
-- `--due`: nur offene Notes (`waiting`, `due`, `snoozed`), deren
+  Topic ohne Label als `new:<Name>` aufgelöst, fehlende Werte als `-`. Memos im
+  Papierkorb (`Deleted:` gesetzt) und archivierte Memos fehlen.
+- `--due`: nur offene Memos (`waiting`, `due`, `snoozed`), deren
   Review-Tag oder deren Topic-Fälligkeit (`due=` in `topics.md`) heute oder
   früher liegt; mit der Spalte `Reason` (`review <Tag>`, `topic due <Tag>`).
   `--today` ersetzt das Tagesdatum. Auslöser auf Ereignisse kennt nur der
   Viewer und werden nicht ausgewertet.
-- `--check`: prüft den ganzen Ordner `notes/` nach den Regeln des Decoders des
-  Viewers (Format Version 2) mit `notes_format.py` und gibt je Fund eine Zeile
-  `notes/<Datei>:<Zeile>: <Code>: <Text>` aus, Fehler vor Hinweisen; Exit 1 bei
+- `--check`: prüft den ganzen Ordner `memos/` nach den Regeln des Decoders des
+  Viewers (Format Version 2) mit `memos_format.py` und gibt je Fund eine Zeile
+  `memos/<Datei>:<Zeile>: <Code>: <Text>` aus, Fehler vor Hinweisen; Exit 1 bei
   Fehlern, sonst 0 (Hinweise allein ändern den Exit-Code nicht). Je Datei wird
   der erste Fehler gemeldet, wie beim Viewer, dazu die Fehler über Dateien
   hinweg. Fehlercodes (die des Viewers): `invalid_value` (ungültige Kopf-,
   Auslöser-, Link- oder Topic-Zeile, Status, `Mode`, `Archived`, Zeitpunkt;
-  `due` steht nie in einer Datei; eine neue Note hat keine `Uid`),
-  `unknown_field`, `missing_field` (`Summary`, `Status`, `Uid` bei einer Note
+  `due` steht nie in einer Datei; ein neues Memo hat keine `Uid`),
+  `unknown_field`, `missing_field` (`Summary`, `Status`, `Uid` bei einem Memo
   mit Label, Topic-Name und `uid=` bei einem Topic mit Label),
   `file_label_mismatch` (erste Zeile passt nicht zum Dateinamen),
   `invalid_placeholder` (Kurzname nicht `a-z`, `0-9`, `-`, oder ein Platzhalter
@@ -304,15 +304,15 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   (Anfangs- und Endmarker eines Merge-Konflikts in einer Datei) und
   `unreadable` (nicht UTF-8 oder nicht lesbar). Hinweise, die nicht
   blockieren: `ignored_file` (eine `.md`-Datei, die der Viewer nicht liest,
-  meist ein Tippfehler im Namen) und `document_without_note` (ein Dokument, zu
-  dem es keine Note gibt). Verweise (Ziele von Links, Triggern, Topics) werden
+  meist ein Tippfehler im Namen) und `document_without_memo` (ein Dokument, zu
+  dem es kein Memo gibt). Verweise (Ziele von Links, Triggern, Topics) werden
   nicht auf Existenz geprüft, `counters.md` wird ignoriert. Die Beispiele des
-  Viewers (`tests/fixtures/notes-format`, Kopie aus dessen
+  Viewers (`tests/fixtures/memos-format`, Kopie aus dessen
   `tests/fixtures/mirror-v2`) sind die gemeinsame Vorlage; der Stop-Hook ruft
   dieselbe Prüfung.
-- Ausgabe leer, wenn es keinen Ordner `notes/` oder keine Treffer gibt. Exit 0;
+- Ausgabe leer, wenn es keinen Ordner `memos/` oder keine Treffer gibt. Exit 0;
   1, wenn eine Datei sich nicht lesen lässt oder keine `Summary`-Zeile hat
-  (Meldung auf stderr, die übrigen Notes erscheinen trotzdem); 2 bei falschem
+  (Meldung auf stderr, die übrigen Memos erscheinen trotzdem); 2 bei falschem
   Aufruf.
 
 ## Skript `alarms_api.py`
@@ -337,7 +337,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 
 ## Skript `viewer_api.py`
 
-Gemeinsamer Client von `backlog_api.py`, `notes_api.py` und `alarms_api.py`,
+Gemeinsamer Client von `backlog_api.py`, `memos_api.py` und `alarms_api.py`,
 kein eigener Befehl: HTTP-Aufruf mit Zeitlimit, Fehlertext aus der
 Fehlerantwort des Servers (`code`, `message`, `details`, Hinweis bei
 `version_conflict`), Exit-Codes (1 Fehlerantwort, 2 falscher Aufruf, 3 Server
