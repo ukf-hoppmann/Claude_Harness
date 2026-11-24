@@ -2,10 +2,9 @@
 
 ## State
 
-- Goal/Status: Cloud-Session gleicht beim Start den Branch mit origin ab oder meldet die Abweichung. Umgesetzt und released (v0.12.8, nicht gepusht); Kriterien 1 bis 6 erfüllt, Kriterium 7 offen. Ursache in ezf-ui belegt: alter Cache (2026-11-05).
-- Next step: Harness pushen, in ezf-ui /claude-harness:update ausführen und committen, dann eine neue Cloud-Session starten und die Zeile prüfen.
+- Goal/Status: Cloud-Session gleicht beim Start den Branch mit origin ab oder meldet die Abweichung. Umgesetzt und released (v0.12.8). Vom Owner am 2026-11-12 abgeschlossen; Kriterium 7 nur als Schweigen bei gleichem Stand gesehen, Vorspul-Fall nicht belegt.
+- Next step: keiner; der Owner meldet sich, falls der Abgleich in der Praxis nicht funktioniert.
 - Open:
-  - Kriterium 7: Lauf in einer echten Cloud-Session; erwartet wird die Vorspul-Zeile (2026-11-05)
   - Autoren-Hinweis eines Hooks in der Cloud-Session (Umschreiben mit --reset-author): welcher Hook, nicht aus dieser Story (2026-11-05)
 - Decided:
   - Logik in cloud_sync.py, Aufruf zu Beginn von session_start.py (2026-11-04)
@@ -14,9 +13,10 @@
   - Ausnahme von Architekturregel 2 und 5 für Cloud-Sessions freigegeben (2026-11-04)
   - Release als Patch v0.12.8 (2026-11-04)
   - Ursache in ezf-ui: alter Cache, kein Rebase/Force-Push; 85/73 und 'forced' sind Shallow-Artefakte (2026-11-05)
+  - Abschluss durch den Owner ohne Beleg des Vorspul-Falls (2026-11-12)
 - References: STORY-052_spec.md; EPIC-010; STORY-047; Merge 5968aba; docs/daily/2026-11-04_daily.md
 
-State confirmed after entry 2026-11-05 — Befund aus einer Cloud-Session von ezf-ui: Ursache belegt (9d78766c338f)
+State confirmed after entry 2026-11-12 — Kriterium 7 und Abschluss durch den Owner (04ec53028518)
 
 ## 2026-11-04 — Anlass, Ort der Lösung und Architektur-Ausnahme
 
@@ -70,3 +70,14 @@ State confirmed after entry 2026-11-05 — Befund aus einer Cloud-Session von ez
 
 - Kriterium 7: Harness pushen, in ezf-ui /claude-harness:update ausführen und committen, neue Cloud-Session starten; erwartet wird die Vorspul-Zeile (oder bei Shallow-Problemen die Abweichungsmeldung).
 - Der Autoren-Hinweis eines Hooks in der Cloud-Session (Umschreiben von 85 Commits mit --reset-author) stammt nicht aus dieser Story; zu klären, welcher Hook das ist.
+
+## 2026-11-12 — Kriterium 7 und Abschluss durch den Owner
+
+### Discussed
+
+- Ausgabe einer frischen Cloud-Session (2026-11-12): REMOTE=true, cloud.sync=true, Plugin-Kopie 0.14.0 im Repo, HEAD gleich origin, keine Abgleichszeile. Das ist das erwartete Schweigen bei gleichem Stand (Kriterium 2), belegt aber nicht, dass der Abgleich lief.
+- Der Vorspul-Fall ist nicht in einer echten Cloud-Session gezeigt worden. Ein manueller Hook-Lauf nach git reset --hard HEAD~1 wurde vorgeschlagen, nicht ausgeführt.
+
+### Decided
+
+- Der Owner schließt die Story ab, obwohl Kriterium 7 nicht im Vorspul-Fall belegt ist. Er meldet sich, falls der Abgleich in der Praxis nicht funktioniert (2026-11-12).
