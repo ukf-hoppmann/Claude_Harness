@@ -3,7 +3,7 @@ import unittest
 from pathlib import Path
 
 from helpers import REPO_ROOT, item, write_backlog
-from backlog import validate_backlog
+from backlog import format_index, validate_backlog
 
 
 class BacklogTest(unittest.TestCase):
@@ -66,6 +66,52 @@ class BacklogTest(unittest.TestCase):
         )
         self.assertError(validate_backlog(self.dir), "TODO.md uses an unsupported backlog format")
 
+    def test_format_version_2_and_3_are_read(self):
+        for version in (2, 3):
+            with self.subTest(version=version):
+                self.dir.mkdir(parents=True, exist_ok=True)
+                (self.dir / "TODO.md").write_text(
+                    f"# Backlog\n\nFormat: Claude_Harness backlog format version {version}. Rules.\n\n"
+                    "## Work items\n\nNo entries.\n"
+                )
+                self.assertEqual(validate_backlog(self.dir).errors, [])
+
+    def test_other_format_versions_are_rejected(self):
+        for version in ("4", "20", "30"):
+            with self.subTest(version=version):
+                self.dir.mkdir(parents=True, exist_ok=True)
+                (self.dir / "TODO.md").write_text(
+                    f"# Backlog\n\nFormat: Claude_Harness backlog format version {version}. Rules.\n\n"
+                    "## Work items\n\nNo entries.\n"
+                )
+                self.assertError(validate_backlog(self.dir), "TODO.md uses an unsupported backlog format")
+
+    def test_item_without_area_is_valid_in_version_3(self):
+        report = self.check([item("STORY-001")])
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.notices, [])
+
+    def test_area_is_read_and_ignored(self):
+        report = self.check([item("STORY-001", Area="Alt")])
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.notices, [])
+        self.assertFalse(hasattr(report.items[0], "area"))
+
+    def test_area_in_a_version_2_file_is_read_and_ignored(self):
+        write_backlog(self.dir, [item("STORY-001", Area="Alt")])
+        text = (self.dir / "TODO.md").read_text().replace("version 3", "version 2")
+        (self.dir / "TODO.md").write_text(text)
+        report = validate_backlog(self.dir)
+        self.assertEqual(report.errors, [])
+        self.assertEqual(report.notices, [])
+
+    def test_index_has_no_area_column(self):
+        report = self.check([item("STORY-001", Area="Alt")])
+        self.assertEqual(
+            format_index(report).splitlines(),
+            ["ID | Type | Status | Title | Parent", "STORY-001 | Story | Open | Title | -"],
+        )
+
     def test_format_line_may_span_lines(self):
         self.dir.mkdir(parents=True)
         (self.dir / "TODO.md").write_text(
@@ -74,7 +120,7 @@ class BacklogTest(unittest.TestCase):
         )
         self.assertEqual(validate_backlog(self.dir).errors, [])
 
-    def test_archive_needs_format_version_2(self):
+    def test_archive_needs_format_line(self):
         write_backlog(self.dir, [])
         (self.dir / "archive.md").write_text("# Archive\n\n## Work items\n\nNo entries.\n")
         self.assertError(validate_backlog(self.dir), "archive.md has no format line")
@@ -275,9 +321,9 @@ class BacklogTest(unittest.TestCase):
         )
         self.assertEqual(report.errors, [])
         self.assertEqual(format_index(report).splitlines()[1:], [
-            "EPIC-001 | Epic | Completed | Test | Alt | -",
-            "STORY-001 | Story | Completed | Test | Kind | EPIC-001",
-            "STORY-002 | Story | Open | Test | Neu | -",
+            "EPIC-001 | Epic | Completed | Alt | -",
+            "STORY-001 | Story | Completed | Kind | EPIC-001",
+            "STORY-002 | Story | Open | Neu | -",
         ])
 
     def test_resolution_only_when_closed(self):
@@ -335,7 +381,7 @@ class BacklogTest(unittest.TestCase):
         from backlog import format_index
         report = self.check([], [item("STORY-001", "Weg", Deleted="2026-09-28.")])
         self.assertEqual(format_index(report).splitlines()[1:], [
-            "STORY-001 | Story | Open (deleted 2026-09-28) | Test | Weg | -",
+            "STORY-001 | Story | Open (deleted 2026-09-28) | Weg | -",
         ])
 
     def test_unknown_parent(self):

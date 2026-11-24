@@ -9,7 +9,7 @@ SCRIPTS = REPO_ROOT / "plugin" / "scripts"
 if str(SCRIPTS) not in sys.path:
     sys.path.insert(0, str(SCRIPTS))
 
-HEADER = "# Backlog\n\nFormat: Claude_Harness backlog format version 2.\n\n## Work items\n\n"
+HEADER = "# Backlog\n\nFormat: Claude_Harness backlog format version 3.\n\n## Work items\n\n"
 
 
 def item(identifier: str, title: str = "Title", **fields: str) -> str:
@@ -21,7 +21,6 @@ def item(identifier: str, title: str = "Title", **fields: str) -> str:
         "Parent": "None",
         "Status": "Open",
         "Created": "2026-09-23",
-        "Area": "Test",
         "Priority": "Important",
         "Dependencies": "None",
         "Goal": "Goal.",

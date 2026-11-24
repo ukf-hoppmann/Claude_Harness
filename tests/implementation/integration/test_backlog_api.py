@@ -72,7 +72,7 @@ class BacklogApiTest(unittest.TestCase):
         self.assertIn("not reachable", result.stderr)
 
     def test_index_uses_the_project_of_the_configured_backlog(self):
-        text = "ID | Type | Status | Area | Title | Parent\nEPIC-001 | Epic | Open | Kern | Ä | -"
+        text = "ID | Type | Status | Title | Parent | Notes\nEPIC-001 | Epic | Open | Ä | - | -"
         self.viewer.routes[("GET", f"{API}/backlog/index")] = (200, {"text": text, "count": 1})
         result = self.run_api("index")
         self.assertEqual(result.returncode, 0, result.stderr)
@@ -81,8 +81,8 @@ class BacklogApiTest(unittest.TestCase):
         self.assertEqual(self.writes(), [])
 
     def test_index_leaves_out_trashed_items_or_marks_them(self):
-        text = ("ID | Type | Status | Area | Title | Parent\n"
-                "STORY-001 | Story | Open | Kern | A | -\nTASK-001 | Task | Open | Kern | B | STORY-001")
+        text = ("ID | Type | Status | Title | Parent | Notes\n"
+                "STORY-001 | Story | Open | A | - | -\nTASK-001 | Task | Open | B | STORY-001 | -")
         self.viewer.routes[("GET", f"{API}/backlog/index")] = (200, {"text": text, "count": 2})
         self.viewer.routes[("GET", f"{API}/workspace/trash")] = (200, [
             {"label": "TASK-001", "kind": "task"}, {"label": "STORY-001", "kind": "note"},
@@ -90,7 +90,7 @@ class BacklogApiTest(unittest.TestCase):
         lines = self.run_api("index").stdout.splitlines()
         self.assertEqual(lines, text.splitlines()[:2])
         lines = self.run_api("index", "--with-trash").stdout.splitlines()
-        self.assertEqual(lines[2], "TASK-001 | Task | Open | Kern | B | STORY-001 (Papierkorb)")
+        self.assertEqual(lines[2], "TASK-001 | Task | Open | B | STORY-001 | - (Papierkorb)")
 
     def test_show_marks_deleted_children_and_hints_at_unclosed_ones(self):
         item = {"label": "STORY-001", "children": [
@@ -215,17 +215,17 @@ class BacklogApiTest(unittest.TestCase):
         self.viewer.add_label("p1", "EPIC-001", "u-epic")
         self.viewer.add_label("p1", "STORY-007", "u-dep")
         self.viewer.routes[("POST", ITEMS)] = (201, {"label": "STORY-002", "version": 1})
-        payload = {"type": "Story", "title": "Neu „x“", "area": "A", "goal": "G", "completion_criteria": "C",
+        payload = {"type": "Story", "title": "Neu „x“", "goal": "G", "completion_criteria": "C",
                    "parent": "EPIC-001", "required_for_parent": "Yes", "dependencies": ["STORY-007"]}
         result = self.run_api("create", stdin=json.dumps(payload, ensure_ascii=False))
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.last("POST")["body"], {"project": "p1", "type": "Story", "fields": {
-            "title": "Neu „x“", "area": "A", "goal": "G", "completion_criteria": "C",
+            "title": "Neu „x“", "goal": "G", "completion_criteria": "C",
             "parent": "u-epic", "required_for_parent": True, "dependencies": ["u-dep"],
         }})
 
     def test_create_with_an_unknown_parent_label_writes_nothing(self):
-        payload = {"type": "Story", "title": "T", "area": "A", "goal": "G", "completion_criteria": "C",
+        payload = {"type": "Story", "title": "T", "goal": "G", "completion_criteria": "C",
                    "parent": "EPIC-404"}
         result = self.run_api("create", stdin=json.dumps(payload))
         self.assertEqual(result.returncode, 1)
@@ -547,10 +547,9 @@ class BacklogApiTest(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.last("POST")["body"], {"project": "p1"})
 
-    def test_areas(self):
-        self.viewer.routes[("GET", f"{API}/backlog/areas")] = (200, {"areas": ["A", "B"]})
+    def test_no_areas_command(self):
         result = self.run_api("areas")
-        self.assertEqual(result.stdout.splitlines(), ["A", "B"])
+        self.assertNotEqual(result.returncode, 0)
 
     def test_no_purge_command(self):
         result = self.run_api("purge", "EPIC-001", "1")

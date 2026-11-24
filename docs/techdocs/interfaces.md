@@ -122,10 +122,12 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
 ## Skript `backlog.py`
 
 - Aufruf: `python3 plugin/scripts/backlog.py <backlog-ordner> [--index | --show <ID> [<ID> ...] | --confirm-state <ID>]`
-- Prüft das Backlog-Format Version 2 (wie der Markdown-Spiegel des
+- Prüft das Backlog-Format Version 3 (wie der Markdown-Spiegel des
   ToDo-Viewers): `TODO.md` und `archive.md` brauchen vor `## Work items`
-  einen Absatz `Format: … backlog format version 2 …`; fehlt er oder nennt er
-  eine andere Version, ist das ein Fehler. Jeder Eintrag braucht eine `Uid`
+  einen Absatz `Format: … backlog format version 3 …` (Version 2 wird ebenfalls
+  gelesen, Version 1, eine andere oder fehlende Kennung ist ein Fehler).
+  Version 3 ist Version 2 ohne das Feld `Area`; ein vorhandenes `Area` wird
+  gelesen und ignoriert, nie geschrieben. Jeder Eintrag braucht eine `Uid`
   (UUID, eindeutig); neue Einträge mit Platzhalter `NEW-<kurzname>` haben
   keine `Uid` und dürfen `Created` weglassen. Das verhindert doppelte IDs bei
   paralleler Arbeit in Cloud und lokal: Labels und `Uid` vergibt nur der
@@ -136,7 +138,7 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Fehler.
 - Ohne Option: listet Fehler und Hinweise und eine Zusammenfassung.
 - Mit `--index`: eine Zeile pro Eintrag über `TODO.md` und `archive.md`
-  (`ID | Type | Status | Area | Title | Parent`); Einträge im Papierkorb tragen
+  (`ID | Type | Status | Title | Parent`); Einträge im Papierkorb tragen
   `(deleted <Datum>)` hinter dem Status.
 - Mit `--show`: gibt nur die genannten Einträge aus, jeweils unverändert aus
   `TODO.md` oder `archive.md` mit einer vorangestellten Zeile
@@ -191,9 +193,8 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   | `health` | Erreichbarkeit (`GET /core/health`) |
   | `sources` | `Project \| Folder` jedes Viewer-Projekts (die Namen für `--source`; `-` ohne Spiegel-Ordner) |
   | `register` | Backlog-Ordner als Viewer-Projekt anlegen (`POST /workspace/projects`, Spiegel und Auto-Sync an); Name beim Root-Projekt der Ordnername des Haupt-Checkouts, sonst der Name des Teilprojekts. Abgelehnt (Exit 2), wenn der Ordner schon registriert ist oder mit `--source` |
-  | `index [--with-trash]` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Area \| Title \| Parent` (`GET /backlog/index`); Einträge im Papierkorb (`GET /workspace/trash`) fehlen, mit `--with-trash` stehen sie mit dem Zusatz `(Papierkorb)` da |
+  | `index [--with-trash]` | Eine Zeile pro Eintrag: `ID \| Type \| Status \| Title \| Parent \| Notes` (`GET /backlog/index`); Einträge im Papierkorb (`GET /workspace/trash`) fehlen, mit `--with-trash` stehen sie mit dem Zusatz `(Papierkorb)` da |
   | `show <ID>` | Eintrag als JSON mit `version`, auch archivierte; gelöschte Kinder tragen ein `note`-Feld und zählen nicht als offene Arbeit (nicht geschlossene nennt ein Hinweis auf stderr) |
-  | `areas` | Benutzte Bereiche, einer pro Zeile |
   | `create` | Neuer Eintrag; stdin: flaches JSON mit `type` und den Feldern; die ID vergibt der Server |
   | `update <ID> <version>` | stdin: `{"fields": {...}, "resolution": ...}` (`PUT /backlog/items/{ID}`) |
   | `move <ID> <version> <parent\|-> [--position N]` | Neuer Parent (`-` = keiner) und Position unter den Geschwistern |

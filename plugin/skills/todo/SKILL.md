@@ -142,8 +142,12 @@ Read only what the task needs:
   - Before every call into another project, name that project in your answer.
   - The rules of the other project's backlog do not change: format, parent
     rules, and the change authority below apply there as well.
-- Reuse existing areas before inventing new ones. Files: new IDs take the
-  next free number of their type; API: the server assigns them.
+- Files: new IDs take the next free number of their type; API: the server
+  assigns them.
+- The topic of an item is the node of the viewer's mindmap it hangs on (tools
+  `mindmap_…`, e.g. `mindmap_get_item_node`, `mindmap_assign_item`, or the
+  section "Knoten" in the item's detail). There is no field, no filter, and no
+  column in the index lines for it; scripts and skills here do not rebuild it.
 
 ## Memos
 

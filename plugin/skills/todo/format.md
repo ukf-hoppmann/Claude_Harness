@@ -1,4 +1,4 @@
-# Claude_Harness backlog format, version 2
+# Claude_Harness backlog format, version 3
 
 The backlog lives in the folder configured as `[todo].path` below `[docs].root` in
 `.claude-harness/config.toml` (default `docs/todo`). With the
@@ -15,18 +15,26 @@ them and the server may keep the backlog in a database instead.
 ```
 
 Both files contain a paragraph before `## Work items` that starts with
-`Format:` and contains `backlog format version 2`, e.g.
+`Format:` and contains `backlog format version 3`, e.g.
 
 ```
-Format: Claude_Harness backlog format version 2. The rules are defined in the
+Format: Claude_Harness backlog format version 3. The rules are defined in the
 `todo` skill of the claude-harness plugin (`skills/todo/format.md`).
 ```
 
-Version 2 is the only valid format; it matches the ToDo-Viewer's Markdown
-mirror. A backlog with another or no format line (e.g. version 1, which had
+Versions 2 and 3 are read; only version 3 is written. It matches the
+ToDo-Viewer's Markdown mirror. Version 3 is version 2 without the `Area`
+field. A backlog with another or no format line (e.g. version 1, which had
 `Notes`/`Spec` fields and no `Uid`) is outdated and fails the check: ask the
-owner how to convert it to version 2 (e.g. through the ToDo-Viewer) before
-working with it.
+owner how to convert it to version 3 (e.g. through the ToDo-Viewer) before
+working with it. A version 2 file needs no conversion: write new and changed
+entries in version 3 style, and the viewer's mirror writes the format line.
+
+Tolerance: an entry with an `Area` field (version 2, or a leftover in a
+version 3 file) is no error. The field is read and ignored: no `unknown
+field`, no `missing field`. Never write it: an entry you change loses the
+field; an entry you do not change is not rewritten for that reason alone.
+The topic of an item is the viewer's mindmap node, not a field.
 
 Both files contain exactly one `## Work items` section. An empty section
 contains the line `No entries.` (always in English, like the format line). `TODO.md` and `archive.md` form one backlog:
@@ -50,7 +58,6 @@ working language.
   - Required for parent: Yes.
   - Status: Open.
   - Created: YYYY-MM-DD.
-  - Area: Project area.
   - Priority: Important.
   - Dependencies: None.
   - Goal: Describe the result. Continuation lines are indented
@@ -61,7 +68,7 @@ working language.
 ```
 
 Fields, in this order: `Uid`, `Type`, `Parent`, `Required for parent`,
-`Status`, `Created`, `Area`, `Priority`, `Dependencies`, `Goal`,
+`Status`, `Created`, `Priority`, `Dependencies`, `Goal`,
 `Completion criteria`, `Summary`, `Resolution`, `Deleted`. Other fields are
 errors. The order is how the ToDo-Viewer writes entries; any order is read.
 
@@ -112,7 +119,7 @@ contain cycles.
 
 ## Required fields
 
-Every entry contains `Uid`, `Type`, `Status`, `Created`, `Area`, `Priority`,
+Every entry contains `Uid`, `Type`, `Status`, `Created`, `Priority`,
 `Dependencies`, `Goal`, and `Completion criteria`. A [new entry](#new-entries)
 has no `Uid` and may omit `Created`.
 
@@ -128,9 +135,6 @@ Priorities are `Urgent`, `Important`, `Normal`, and `Prospective`. `Urgent`
 and `Important` mark work that must proceed promptly; `Prospective` marks
 work that can wait. `Normal` is the neutral default: use it whenever an item
 is neither urgent/important nor explicitly deferred.
-
-Areas are free text. An existing area is reused whenever it plausibly fits; a
-new area is introduced only when no existing one fits.
 
 ## Parent lifecycle
 
@@ -332,7 +336,7 @@ across `TODO.md` and `archive.md` without reading either file in full, run:
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --index
 ```
 
-It prints one line per item: `ID | Type | Status | Area | Title | Parent`;
+It prints one line per item: `ID | Type | Status | Title | Parent`;
 deleted items show `(deleted <date>)` after their status.
 
 Then load only the items that matter. API mode: `show <ID>`. Files mode:
@@ -372,7 +376,7 @@ Reopening a closed item requires a recorded reason.
 Propose an item only for concrete, relevant project work that was discussed
 but intentionally not done now. Questions, discarded alternatives, temporary
 debugging steps, and vague ideas without a next action are not items. A
-proposal states title, type, goal, completion criteria, area, and priority.
+proposal states title, type, goal, completion criteria, and priority.
 
 Before proposing, use the overview index to check both files:
 

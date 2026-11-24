@@ -294,12 +294,12 @@ class MemosApiTest(unittest.TestCase):
     def test_promote_resolves_item_labels_and_demote(self):
         self.viewer.add_label("p1", "EPIC-001", "u-epic")
         self.route("POST", f"{N}/memos/MEMO-001/promote", {"item": {"label": "TASK-005"}})
-        body = ('{"version": 2, "type": "Task", "fields": {"area": "A", "goal": "G", "completion_criteria": "C", '
+        body = ('{"version": 2, "type": "Task", "fields": {"goal": "G", "completion_criteria": "C", '
                 '"parent": "EPIC-001", "required_for_parent": "Yes"}}')
         result = self.run_api("promote", "MEMO-001", stdin=body)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(self.last()["body"], {"project": "p1", "version": 2, "type": "Task", "fields": {
-            "area": "A", "goal": "G", "completion_criteria": "C", "parent": "u-epic", "required_for_parent": True}})
+            "goal": "G", "completion_criteria": "C", "parent": "u-epic", "required_for_parent": True}})
         self.route("POST", f"{N}/items/STORY-001/demote", {"memo": {"label": "MEMO-009"}})
         result = self.run_api("demote", "STORY-001", stdin='{"version": 3, "topic": "TOPIC-001"}')
         self.assertEqual(result.returncode, 0, result.stderr)
