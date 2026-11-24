@@ -136,6 +136,9 @@ die Grundlage eines Plans sind. Fehlt die Regeldatei, wird nichts abgelehnt. Än
   Platzhalter. `Notes` und `Spec` sind
   unbekannte Felder. Ein Eintrag in der falschen Datei ist ein Hinweis, kein
   Fehler.
+  Der Ordner `mindmap/` (Spiegel der Mindmap des Viewers, nur Dateimodus) ist
+  bekannt: seine Dateien werden nicht gemeldet und nicht geprüft, das tut der
+  Sync des Viewers; die Regeln stehen in `skills/todo/format.md`.
 - Ohne Option: listet Fehler und Hinweise und eine Zusammenfassung.
 - Mit `--index`: eine Zeile pro Eintrag über `TODO.md` und `archive.md`
   (`ID | Type | Status | Title | Parent`); Einträge im Papierkorb tragen

@@ -11,7 +11,8 @@ them and the server may keep the backlog in a database instead.
 <todo path>/
  ├─ TODO.md          active items (Open, In progress, Awaiting confirmation)
  ├─ archive.md       Completed and Rejected items, and the trash
- └─ items/<ID>/      optional notes and spec per item
+ ├─ items/<ID>/      optional notes and spec per item
+ └─ mindmap/         optional mirror of the viewer's topic tree (see [Mindmap](#mindmap-files-mode))
 ```
 
 Both files contain a paragraph before `## Work items` that starts with
@@ -348,6 +349,67 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/backlog.py" <backlog folder> --show <ID> 
 It prints each entry exactly as written, after a line `Source: TODO.md` or
 `Source: archive.md`, and exits with 1 if an ID is not found. Never read
 `archive.md` in full.
+
+## Mindmap (files mode)
+
+The ToDo-Viewer mirrors the project's mindmap (the topic tree) into
+`mindmap/` next to `TODO.md`. The folder is optional and known to the check:
+files below it are not reported, and their content is not checked here (the
+viewer's sync checks it and names file and line). Source of truth for the
+format is the section "Mindmap-Dateien (Format Version 1)", including
+"Bearbeiten in den Dateien (Cloud-Sitzung)", in `docs/techdocs/interfaces.md`
+of the ToDo-Viewer repository. Only files mode uses this section; with `api`
+the viewer's `mindmap_*` tools apply ([api.md](api.md)).
+
+| File | Content |
+|---|---|
+| `mindmap/NODE-001.md` | one node: head (`Uid`, `Title`, `Mark`, `Deleted`), `Items:`, `Memos:`, then free text |
+| `mindmap/NODE-001_notes.md`, `NODE-001_spec.md`, `NODE-001_spec_<topic>.md` | documents of the node, text unchanged |
+| `mindmap/project.md` | the project tree (exactly one): only references to nodes, in their order |
+| `mindmap/maps/<name>.md` | a free map (brainstorming), same form as the project tree, with `Name:` |
+| `mindmap/new-<shortname>.md`, `mindmap/maps/new-<shortname>.md` | new node or map (placeholder) |
+
+Node head, fixed order: `# NODE-001`, `Uid: …`, `Title: …`, `Mark:` (empty,
+`later`, or `discarded`), `Deleted:` (empty = in use; otherwise the time, i.e.
+in the trash). Then `Items:` and `Memos:` with one line `- <LABEL>` each (a
+target in another project: `- <Project>:<LABEL>`); a section is missing when
+it is empty. After a blank line the free text follows to the end of the file.
+
+Tree file: head `# <Name>`, `Format: mindmap format version 1`, `Uid`,
+`Kind: project|free`, for free maps `Name:` and `Deleted:`; then a **blank
+line** and the list: one entry per line `- NODE-001`, children indented by two
+spaces, the order is the position among siblings. `Removed:` at the end names
+removed placements; do not change it unless the owner asks.
+
+Rules for editing:
+
+1. **A node's content stands exactly once**, in its node file. Trees hold only
+   references (labels or placeholders) and the order; a node stands in a tree
+   at most once.
+2. **New things** (node or map) get a placeholder `new-<shortname>` (`a-z`,
+   `0-9`, `-`, unique): the file `mindmap/new-<shortname>.md` starts with
+   `# NEW`, has **no** `Uid` and no label; the tree file lists
+   `- new-<shortname>`. A new map lies in `mindmap/maps/new-<shortname>.md`
+   (`# NEW`, `Kind: free`, `Name: …`). The sync assigns Uid and label
+   (`NODE-nnn`) and renames the files. Never invent a label or a Uid.
+3. **Moving a branch** means moving its lines (the node with the indentation of
+   its children) in the tree file to the new place. Never copy a node or
+   create it anew, never write a node twice into the same tree, never hang a
+   node below itself or a descendant.
+4. **Transferring a branch to another map:** write the same labels with their
+   children **additionally** into the target map's tree file; the node files
+   stay unchanged. Only nodes of the same project.
+5. **Assigning an item:** write the item's label under `Items:` of the node
+   file (create the section if it is missing). An item stands at **at most
+   one** node; when it changes the node, remove it from the old node. A memo
+   may stand at several. The item files (`TODO.md`, notes) stay unchanged: the
+   assignment lives on the node, not in the item.
+6. **Delete nothing.** Deleting and the trash (`Deleted:`) belong to the
+   owner: never set `Deleted:` and never remove files.
+7. Do not touch other fields and files; `Uid`, file names with a label, and
+   `Format:` stay unchanged.
+8. If both sides changed the same node, the owner decides in the sync dialog;
+   the session does not resolve it.
 
 ## Change authority
 

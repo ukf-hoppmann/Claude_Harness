@@ -33,8 +33,18 @@ class TopicTreeRuleTest(unittest.TestCase):
     def test_rule_needs_the_owners_yes_for_a_new_node(self):
         self.assertIn("only after the owner's yes", self.skill)
 
-    def test_file_mode_is_marked_as_open(self):
-        self.assertIn("Files mode: this rule does not apply yet", self.skill)
+    def test_file_mode_has_its_own_rule(self):
+        self.assertNotIn("does not apply yet", self.skill)
+        self.assertIn("Files mode, creating an item", self.skill)
+        self.assertIn("mindmap/project.md", self.skill)
+        self.assertIn("do not create it", self.skill)
+
+    def test_format_describes_the_mindmap_files_and_rules(self):
+        fmt = (SKILL / "format.md").read_text()
+        self.assertIn("## Mindmap (files mode)", fmt)
+        for text in ("mindmap/project.md", "new-<shortname>", "Delete nothing", "# NEW", "Items:", "Memos:"):
+            with self.subTest(text=text):
+                self.assertIn(text, fmt)
 
     def test_link_target_exists(self):
         self.assertIn("## Topic tree (MCP tools of the viewer)", self.api)

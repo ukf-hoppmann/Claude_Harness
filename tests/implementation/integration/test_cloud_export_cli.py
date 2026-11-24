@@ -161,5 +161,13 @@ class ErrorTest(CliTestCase):
         self.assertEqual(subprocess.run([sys.executable, str(SCRIPT)], capture_output=True, text=True).returncode, 2)
 
 
+class MindmapSectionTest(CliTestCase):
+    def test_the_copy_contains_the_mindmap_section_of_the_todo_skill(self):
+        self.assertEqual(self.run_cli("--write").returncode, 0)
+        skills = self.project / ".claude/skills/harness-todo"
+        self.assertIn("## Mindmap (files mode)", (skills / "format.md").read_text(encoding="utf-8"))
+        self.assertIn("Files mode, creating an item", (skills / "SKILL.md").read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     unittest.main()

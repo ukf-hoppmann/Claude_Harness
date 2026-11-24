@@ -139,8 +139,18 @@ Read only what the task needs:
   appears under "Nicht zugeordnet". If the viewer's MCP tools are not
   available in the session, tell the owner that the topic tree cannot be
   reached, create the item with the helper's `create` without a node, and say
-  that it is unassigned. Files mode: this rule does not apply yet; it follows
-  with the viewer's mindmap mirror.
+  that it is unassigned. Files mode: see the next point.
+- Files mode, creating an item: if the project has a `mindmap/` folder, think
+  about which node fits (read `mindmap/project.md` and the node files: title,
+  text) and write the item's label under `Items:` of that node
+  ([format.md](format.md#mindmap-files-mode)). If none fits, propose a new
+  node (and its parent) to the owner in the conversation; only after the
+  owner's yes create it as a placeholder file and list it in `project.md`.
+  Without a yes no node is created and the item stays unassigned (the viewer
+  shows it under "Nicht zugeordnet"); do not invent topics. If the project has
+  no `mindmap/` folder, do not create it; tell the owner that the mindmap is
+  not mirrored yet. A new node also needs the owner's yes when it comes up
+  while placing an existing item. Never delete nodes, maps, or files there.
 - With subprojects, each project has its own backlog. New items go into the
   backlog of the project the work belongs to; if that is unclear, ask.
 - A session works only on the backlog of its own project. Another project's

@@ -1,12 +1,13 @@
 import json
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
 from pathlib import Path
 
-from helpers import SCRIPTS, item, write_backlog
+from helpers import REPO_ROOT, SCRIPTS, item, write_backlog
 
 
 class HookTest(unittest.TestCase):
@@ -525,6 +526,29 @@ class HookTest(unittest.TestCase):
         write_backlog(self.todo_dir, [item("STORY-001")])
         self.write_memo_file(text=self.MEMO + "Foo: x\n")
         self.edit(self.todo_dir / "TODO.md")
+        self.assertEqual(self.stop().returncode, 0)
+
+    def copy_mindmap_fixture(self):
+        shutil.copytree(
+            REPO_ROOT / "tests" / "fixtures" / "mindmap-files" / "valid" / "mindmap", self.todo_dir / "mindmap"
+        )
+
+    def test_stop_accepts_a_backlog_folder_with_a_mindmap_folder(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.copy_mindmap_fixture()
+        for name in ("project.md", "NODE-001.md", "new-sicherheit.md", "maps/ideen.md"):
+            self.edit(self.todo_dir / "mindmap" / name)
+        result = self.stop()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stderr, "")
+
+    def test_a_mindmap_file_is_no_memos_or_notes_file(self):
+        self.write_config()
+        write_backlog(self.todo_dir, [item("STORY-001")])
+        self.copy_mindmap_fixture()
+        (self.todo_dir / "mindmap" / "NODE-001.md").write_text("Foo: x\n")
+        self.edit(self.todo_dir / "mindmap" / "NODE-001.md")
         self.assertEqual(self.stop().returncode, 0)
 
     def test_api_backend_does_not_check_the_memos_folder(self):
