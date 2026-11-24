@@ -89,7 +89,7 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Type: Story.
   - Parent: `EPIC-008`.
   - Required for parent: No.
-  - Status: In progress.
+  - Status: Awaiting confirmation.
   - Area: Entwicklung.
   - Priority: Important.
   - Dependencies: None.
@@ -122,4 +122,5 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
   - Summary: Sammelauftrag für die Umstellung des Harness auf Format 3
     ohne Area und auf die Mindmap des Viewers. Reihenfolge: erst
     Format 3, dann API-Regel, dann Dateimodus-Mindmap, am Ende ein
-    gemeinsames Release.
+    gemeinsames Release. Umgesetzt (A, B, C); wartet auf die Bestätigung
+    des Owners, Release 0.15.0 vorbereitet.
