@@ -1,4 +1,4 @@
-# NEW-viewer-v3-mindmap — Harness auf Format Version 3 und die Mindmap umstellen
+# STORY-061 — Harness auf Backlog-Format Version 3 und die Mindmap des Viewers umstellen
 
 ## State
 

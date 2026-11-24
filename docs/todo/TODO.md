@@ -4,7 +4,7 @@ Active project work: open, in progress, or awaiting a project-owner decision.
 Completed and rejected items are moved to `archive.md`; per-item notes and
 specs live in `items/<ID>/`.
 
-Format: Claude_Harness backlog format version 2. The rules are defined in
+Format: Claude_Harness backlog format version 3. The rules are defined in
 `docs/techdocs/interfaces.md` of the ToDo Viewer.
 
 ## Work items
@@ -85,12 +85,13 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     über den Sync im Gleichstand. Offen: wie der Harness dort ohne Plugin
     läuft.
 
-- `NEW-viewer-v3-mindmap` **Harness auf Backlog-Format Version 3 und die Mindmap des Viewers umstellen**
+- `STORY-061` **Harness auf Backlog-Format Version 3 und die Mindmap des Viewers umstellen**
+  - Uid: d7562db7-2bda-4289-b957-d82af979b701.
   - Type: Story.
   - Parent: `EPIC-008`.
   - Required for parent: No.
   - Status: Awaiting confirmation.
-  - Area: Entwicklung.
+  - Created: 2026-11-24.
   - Priority: Important.
   - Dependencies: None.
   - Goal: Der Harness folgt der Überarbeitung des ToDo-Viewers: Das Feld
