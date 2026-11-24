@@ -163,3 +163,42 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     Bausteine wiederverwendet. Das Epic baut die nötigen Mechanismen in den
     Harness: Scopes in Unterordnern, Pflichtlektüre, Linkprüfung,
     Pflege-Erinnerung, Pflicht über Nutzung, Vorlagen und Skills.
+
+- `NEW-viewer-v3-mindmap` **Harness auf Backlog-Format Version 3 und die Mindmap des Viewers umstellen**
+  - Type: Story.
+  - Parent: `EPIC-008`.
+  - Required for parent: No.
+  - Status: Open.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Der Harness folgt der Überarbeitung des ToDo-Viewers: Das Feld
+    `Area` entfällt, das Dateiformat heißt Version 3 (Version 2 wird weiter
+    gelesen, nur 3 geschrieben), und die Themen eines Items sind die Knoten
+    der Mindmap. Im API-Modus ordnet die KI neue Items per MCP-Tools dem
+    Themenbaum zu; im Dateimodus kennt der Skill die Dateien unter
+    `mindmap/` und bearbeitet sie nach festen Regeln. Die Quellen sind vier
+    Aufträge des Owners (TASK-072 Prompt 2, TASK-078, TASK-082 aus dem
+    Viewer-Repository sowie TASK-072 Prompt 1 als Aufgabe außerhalb des
+    Harness).
+  - Completion criteria: 1. Format Version 3 ist umgesetzt (Skripte, Check, Hooks, Vorlagen,
+    `format.md`, `api.md`, Skills, README, Tests): Version 2 und 3 werden
+    gelesen, `Area` wird toleriert und nie geschrieben, `areas` und
+    `area` in `create`/`update`/`promote` entfallen, die Index-Zeile hat
+    keine Spalte Area.
+    2. Der Skill `todo` enthält die Regel zum Zuordnen neuer Items zum
+    Themenbaum für den API-Modus (Werkzeugnamen stimmen mit dem Viewer
+    überein).
+    3. Der Skill `todo` enthält den Abschnitt „Mindmap“ für den Dateimodus;
+    `backlog.py` und die Hooks melden Dateien unter `mindmap/` nicht; die
+    Regel zum Anlegen von Items im Dateimodus steht im Skill; der
+    Vermerk „Dateimodus noch offen“ aus dem API-Auftrag ist entfernt.
+    4. Alle Tests sind grün; `grep -rniw area` findet nur Toleranz,
+    Tests dafür und andere Wortbedeutungen.
+    5. Ein Release mit der Versionsnummer nach der semver-Regel ist
+    vorbereitet; die Cloud-Kopie wird nicht von Hand geändert und der
+    Owner ist über das nötige `update` der Projekte informiert.
+  - Summary: Sammelauftrag für die Umstellung des Harness auf Format 3
+    ohne Area und auf die Mindmap des Viewers. Reihenfolge: erst
+    Format 3, dann API-Regel, dann Dateimodus-Mindmap, am Ende ein
+    gemeinsames Release.
