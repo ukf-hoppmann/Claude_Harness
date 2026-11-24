@@ -12,14 +12,14 @@ Fehlt die Datei, meldet der Session-Start das und verweist auf
 | `version` | Ganzzahl | – | ja | Schema-Version, aktuell `1`. Eine ältere Version mit bekanntem Migrationspfad wird erkannt und über `/claude-harness:update` aktualisiert statt sofort abgelehnt zu werden |
 | `docs.root` | Pfad | `"docs"` | nein | Ordner für alle Harness-Dokumente, relativ zum Projekt-Root |
 | `docs.language` | ISO-639-1-Code | `"en"` | nein | Sprache aller erzeugten Dokumente (Fließtext und Überschriften, nicht maschinell geprüfte Feldnamen) |
-| `modules.todo` | Boolean | `false` | nein | Schaltet das Backlog-Modul ein. Dazu gehören Notes und Topics (Erinnerungen, Fragen, Ideen); sie haben keine eigenen Einstellungen. Mit `todo.backend = "api"` liegen sie im ToDo-Viewer (Regeln in `notes.md` des Skills `todo`, nutzen `todo.path` als Projektzuordnung und `todo.api_url`), mit `files` als Markdown-Dateien im Ordner `notes/` unter `todo.path` und damit im Repository (Regeln in `notes-files.md`). Der Session-Start nennt sie nur, er fragt keine fälligen Notes ab und legt den Ordner nicht an. Der frühere Schalter `modules.notes` entfällt; eine Config damit meldet einen Fehler, die Zeile ist zu streichen |
+| `modules.todo` | Boolean | `false` | nein | Schaltet das Backlog-Modul ein. Dazu gehören Memos und Topics (Erinnerungen, Fragen, Ideen); sie haben keine eigenen Einstellungen. Mit `todo.backend = "api"` liegen sie im ToDo-Viewer (Regeln in `memos.md` des Skills `todo`, nutzen `todo.path` als Projektzuordnung und `todo.api_url`), mit `files` als Markdown-Dateien im Ordner `memos/` unter `todo.path` und damit im Repository (Regeln in `memos-files.md`). Der Session-Start nennt sie nur, er fragt keine fälligen Memos ab und legt den Ordner nicht an. Der frühere Schalter `modules.notes` entfällt; eine Config damit meldet einen Fehler, die Zeile ist zu streichen |
 | `modules.daily` | Boolean | `false` | nein | Schaltet die Tagesberichte ein |
 | `modules.techdocs` | Boolean | `false` | nein | Schaltet die Systemdoku-Regeln ein |
 | `modules.development` | Boolean | `false` | nein | Schaltet die Suite `development` mit allen Teilbereichen ein |
 | `modules.semver` | Boolean | `false` | nein | Schaltet die Versionierung nach SemVer ein (Skill `claude-harness:semver`) |
 | `todo.path` | Pfad | `"todo"` | nein | Backlog-Ordner, relativ zu `docs.root` |
 | `todo.backend` | Text | `"api"` | nein | Wie die AI den Backlog pflegt: `api` über die HTTP-API des ToDo-Viewers (der Server prüft Format und Regeln, kein Backlog-Check am Turn-Ende), `files` direkt in den Markdown-Dateien (mit Backlog-Check). Ist der Server nicht erreichbar, fragt die AI, ob er gestartet oder auf Dateien ausgewichen wird. Der Wert ist die Vorgabe; je Umgebung kann er überschrieben werden (siehe Umgebungsvariablen unten): in einer Cloud-Sitzung gilt `files`, ohne dass die Config geändert wird |
-| `todo.api_url` | URL | `"http://localhost:5411/api"` | nein | Basis-URL der HTTP-API des ToDo-Viewers (darunter `/backlog`, `/notes`, `/alarms`, `/workspace`, `/core`); nur für `todo.backend = "api"`. Die Adresse des alten Viewers (`…/api/v2`) wird als `…/api` gelesen, alte Configs laufen ohne Änderung weiter |
+| `todo.api_url` | URL | `"http://localhost:5411/api"` | nein | Basis-URL der HTTP-API des ToDo-Viewers (darunter `/backlog`, `/memos`, `/alarms`, `/workspace`, `/core`); nur für `todo.backend = "api"`. Die Adresse des alten Viewers (`…/api/v2`) wird als `…/api` gelesen, alte Configs laufen ohne Änderung weiter |
 | `daily.path` | Pfad | `"daily"` | nein | Ordner der Tagesberichte, relativ zu `docs.root` |
 | `techdocs.path` | Pfad | `"techdocs"` | nein | Ordner der Systemdoku, relativ zu `docs.root` |
 | `development.path` | Pfad | `"development"` | nein | Ordner der Regeln der Suite, relativ zu `docs.root` |
@@ -149,8 +149,8 @@ gehört; Tagesberichte zählen pro Projekt nur dessen Commits.
 
 Wirksames Backend (Rangfolge): `CLAUDE_HARNESS_TODO_BACKEND`, dann die
 Cloud-Erkennung über `CLAUDE_CODE_REMOTE`, dann `todo.backend`. Es gilt für
-Session-Start, Backlog-Hooks, Notes und Alarme; die Config-Datei selbst bleibt
+Session-Start, Backlog-Hooks, Memos und Alarme; die Config-Datei selbst bleibt
 unverändert und wird von `/claude-harness:update` weiter so geprüft, wie sie
-dasteht. Notes gibt es mit beiden Backends (bei `api` im Viewer, bei `files` als
-Dateien in `notes/`); die Helfer `notes_api.py` und `alarms_api.py` und die
+dasteht. Memos gibt es mit beiden Backends (bei `api` im Viewer, bei `files` als
+Dateien in `memos/`); die Helfer `memos_api.py` und `alarms_api.py` und die
 Alarme brauchen `api`, in einer Cloud-Sitzung gibt es sie also nicht.

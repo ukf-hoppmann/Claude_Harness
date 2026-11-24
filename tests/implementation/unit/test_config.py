@@ -40,13 +40,13 @@ class ParseConfigTest(unittest.TestCase):
     def test_notes_belong_to_todo_with_either_backend(self):
         on = {"version": 1, "modules": {"todo": True}}
         files = {**on, "todo": {"backend": "files"}}
-        self.assertTrue(parse_config(on).notes_enabled())
-        self.assertTrue(parse_config(files).notes_enabled())
-        self.assertTrue(parse_config(on).viewer_notes_enabled())
-        self.assertFalse(parse_config(files).viewer_notes_enabled())
-        self.assertFalse(parse_config({"version": 1, "modules": {"todo": False}}).notes_enabled())
-        self.assertFalse(parse_config({"version": 1, "modules": {"todo": False}}).viewer_notes_enabled())
-        self.assertFalse(parse_config({"version": 1}).notes_enabled())
+        self.assertTrue(parse_config(on).memos_enabled())
+        self.assertTrue(parse_config(files).memos_enabled())
+        self.assertTrue(parse_config(on).viewer_memos_enabled())
+        self.assertFalse(parse_config(files).viewer_memos_enabled())
+        self.assertFalse(parse_config({"version": 1, "modules": {"todo": False}}).memos_enabled())
+        self.assertFalse(parse_config({"version": 1, "modules": {"todo": False}}).viewer_memos_enabled())
+        self.assertFalse(parse_config({"version": 1}).memos_enabled())
 
     def test_notes_module_switch_is_gone(self):
         with self.assertRaises(ConfigError) as ctx:
@@ -438,10 +438,10 @@ class TodoBackendEnvironmentTest(unittest.TestCase):
 
     def test_notes_follow_the_effective_backend(self):
         # Notes are active with either backend; only the ToDo-Viewer's notes need the API.
-        self.assertTrue(self._load("api", {}).viewer_notes_enabled())
+        self.assertTrue(self._load("api", {}).viewer_memos_enabled())
         cloud = self._load("api", {"CLAUDE_CODE_REMOTE": "true"})
-        self.assertTrue(cloud.notes_enabled())
-        self.assertFalse(cloud.viewer_notes_enabled())
+        self.assertTrue(cloud.memos_enabled())
+        self.assertFalse(cloud.viewer_memos_enabled())
 
 
 if __name__ == "__main__":

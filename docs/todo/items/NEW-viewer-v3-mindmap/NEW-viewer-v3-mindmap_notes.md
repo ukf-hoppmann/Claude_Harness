@@ -4,7 +4,8 @@
 
 - Goal/Status: Vier Aufträge des Owners geordnet, Umsetzung noch nicht begonnen (2026-11-24)
 - Next step: Owner entscheidet die offenen Fragen, danach Schritt 1 (Format Version 3) in einem Worktree (2026-11-24)
-- Open: Eigenes Backlog docs/todo (Version 2 mit Area) umstellen oder lassen; Notes statt Memos; Version erhöhen; Cloud-Kopie (2026-11-24)
+- Open: keine (2026-11-24)
+- Decided: docs/todo und docs/todo_v1 bleiben Version 2 (Viewer-Spiegel stellt um); Memos-Umbenennung steht seit v0.14.0 auf main, in den Aufträgen memos_* meint die vorhandenen memos_*-Dateien; Release dieser Story wird 0.15.0 am Ende nach Bestätigung; keine Cloud-Kopie in diesem Repo, nur Hinweis auf update (2026-11-24)
 - Decided: Reihenfolge Format 3, dann API-Regel, dann Dateimodus-Mindmap, ein gemeinsames Release (2026-11-24)
 - References: Aufträge TASK-072 (Prompt 1 und 2), TASK-078, TASK-082 des ToDo-Viewers (2026-11-24)
 

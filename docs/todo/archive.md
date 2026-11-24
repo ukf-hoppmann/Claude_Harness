@@ -2000,3 +2000,123 @@ Format: Claude_Harness backlog format version 2. The rules are defined in
     zusammenfassen und darauf verweisen, statt sie doppelt zu führen.
   - Resolution: Vom Besitzer am 2026-11-05 bestätigt; umgesetzt und in main
     gemergt (v0.13.1), 796 Tests grün.
+
+- `EPIC-011` **Hierarchische Architektur- und Schnittstellen-Doku für die AI**
+  - Uid: 37382d27-0b2a-4d59-b52f-4401524a99b2.
+  - Type: Epic.
+  - Status: Completed.
+  - Created: 2026-11-05.
+  - Area: Architektur.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Projekte können ihre verbindlichen Regeln für die AI (development)
+    als Baum führen: Architektur sagt, was wohin gehört und was Pflicht ist;
+    eine Schnittstellen-Doku mit Katalog wiederverwendbarer Bausteine sagt,
+    wie es geht. Der Harness stellt sicher, dass die AI die passenden
+    Dokumente liest (Pflicht über Pfade und über Nutzung), dass Verweise
+    gültig bleiben und dass bei Änderungen an öffentlichen APIs an die
+    Pflege erinnert wird. Bestehende Projekte mit flachen Scopes
+    funktionieren unverändert.
+  - Completion criteria: 1. Scopes können in Unterordnern liegen
+    (STORY-053).
+    2. Scopes können Pflichtlektüre außerhalb der Architektur nennen, der
+    Hook erzwingt sie (STORY-054).
+    3. Tote relative Links in development- und techdocs-Dateien werden
+    gemeldet (STORY-055).
+    4. Änderungen an konfigurierten öffentlichen API-Dateien lösen eine
+    Pflege-Erinnerung aus (STORY-056).
+    5. Nutzung bestimmter Bezeichner erzwingt das Lesen der zugehörigen Doku
+    (STORY-057).
+    6. Vorlagen und Skills beschreiben den Aufbau; Projekte ohne die neuen
+    Teile laufen unverändert (STORY-058).
+  - Summary: Aus ezf-ui kam der Wunsch, Architektur und Schnittstellen nicht
+    in großen Einzeldateien, sondern als Baum zu führen, und
+    sicherzustellen, dass die AI die passenden Teile liest und vorhandene
+    Bausteine wiederverwendet. Das Epic baut die nötigen Mechanismen in den
+    Harness: Scopes in Unterordnern, Pflichtlektüre, Linkprüfung,
+    Pflege-Erinnerung, Pflicht über Nutzung, Vorlagen und Skills.
+  - Resolution: Vom Besitzer am 2026-11-05 bestätigt; STORY-053 bis
+    STORY-059 umgesetzt (v0.12.9 bis v0.13.1), Gesamtablauf in einem
+    Testprojekt geprüft.
+
+- `STORY-060` **Notes heißen Memos: Harness an den umbenannten Viewer anpassen**
+  - Uid: b14b4a8c-5f7c-4c38-8f3e-fb90b681f663.
+  - Type: Story.
+  - Parent: `EPIC-008`.
+  - Required for parent: No.
+  - Status: Completed.
+  - Created: 2026-11-12.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Der Harness arbeitet mit Memos, Topics und Hints des ToDo-Viewers
+    (ab 0.10.0) über die Routen /api/memos, im Dateimodus mit dem Ordner
+    memos/. Der Begriff Note bezeichnet im Harness nur noch die Notiz zu
+    einem Backlog-Item.
+  - Completion criteria: 1. Der Helfer für Memos (memos_api.py) nutzt die
+    Routen /api/memos/… und die neuen Feldnamen (memos, memo_count, hints,
+    active_memos); notices heißt hints.
+    2. Dateimodus (memos_files.py, memos_format.py): Ordner memos/, Dateien
+    MEMO-…, Verweise memo:.
+    3. Sitzungsstart, Konfiguration und der Hook für geänderte
+    Backlog-Dateien sprechen von Memos und erkennen den Ordner memos/.
+    4. Der todo-Skill (memos.md, memos-api.md, memos-files.md, SKILL.md,
+    sync-flow.md, format.md, alarms.md) benutzt Memo und Hint; Item-Notizen
+    sind klar abgegrenzt.
+    5. Tests und Fixtures sind umbenannt und grün; Techdocs sind
+    nachgezogen.
+    6. Die Kopie des Harness im Projekt ist neu exportiert, falls vorhanden,
+    und der alte Ordner docs/todo/notes/ ist entfernt.
+  - Summary: Umstellung des Harness auf die Begriffe Memo und Hint des
+    ToDo-Viewers ab 0.10.0.
+  - Resolution: Vom Owner am 2026-11-12 bestätigt; umgesetzt in Release
+    v0.14.0.
+
+- `STORY-052` **Branch-Stand beim Start einer Cloud-Session mit origin abgleichen**
+  - Uid: 3b72b84e-cf3a-43f0-b071-d6d79331e4f1.
+  - Type: Story.
+  - Parent: `EPIC-010`.
+  - Required for parent: Yes.
+  - Status: Completed.
+  - Created: 2026-11-04.
+  - Area: Entwicklung.
+  - Priority: Important.
+  - Dependencies: None.
+  - Goal: Eine Cloud-Session eines Projekts mit cloud.export arbeitet nicht
+    unbemerkt auf einem veralteten Branch-Stand. Beim Start holt der
+    Session-Start den aktuellen Branch von origin, spult bei sauberem Stand
+    vor und meldet sonst in einer Zeile, wie weit der Stand abweicht und
+    welcher Befehl passt. Er überschreibt nie etwas.
+  - Completion criteria: 1. Ein Skript plugin/scripts/cloud_sync.py holt
+    beim Start einer Cloud-Session (CLAUDE_CODE_REMOTE=true, Quelle startup)
+    nur den aktuellen Branch von origin, ohne --unshallow und mit Zeitlimit,
+    und läuft als erster Schritt von session_start.py, damit dessen Hinweise
+    den neuen Stand sehen. Lokal tut es nichts.
+    2. Bei sauberem Arbeitsbaum und HEAD als Vorfahr von origin spult es per
+    git merge --ff-only vor und meldet das in einer Zeile; bei gleichem
+    Stand oder nur lokal vorausliegenden Commits schweigt es.
+    3. Bei unsauberem Arbeitsbaum, beidseitigen Commits, fehlendem
+    gemeinsamem Vorfahren (Shallow Clone, Force-Push) oder gescheitertem
+    Fetch ändert es nichts und meldet eine Zeile mit Abweichung (Zahl der
+    Commits oder Hash und Datum beider Stände) und passendem Befehl; git
+    reset --hard nur nach Rückfrage beim Nutzer.
+    4. Die Konfiguration cloud.sync (Boolean, Standard true) schaltet den
+    Abgleich ab; geprüft in harness_config.py, dokumentiert in
+    configuration.md, getestet in test_config.py.
+    5. architecture.md enthält die freigegebene, auf Cloud-Sessions
+    begrenzte Ausnahme von Regel 2 (Netz) und Regel 5 (Schreiben ins
+    Projekt).
+    6. Unit-Tests mit einem lokalen Bare-Repo als origin decken alle Fälle
+    aus 2 und 3 ab, dazu Zeitlimit und lokale Session; Techdocs
+    (interfaces.md, configuration.md) beschreiben das Verhalten.
+    7. Ein Lauf in einer echten Cloud-Session eines Projekts mit
+    aktualisierter Kopie zeigt den Abgleich oder die Meldung.
+  - Summary: Cloud-Sessions starteten auf einem veralteten, gecachten
+    Branch-Stand, ohne dass es jemand merkte. Künftig holt der Session-Start
+    den Branch von origin, aktualisiert ihn, wenn das gefahrlos geht, und
+    meldet sonst die Abweichung.
+  - Resolution: Vom Owner am 2026-11-12 abgeschlossen. Kriterien 1 bis 6
+    erfüllt (v0.12.8). Kriterium 7: in einer frischen Cloud-Session
+    Schweigen bei gleichem Stand gesehen, der Vorspul-Fall wurde nicht
+    belegt; der Owner meldet sich, falls der Abgleich in der Praxis nicht
+    funktioniert.

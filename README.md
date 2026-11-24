@@ -10,7 +10,7 @@ sind und wo die Dokumente liegen, steht pro Projekt in
 
 | Modul | Zweck |
 |---|---|
-| `todo` | Typisierter Projekt-Backlog (über die ToDo-Viewer-API; im Modus `files` als `TODO.md`, `archive.md`, Notizen und Specs pro Eintrag) mit automatischer Formatprüfung. Gehört dazu: Notes und Topics (Erinnerungen, Fragen, Beobachtungen, Ideen), getrennt vom Backlog; mit Backend `api` im ToDo-Viewer (nichts davon liegt im Repository), mit `files` als Markdown-Dateien im Ordner `notes/` des Backlogs (im Repository, der Viewer liest sie beim Sync) |
+| `todo` | Typisierter Projekt-Backlog (über die ToDo-Viewer-API; im Modus `files` als `TODO.md`, `archive.md`, Notizen und Specs pro Eintrag) mit automatischer Formatprüfung. Gehört dazu: Memos und Topics (Erinnerungen, Fragen, Beobachtungen, Ideen), getrennt vom Backlog; mit Backend `api` im ToDo-Viewer (nichts davon liegt im Repository), mit `files` als Markdown-Dateien im Ordner `memos/` des Backlogs (im Repository, der Viewer liest sie beim Sync) |
 | `daily` | Ein Tagesbericht pro Arbeitstag über relevante Änderungen, geschrieben auf dem Branch, in den sie gemerged wurden |
 | `techdocs` | Technische Systemdoku (README, Architektur, Schnittstellen, Konfiguration, Betrieb) mit Erinnerung, sie im selben Change mitzupflegen |
 | `development` | Suite verbindlicher Entwicklungsregeln für die AI (englisch). Teilbereich `architecture`: Architekturregeln mit Scopes, die vor der ersten Code-Änderung einer Session gelesen werden müssen. Teilbereich `decomposition`: Aufgaben werden in kleine, einzeln testbare Schritte zerlegt; für Bugfixes und neues Verhalten entsteht der Test zuerst. Teilbereich `worktree`: Changes mit freigegebenem Plan laufen in einem eigenen Worktree vom aktuell ausgecheckten Branch; die AI merged sie danach selbst dorthin zurück und löscht den Worktree. Teilbereich `testing`: alle Tests liegen in einem Testordner neben dem Quellcode (`development.tests`, Standard `tests`), getrennt in Implementierungstests der AI (Unit- und Integrationstests, optional Systemtests über die echten Einstiegspunkte) und Funktionalitätstests für den Owner, die nur auf Aufruf laufen und ihre Szenarien über Parameter setzen |
@@ -93,7 +93,7 @@ Grenzen: Die Hooks der Kopie laufen nur in einer Sitzung mit einem Repository
 und nur in der Cloud (`CLAUDE_CODE_REMOTE=true`); lokal gelten die Hooks des
 Plugins. Der ToDo-Viewer ist aus der Cloud nicht erreichbar: dort arbeitet der
 Harness automatisch mit den Markdown-Dateien des Backlogs (`files`), die Config
-bleibt unverändert; Notes liegen dort als Dateien im Ordner `notes/` des
+bleibt unverändert; Memos liegen dort als Dateien im Ordner `memos/` des
 Backlogs (und damit im Repository), Alarme gibt es dort nicht. Mit der Variable
 `CLAUDE_HARNESS_TODO_BACKEND` lässt sich das Backend je Umgebung auch von Hand
 festlegen. Skills und Hooks der Kopie kosten lokal
@@ -106,14 +106,14 @@ sonst meldet er die Abweichung in einer Zeile und überschreibt nichts
 braucht jedes Projekt ein `/claude-harness:update`, damit die Kopie sie erhält.
 
 Ablauf zwischen Cloud und lokalem Viewer (Regeln im Skill `todo`, Datei
-`sync-flow.md`): Der Viewer spiegelt den Backlog-Ordner samt `notes/` in das
+`sync-flow.md`): Der Viewer spiegelt den Backlog-Ordner samt `memos/` in das
 Repository (Auto-Sync an). Vor der Cloud-Sitzung wird der Ordner als
 `Backlog: …` committet und `main` gepusht; die Cloud-Sitzung ändert die Dateien
 auf ihrem Branch `claude/<Name>`; der Branch kommt per Pull Request nach `main`
 (lokales Merge ist die Alternative), lokal folgt `git pull`, und der Viewer
 übernimmt die Dateien beim nächsten Auto-Sync. Konflikte entscheidet der
 Besitzer im Sync-Dialog des Viewers; bei Git-Merge-Markern pausiert der
-Auto-Sync, bis sie gelöst sind. Die Notes liegen dabei im Repository und sind
+Auto-Sync, bis sie gelöst sind. Die Memos liegen dabei im Repository und sind
 nicht mehr privat. Details:
 [Schnittstellen, Skript `cloud_export.py`](docs/techdocs/interfaces.md#skript-cloud_exportpy).
 
