@@ -78,6 +78,21 @@ index lines for it, and this helper does not offer it. The viewer has no `area`
 field any more: a call with `area` in `fields` fails with `not_editable`, and
 `show` returns no such field.
 
+## Topic tree (MCP tools of the viewer)
+
+Only the viewer's MCP server `todo-viewer` offers these (names as `tools/list`
+prints them; HTTP paths below `/api/mindmap/…`); `backlog_api.py` has no
+commands for them. The rule for using them is in [SKILL.md](SKILL.md)
+(creating an item).
+
+| Tool | Purpose | Main inputs |
+|---|---|---|
+| `mindmap_get_tree` | Read the topic tree: nodes (uid, title, parent, position, counts, state) and the items without a node (`unassigned`) | `project` |
+| `mindmap_create_item_at_node` | Create an item and hang it on the node | `node`, `type` (Epic, Story, Task), `fields` (`completion_criteria` required; `title`, `goal` otherwise from the node) |
+| `mindmap_assign_item` | Hang an existing item on a node | `node`, `item`, `replace` (only to replace another node) |
+| `mindmap_create_node` | Create a node, only after the owner's yes | `project`, `title`, `text`, `parent` |
+| `backlog_create_item` | Create an item without a node, when none fits or the owner declines | `project`, `type`, `fields` |
+
 ## Errors
 
 - Exit 1: the server refused; stderr shows `HTTP <status> <code>: <message>`
