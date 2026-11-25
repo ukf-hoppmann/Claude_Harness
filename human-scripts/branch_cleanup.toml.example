@@ -1,6 +1,0 @@
-# Optional. Kopiere nach branch_cleanup.toml (liegt neben dem Skript).
-# main, master und HEAD sind immer geschuetzt, egal was hier steht.
-remote = "origin"
-# base = "main"               # Standard: Default-Branch des Remotes
-coding_patterns = ["claude/*"]
-protected = ["develop", "release/*"]

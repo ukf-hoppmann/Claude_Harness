@@ -82,3 +82,14 @@ sync = true
 # its backlog. Optional.
 [harness]
 repo = []
+
+# Branch cleanup (human-scripts/branch_cleanup.py in the Claude_Harness repo,
+# run by hand from this project; it only prints delete commands). Optional.
+# coding_patterns: branches the script may propose for deletion. protected:
+# extra branch patterns it never proposes (main, master and HEAD are always
+# protected). Root project only.
+[branch_cleanup]
+remote = "origin"
+base = "main"       # branch a coding branch must be merged into
+coding_patterns = ["claude/*"]
+protected = ["develop", "release/*"]

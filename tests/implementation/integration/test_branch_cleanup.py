@@ -111,6 +111,27 @@ class BranchCleanupTest(unittest.TestCase):
         self.assertRegex(p.stdout, r"claude/done\s+PROTECTED")
         self.assertNotIn("git push", p.stdout)
 
+    def write_config(self, body):
+        d = self.w / ".claude-harness"
+        d.mkdir(exist_ok=True)
+        (d / "config.toml").write_text("version = 1\n" + body)
+
+    def test_config_from_project_harness_toml(self):
+        self.branch("claude/done", merged=True)
+        self.branch("codex/done", merged=True)
+        self.write_config('[branch_cleanup]\ncoding_patterns = ["codex/*"]\nprotected = ["codex/keep"]\n')
+        out = self.run_script().stdout
+        self.assertIn(":refs/heads/codex/done", out)
+        self.assertNotIn("claude/done", out)
+        self.write_config('[branch_cleanup]\ncoding_patterns = ["codex/*"]\nprotected = ["codex/*"]\n')
+        self.assertNotIn("git push", self.run_script().stdout)
+
+    def test_invalid_config_fails(self):
+        self.write_config('[branch_cleanup]\ncoding_patterns = []\n')
+        p = self.run_script()
+        self.assertEqual(p.returncode, 2)
+        self.assertIn("coding_patterns", p.stderr)
+
     def test_outside_repo_fails(self):
         with tempfile.TemporaryDirectory() as d:
             p = self.run_script(d)

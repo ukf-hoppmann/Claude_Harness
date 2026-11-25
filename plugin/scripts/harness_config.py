@@ -49,11 +49,12 @@ TABLE_KEYS = {
     "harness": {"repo"},
     "semver": {"file", "sync", "paths"},
     "cloud": {"export", "sync"},
+    "branch_cleanup": {"remote", "base", "coding_patterns", "protected"},
 }
 _TOP_LEVEL_KEYS = {"version", "modules", "projects", *TABLE_KEYS}
-# Tables only the root project may contain: the subproject registry, the harness repo, and the cloud copy
-# (one copy per repository, at its root).
-_ROOT_ONLY_TABLES = ("projects", "harness", "cloud")
+# Tables only the root project may contain: the subproject registry, the harness repo, the cloud copy
+# and the branch cleanup (branches belong to the repository, not to a subproject).
+_ROOT_ONLY_TABLES = ("projects", "harness", "cloud", "branch_cleanup")
 _LANGUAGE_PATTERN = re.compile(r"[a-z]{2}")
 _URL_PATTERN = re.compile(r"https?://\S+")
 PROJECT_NAME = re.compile(r"[A-Za-z][A-Za-z0-9_-]*")
@@ -350,6 +351,7 @@ def parse_config(data: dict[str, Any], *, subproject: bool = False) -> HarnessCo
     if not isinstance(cloud_sync, bool):
         errors.append("cloud.sync must be true or false")
         cloud_sync = True
+    _check_branch_cleanup(_table(data, "branch_cleanup", errors), errors)
     projects = _projects(data.get("projects", {}), errors)
     raw_semver = _table(data, "semver", errors)
     semver_file = _path_value(raw_semver, "file", "semver", DEFAULT_VERSION_FILE, errors)
@@ -412,6 +414,21 @@ def _projects(value: Any, errors: list[str]) -> tuple[tuple[str, PurePosixPath],
             if path.is_relative_to(other_path) or other_path.is_relative_to(path):
                 errors.append(f"projects.{name} and projects.{other} overlap; nested projects are not supported")
     return tuple(projects)
+
+
+def _check_branch_cleanup(table: dict[str, Any], errors: list[str]) -> None:
+    """Validate [branch_cleanup]; the values are read by human-scripts/branch_cleanup.py, not by the harness."""
+    for key in ("remote", "base"):
+        if key in table and not (isinstance(table[key], str) and table[key].strip()):
+            errors.append(f"branch_cleanup.{key} must be a non-empty string")
+    for key in ("coding_patterns", "protected"):
+        if key not in table:
+            continue
+        value = table[key]
+        if not isinstance(value, list) or not all(isinstance(v, str) and v.strip() for v in value):
+            errors.append(f"branch_cleanup.{key} must be a list of non-empty strings")
+        elif key == "coding_patterns" and not value:
+            errors.append("branch_cleanup.coding_patterns must not be empty")
 
 
 def _harness_repos(value: Any, errors: list[str]) -> tuple[str, ...]:

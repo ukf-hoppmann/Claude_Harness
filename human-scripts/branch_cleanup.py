@@ -23,8 +23,9 @@ Ein Branch bekommt nur dann einen Befehl, wenn alles gilt:
 Die Befehle nutzen --force-with-lease mit dem geprueften Commit: Hat der
 Branch inzwischen einen anderen Stand, lehnt Git das Loeschen ab.
 
-Konfiguration (optional): branch_cleanup.toml neben diesem Skript, siehe
-branch_cleanup.toml.example. Kommandozeile ueberschreibt die Datei.
+Konfiguration (optional): Tabelle [branch_cleanup] in
+<Projekt-Root>/.claude-harness/config.toml, siehe docs/techdocs/configuration.md
+im Claude_Harness-Repo. Kommandozeile ueberschreibt die Datei.
 """
 from __future__ import annotations
 
@@ -76,33 +77,38 @@ def _str_list(cfg: dict, key: str, path: Path) -> list[str] | None:
     return v
 
 
-def load_config(path: Path, explicit: bool) -> Settings:
+CONFIG_RELATIVE = Path(".claude-harness") / "config.toml"
+
+
+def load_config(root: str) -> Settings:
+    """Liest [branch_cleanup] aus der Harness-Konfiguration des Projekts; ohne Datei oder Tabelle gelten die Standards."""
     s = Settings()
+    path = Path(root) / CONFIG_RELATIVE
     if not path.exists():
-        if explicit:
-            raise CleanupError(f"Konfigurationsdatei nicht gefunden: {path}")
         return s
     try:
-        cfg = tomllib.loads(path.read_text(encoding="utf-8"))
+        data = tomllib.loads(path.read_text(encoding="utf-8"))
     except (tomllib.TOMLDecodeError, OSError) as e:
         raise CleanupError(f"{path}: ungueltig: {e}") from e
-    known = {"remote", "base", "coding_patterns", "protected"}
-    unknown = set(cfg) - known
+    cfg = data.get("branch_cleanup", {})
+    if not isinstance(cfg, dict):
+        raise CleanupError(f"{path}: [branch_cleanup] muss eine Tabelle sein")
+    unknown = set(cfg) - {"remote", "base", "coding_patterns", "protected"}
     if unknown:
-        raise CleanupError(f"{path}: unbekannte Schluessel: {', '.join(sorted(unknown))}")
+        raise CleanupError(f"{path}: unbekannte Schluessel in [branch_cleanup]: {', '.join(sorted(unknown))}")
     for key in ("remote", "base"):
-        if key in cfg and not (isinstance(cfg[key], str) and cfg[key]):
-            raise CleanupError(f"{path}: '{key}' muss ein nichtleerer String sein")
+        if key in cfg and not (isinstance(cfg[key], str) and cfg[key].strip()):
+            raise CleanupError(f"{path}: branch_cleanup.{key} muss ein nichtleerer String sein")
     s.remote = cfg.get("remote", s.remote)
     s.base = cfg.get("base")
-    pats = _str_list(cfg, "coding_patterns", path)
-    if pats is not None:
-        if not pats:
-            raise CleanupError(f"{path}: 'coding_patterns' darf nicht leer sein")
-        s.patterns = pats
-    prot = _str_list(cfg, "protected", path)
-    if prot is not None:
-        s.protected = prot
+    for key, attr in (("coding_patterns", "patterns"), ("protected", "protected")):
+        if key in cfg:
+            v = cfg[key]
+            if not isinstance(v, list) or not all(isinstance(x, str) and x.strip() for x in v):
+                raise CleanupError(f"{path}: branch_cleanup.{key} muss eine Liste nichtleerer Strings sein")
+            if key == "coding_patterns" and not v:
+                raise CleanupError(f"{path}: branch_cleanup.coding_patterns darf nicht leer sein")
+            setattr(s, attr, v)
     return s
 
 
@@ -283,12 +289,11 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--base", help="Base-Branch (Standard: Default-Branch des Remotes)")
     ap.add_argument("--pattern", action="append", help="Coding-Muster (wiederholbar, ersetzt die Konfiguration)")
     ap.add_argument("--protect", action="append", default=[], help="Zusaetzlich geschuetztes Muster (wiederholbar)")
-    ap.add_argument("--config", help="Pfad zur Konfigurationsdatei")
     ap.add_argument("--no-fetch", action="store_true", help="kein git fetch --prune vor der Analyse")
     args = ap.parse_args(argv)
     try:
-        cfg_path = Path(args.config) if args.config else Path(__file__).with_name("branch_cleanup.toml")
-        s = load_config(cfg_path, explicit=bool(args.config))
+        root = repo_root()
+        s = load_config(root)
         if args.remote:
             s.remote = args.remote
         if args.base:
@@ -296,7 +301,6 @@ def main(argv: list[str] | None = None) -> int:
         if args.pattern:
             s.patterns = args.pattern
         s.protected += args.protect
-        root = repo_root()
         rows, warnings, base, push_urls = analyze(root, s, not args.no_fetch)
         print(f"Repository: {root}")
         print(report(rows, warnings, base, s.remote, push_urls))

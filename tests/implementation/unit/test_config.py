@@ -143,6 +143,15 @@ class ParseConfigTest(unittest.TestCase):
         self.assertEqual(config.harness_repos, ("/abs/harness", "~/code/harness"))
         self.assertEqual(parse_config({"version": 1, "harness": {"repo": []}}).harness_repos, ())
 
+    def test_branch_cleanup(self):
+        parse_config({"version": 1})
+        parse_config({"version": 1, "branch_cleanup": {"remote": "origin", "base": "main",
+                                                       "coding_patterns": ["claude/*"], "protected": []}})
+        for bad in ({"remote": ""}, {"base": 1}, {"coding_patterns": []}, {"coding_patterns": "claude/*"},
+                    {"protected": [1]}, {"unknown": True}):
+            with self.subTest(bad=bad), self.assertRaises(ConfigError):
+                parse_config({"version": 1, "branch_cleanup": bad})
+
     def test_cloud_export(self):
         self.assertFalse(parse_config({"version": 1}).cloud_export)
         self.assertFalse(parse_config({"version": 1, "cloud": {}}).cloud_export)
