@@ -1,5 +1,6 @@
 """Integrationstest fuer human-scripts/branch_cleanup.py (echte Git-Repos, lokale Remotes)."""
 import os
+import re
 import subprocess
 import tempfile
 import unittest
@@ -55,7 +56,7 @@ class BranchCleanupTest(unittest.TestCase):
     @staticmethod
     def single_cmds(out):
         """Einzelbefehle, ohne den Sammelabschnitt."""
-        return [l for l in out.split("Alle auf einmal")[0].splitlines() if l.startswith("git push")]
+        return [l for l in out.split("=== Alle auf einmal")[0].splitlines() if l.startswith("git push")]
 
     def test_merged_unmerged_protected(self):
         self.branch("claude/done", merged=True)
@@ -89,7 +90,7 @@ class BranchCleanupTest(unittest.TestCase):
         self.branch("claude/one", merged=True)
         self.branch("claude/two", merged=True)
         p = self.run_script()
-        marker = p.stdout.index("Alle auf einmal")
+        marker = p.stdout.index("=== Alle auf einmal")
         cmds = [l for l in p.stdout[marker:].splitlines() if l.startswith("git push")]
         self.assertEqual(len(cmds), 2)
         for c in cmds:
@@ -97,6 +98,14 @@ class BranchCleanupTest(unittest.TestCase):
         for r in (self.a, self.b):
             heads = git(self.w, "ls-remote", "--heads", str(r))
             self.assertNotIn("claude/", heads)
+
+    def test_color_only_when_asked(self):
+        self.branch("claude/done", merged=True)
+        self.assertNotIn("\033[", self.run_script().stdout)
+        out = self.run_script(None, "--color", "always").stdout
+        self.assertIn("\033[", out)
+        plain = re.sub(r"\033\[[0-9;]*m", "", out)
+        self.assertEqual(plain, self.run_script().stdout)
 
     def test_lease_blocks_changed_branch(self):
         self.branch("claude/done", merged=True)

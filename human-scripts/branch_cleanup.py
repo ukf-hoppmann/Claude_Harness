@@ -31,6 +31,7 @@ from __future__ import annotations
 
 import argparse
 import fnmatch
+import os
 import shlex
 import subprocess
 import sys
@@ -250,20 +251,28 @@ def analyze(root: str, s: Settings, do_fetch: bool) -> tuple[list[Row], list[str
     return rows, warnings, base, push_urls
 
 
-def report(rows: list[Row], warnings: list[str], base: str, remote: str, push_urls: list[str]) -> str:
+STATUS_COLOR = {"SAFE": "1;32", "SAFE*": "1;33", "NOT MERGED": "33", "PROTECTED": "36", "ERROR": "1;31"}
+
+
+def report(rows: list[Row], warnings: list[str], base: str, remote: str, push_urls: list[str],
+           color: bool = False) -> str:
+    def c(text: str, code: str) -> str:
+        return f"\033[{code}m{text}\033[0m" if color else text
+
     L: list[str] = []
-    L.append(f"Remote: {remote}   Base: {base}")
-    L.append("Push-Ziele: " + ", ".join(push_urls))
+    L.append(f"{c('Remote:', '1')} {c(remote, '36')}   {c('Base:', '1')} {c(base, '36')}")
+    L.append(f"{c('Push-Ziele:', '1')} " + ", ".join(c(u, '36') for u in push_urls))
     for w in warnings:
-        L.append(f"WARNUNG: {w}")
+        L.append(c(f"WARNUNG: {w}", "1;31"))
     L.append("")
     shown = [r for r in rows if r.status != "IGNORED"]
     if shown:
         w = max(len(r.name) for r in shown)
-        L.append(f"{'Branch'.ljust(w)}  {'Status':<11} Ahead  Hinweis")
+        L.append(c(f"{'Branch'.ljust(w)}  {'Status':<11} Ahead  Hinweis", "1;4"))
         for r in sorted(shown, key=lambda r: (r.status, r.name)):
             ahead = "-" if r.ahead is None else str(r.ahead)
-            L.append(f"{r.name.ljust(w)}  {r.status:<11} {ahead:>5}  {r.note}")
+            code = STATUS_COLOR.get(r.status, "0")
+            L.append(f"{c(r.name.ljust(w), code)}  {c(f'{r.status:<11}', code)} {ahead:>5}  {r.note}")
     ignored = len(rows) - len(shown)
     L.append("")
     L.append(f"{len(rows)} Branches, {ignored} ohne Coding-Muster (nicht angezeigt).")
@@ -271,19 +280,21 @@ def report(rows: list[Row], warnings: list[str], base: str, remote: str, push_ur
     cmd_rows = [r for r in rows if r.commands]
     for r in rows:
         for sk in r.skipped:
-            L.append(f"HINWEIS {r.name}: {sk}")
+            L.append(c(f"HINWEIS {r.name}: {sk}", "33"))
     L.append("")
     if not cmd_rows:
-        L.append("Keine Loesch-Befehle: nichts ist sicher loeschbar.")
+        L.append(c("Keine Loesch-Befehle: nichts ist sicher loeschbar.", "1;33"))
     else:
-        L.append("# Pruefe die Liste und fuehre nur aus, was du wirklich loeschen willst.")
-        L.append("# --force-with-lease loescht nur, wenn der Branch noch auf dem geprueften Commit steht.")
+        L.append(c("# Pruefe die Liste und fuehre nur aus, was du wirklich loeschen willst.", "33"))
+        L.append(c("# --force-with-lease loescht nur, wenn der Branch noch auf dem geprueften Commit steht.", "33"))
+        L.append("")
+        L.append(c("=== Einzeln ===", "1;35"))
         for r in cmd_rows:
             L.append("")
-            L.append(f"# {r.name} ({r.sha[:9]})")
-            L.extend(r.commands)
+            L.append(c(f"# {r.name} ({r.sha[:9]})", "1;36"))
+            L.extend(c(cmd, "1;32") for cmd in r.commands)
         L.append("")
-        L.append("# Alle auf einmal (ein Befehl je Push-Ziel, jeder Branch mit eigenem Lease):")
+        L.append(c("=== Alle auf einmal (ein Befehl je Push-Ziel, jeder Branch mit eigenem Lease) ===", "1;35"))
         by_url: dict[str, list[tuple[str, str]]] = {}
         for r in cmd_rows:
             for url, sha in r.deletes:
@@ -291,7 +302,7 @@ def report(rows: list[Row], warnings: list[str], base: str, remote: str, push_ur
         for url, items in by_url.items():
             leases = " ".join("--force-with-lease=" + shlex.quote(f"refs/heads/{n}:{s}") for n, s in items)
             refs = " ".join(shlex.quote(f":refs/heads/{n}") for n, _ in items)
-            L.append(f"git push {leases} {shlex.quote(url)} {refs}")
+            L.append(c(f"git push {leases} {shlex.quote(url)} {refs}", "1;32"))
     return "\n".join(L)
 
 
@@ -301,6 +312,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--base", help="Base-Branch (Standard: Default-Branch des Remotes)")
     ap.add_argument("--pattern", action="append", help="Coding-Muster (wiederholbar, ersetzt die Konfiguration)")
     ap.add_argument("--protect", action="append", default=[], help="Zusaetzlich geschuetztes Muster (wiederholbar)")
+    ap.add_argument("--color", choices=["auto", "always", "never"], default="auto",
+                    help="Farben (Standard auto: nur im Terminal, nie mit NO_COLOR)")
     ap.add_argument("--no-fetch", action="store_true", help="kein git fetch --prune vor der Analyse")
     args = ap.parse_args(argv)
     try:
@@ -315,7 +328,9 @@ def main(argv: list[str] | None = None) -> int:
         s.protected += args.protect
         rows, warnings, base, push_urls = analyze(root, s, not args.no_fetch)
         print(f"Repository: {root}")
-        print(report(rows, warnings, base, s.remote, push_urls))
+        color = args.color == "always" or (
+            args.color == "auto" and sys.stdout.isatty() and "NO_COLOR" not in os.environ)
+        print(report(rows, warnings, base, s.remote, push_urls, color))
     except CleanupError as e:
         print(f"FEHLER: {e}", file=sys.stderr)
         return 2
