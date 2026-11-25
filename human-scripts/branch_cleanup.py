@@ -120,6 +120,7 @@ class Row:
     ahead: int | None = None
     note: str = ""
     commands: list[str] = field(default_factory=list)
+    deletes: list[tuple[str, str]] = field(default_factory=list)  # (push url, geprueftes sha)
     skipped: list[str] = field(default_factory=list)
 
 
@@ -233,6 +234,7 @@ def analyze(root: str, s: Settings, do_fetch: bool) -> tuple[list[Row], list[str
             else:
                 merged = is_ancestor(root, tip, heads[base])
                 if merged is True:
+                    row.deletes.append((url, tip))
                     row.commands.append(
                         "git push --force-with-lease="
                         + shlex.quote(f"refs/heads/{name}:{tip}")
@@ -280,6 +282,16 @@ def report(rows: list[Row], warnings: list[str], base: str, remote: str, push_ur
             L.append("")
             L.append(f"# {r.name} ({r.sha[:9]})")
             L.extend(r.commands)
+        L.append("")
+        L.append("# Alle auf einmal (ein Befehl je Push-Ziel, jeder Branch mit eigenem Lease):")
+        by_url: dict[str, list[tuple[str, str]]] = {}
+        for r in cmd_rows:
+            for url, sha in r.deletes:
+                by_url.setdefault(url, []).append((r.name, sha))
+        for url, items in by_url.items():
+            leases = " ".join("--force-with-lease=" + shlex.quote(f"refs/heads/{n}:{s}") for n, s in items)
+            refs = " ".join(shlex.quote(f":refs/heads/{n}") for n, _ in items)
+            L.append(f"git push {leases} {shlex.quote(url)} {refs}")
     return "\n".join(L)
 
 

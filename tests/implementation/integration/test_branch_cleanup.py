@@ -52,6 +52,11 @@ class BranchCleanupTest(unittest.TestCase):
         return subprocess.run(["python3", "-I", str(SCRIPT), *args],
                               cwd=cwd or self.w, env=ENV, capture_output=True, text=True)
 
+    @staticmethod
+    def single_cmds(out):
+        """Einzelbefehle, ohne den Sammelabschnitt."""
+        return [l for l in out.split("Alle auf einmal")[0].splitlines() if l.startswith("git push")]
+
     def test_merged_unmerged_protected(self):
         self.branch("claude/done", merged=True)
         self.branch("claude/open", merged=False)
@@ -59,7 +64,7 @@ class BranchCleanupTest(unittest.TestCase):
         p = self.run_script(self.w / ".git" / "..", "--pattern", "*")
         self.assertEqual(p.returncode, 0, p.stderr)
         out = p.stdout
-        cmds = [l for l in out.splitlines() if l.startswith("git push")]
+        cmds = self.single_cmds(out)
         self.assertEqual(len(cmds), 2)  # beide Push-Ziele, nur claude/done
         self.assertTrue(all(":refs/heads/claude/done" in c for c in cmds))
         self.assertIn(str(self.a), cmds[0] + cmds[1])
@@ -75,15 +80,28 @@ class BranchCleanupTest(unittest.TestCase):
         before = git(self.w, "ls-remote", "--heads", str(self.a))
         p = self.run_script()
         self.assertEqual(git(self.w, "ls-remote", "--heads", str(self.a)), before)
-        for c in [l for l in p.stdout.splitlines() if l.startswith("git push")]:
+        for c in self.single_cmds(p.stdout):
             subprocess.run(c, shell=True, cwd=self.w, env=ENV, check=True, capture_output=True)
         self.assertNotIn("claude/done", git(self.w, "ls-remote", "--heads", str(self.a)))
         self.assertNotIn("claude/done", git(self.w, "ls-remote", "--heads", str(self.b)))
 
+    def test_all_in_one_command_per_target(self):
+        self.branch("claude/one", merged=True)
+        self.branch("claude/two", merged=True)
+        p = self.run_script()
+        marker = p.stdout.index("Alle auf einmal")
+        cmds = [l for l in p.stdout[marker:].splitlines() if l.startswith("git push")]
+        self.assertEqual(len(cmds), 2)
+        for c in cmds:
+            subprocess.run(c, shell=True, cwd=self.w, env=ENV, check=True, capture_output=True)
+        for r in (self.a, self.b):
+            heads = git(self.w, "ls-remote", "--heads", str(r))
+            self.assertNotIn("claude/", heads)
+
     def test_lease_blocks_changed_branch(self):
         self.branch("claude/done", merged=True)
         p = self.run_script()
-        cmds = [l for l in p.stdout.splitlines() if l.startswith("git push")]
+        cmds = self.single_cmds(p.stdout)
         git(self.w, "checkout", "claude/done")
         self.commit("late")
         git(self.w, "push", "origin", "claude/done")
@@ -99,7 +117,7 @@ class BranchCleanupTest(unittest.TestCase):
         git(self.w, "push", str(self.b), "tmp:claude/done")
         git(self.w, "checkout", "main")
         p = self.run_script()
-        cmds = [l for l in p.stdout.splitlines() if l.startswith("git push")]
+        cmds = self.single_cmds(p.stdout)
         self.assertEqual(len(cmds), 1)
         self.assertIn(str(self.a), cmds[0])
         self.assertIn("anderem Commit", p.stdout)
